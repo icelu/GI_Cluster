@@ -1,0 +1,156 @@
+karyotype = data/$organism.chr
+
+chromosomes_units           = 100000
+chromosomes_display_default = yes
+
+
+<plots>
+<plot>
+type = histogram
+file = data/$organism.gi
+min = 0
+max = 1
+r0 = 0.9r
+r1 = 0.95r
+color = black
+thickness = 2p
+fill_under = yes
+fill_color = 153,153,153
+</plot>
+
+
+<plot>
+type = histogram
+file   = data/$organism.$prefix_F1
+min = 0
+max = 1
+r0 = 0.8r
+r1 = 0.85r
+color = black
+thickness = 2p
+fill_under = yes
+fill_color = 247,129,191
+</plot>
+
+
+<plot>
+type = histogram
+file   = data/$organism.$prefix_F2
+min = 0
+max = 1
+r0 = 0.7r
+r1 = 0.75r
+color = black
+thickness = 2p
+fill_under = yes
+fill_color = 166,86,40
+</plot>
+
+<plot>
+type = histogram
+file   = data/$organism.$prefix_F3
+min = 0
+max = 1
+r0 = 0.6r
+r1 = 0.65r
+color = black
+thickness = 2p
+fill_under = yes
+fill_color = 255,255,51
+</plot>
+
+<plot>
+type = histogram
+file   = data/$organism.$prefix_F4
+min = 0
+max = 1
+r0 = 0.5r
+r1 = 0.55r
+color = black
+thickness = 2p
+fill_under = yes
+fill_color = 255,127,0
+</plot>
+
+<plot>
+type = histogram
+file   = data/$organism.$prefix_F5
+min = 0
+max = 1
+r0 = 0.4r
+r1 = 0.45r
+color = black
+thickness = 2p
+fill_under = yes
+fill_color = 152,78,163
+</plot>
+
+<plot>
+type = histogram
+file   = data/$organism.$prefix_F6
+min = 0
+max = 1
+r0 = 0.3r
+r1 = 0.35r
+color = black
+thickness = 2p
+fill_under = yes
+fill_color = 77,175,74
+</plot>
+
+
+<plot>
+type = histogram
+file   = data/$organism.$prefix_F7
+min = 0
+max = 1
+r0 = 0.2r
+r1 = 0.25r
+color = black
+thickness = 2p
+fill_under = yes
+fill_color = 55,126,184
+</plot>
+
+
+<plot>
+type = histogram
+file   = data/$organism.$prefix_F8
+min = 0
+max = 1
+r0 = 0.1r
+r1 = 0.15r
+color = black
+thickness = 2p
+fill_under = yes
+fill_color = 228,26,28
+</plot>
+</plots>
+
+
+<highlights>
+z = 0
+fill_color = vlgrey
+
+<highlight>
+show = yes
+file = data/$organism.highlight
+#r0   = 0r+85p
+r0   = 0.1r
+r1   = 1r
+</highlight>
+
+</highlights>
+
+
+<<include txideogram.conf>>
+<<include txticks.conf>>
+
+<<include etc/colors_fonts_patterns.conf>>
+
+<image>
+<<include etc/image.conf>>
+file* = ../img/$outfile
+</image>
+
+<<include etc/housekeeping.conf>>

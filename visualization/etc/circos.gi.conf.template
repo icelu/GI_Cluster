@@ -1,0 +1,110 @@
+# Configuration file for showing predicted GIs by different methods for a microbial genome
+karyotype = data/$organism.chr
+
+chromosomes_units           = 100000
+chromosomes_display_default = yes
+
+<plots>
+<plot>
+type = histogram
+file = data/$organism.refgi
+min = 0
+max = 1
+r0 = 0.9r
+r1 = 0.95r
+color = black
+thickness = 2p
+fill_under = yes
+fill_color = 27,158,119
+</plot>
+
+<plot>
+type = histogram
+file   = data/islandviewer3.gilist
+min = 0
+max = 1
+r0 = 0.8r
+r1 = 0.85r
+color = black
+thickness = 2p
+fill_under = yes
+fill_color = 217,95,2
+</plot>
+
+<plot>
+type = histogram
+file   = data/gihunter.gilist
+min = 0
+max = 1
+r0 = 0.7r
+r1 = 0.75r
+color = black
+thickness = 2p
+fill_under = yes
+fill_color = 117,112,179
+</plot>
+
+<plot>
+type = histogram
+file   = data/gicluster.gilist
+min = 0
+max = 1
+r0 = 0.6r
+r1 = 0.65r
+color = black
+thickness = 2p
+fill_under = yes
+fill_color = 231,41,138
+</plot>
+
+<plot>
+type = histogram
+file   = data/gicluster_gisvm.gilist
+min = 0
+max = 1
+r0 = 0.5r
+r1 = 0.55r
+color = black
+thickness = 2p
+fill_under = yes
+fill_color = 102,166,30
+</plot>
+
+<plot>
+type = histogram
+file   = data/gisvm.gilist
+min = 0
+max = 1
+r0 = 0.4r
+r1 = 0.45r
+color = black
+thickness = 2p
+fill_under = yes
+fill_color = 230,171,2
+</plot>
+</plots>
+
+
+<highlights>
+z = 0
+fill_color = vlgrey
+
+<highlight>
+show = yes
+file = data/$organism.refgi.highlight
+r0   = 0.4r
+r1   = 1r
+</highlight>
+</highlights>
+
+<<include txideogram.conf>>
+<<include txticks.conf>>
+
+<image>
+<<include etc/image.conf>>
+file* = ../img/$outfile.png
+</image>
+
+<<include etc/colors_fonts_patterns.conf>>
+
+<<include etc/housekeeping.conf>>

@@ -1,0 +1,16 @@
+R packages to install:
+install.packages("R.utils")
+
+install.packages("mclust")
+install.packages("cluster")
+install.packages("reshape2")
+install.packages("ggplot2")
+install.packages("apcluster")
+install.packages("LICORS")
+install.packages("kernlab")
+install.packages("clues")
+
+# optional
+install.packages("NbClust")
+install.packages("clustertend")
+install.packages("factoextra")

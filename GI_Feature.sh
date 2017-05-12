@@ -1,0 +1,275 @@
+########## usage ##########
+# ./GI_Feature.sh -s  $prog_dir -o $output_dir -n $organism -m $seg_prog
+# e.g. ./GI_Feature.sh -s $output_dir/GIFilter -o /home/ice/vmshare/research/data/species/cft73 -n NC_004431  -m /home/ice/vmshare/research/software/HGT/mjsd
+# Contact: bingxin@comp.nus.edu.sg
+
+software=$(basename $0)
+
+function usage() {
+  echo -e "GI_Feature: extracting features related to genomic islands in a genomic region"
+  echo "Version 0.1
+Usage: $software [options] -s [the directory containing all the scripts] -o [the output directory]
+-n [the name of the organism (NCBI Accession, e.g. NC_003198)] -m [programs for genome segmation (e.g. mjsd, gcprofile, gisvm, alienhunter)] -p [programs for gene prediction (e.g. prodigal, ncbi)]
+
+OPTIONS	Default	DESCIPTION
+# -t	1e-5	: e-value used during identification of mobgenes, i.e., hmmsearch against pfam database of mobgenes.
+-e	1e-5	: e-value used during identification of phage-related genes, i.e., blastp against PHAST.
+
+-r	1e-5	: e-value used during identification of virulence factors, i.e., blastp against VFDB.
+-a	1e-5	: e-value used during identification of antibiotic resistance genes, i.e., blastp against CARD.
+
+-d	4	: number of threads used by blast.
+-u	16	: number of cpus used by cmsearch.
+
+-h 	----	: print this help
+  "
+  exit -1
+}
+
+
+phage_evalue=1e-5
+virdb_evalue=1e-5
+arg_evalue=1e-5
+num_threads=4
+show_figure=1
+num_cpus=16
+
+while getopts "s:o:n:m:p:g:c:e:r:a:d:f:u:h" OPT; do
+  case $OPT in
+    s) prog_dir=$OPTARG || exit 1;;
+    o) output_dir=$OPTARG || exit 1;;
+    n) organism=$OPTARG || exit 1;;
+    m) seg_prog=$OPTARG || exit 1;;
+    p) pred_prog=$OPTARG || exit 1;;
+
+    #t) mobgene_evalue=$OPTARG || exit 1;;
+    e) phage_evalue=$OPTARG || exit 1;;
+
+    r) virdb_evalue=$OPTARG || exit 1;;
+    a) arg_evalue=$OPTARG || exit 1;;
+
+    d) num_threads=$OPTARG || exit 1;;
+    f) show_figure=$OPTARG || exit 1;;
+    u) num_cpus=$OPTARG || exit 1;;
+    h) usage && exit;;
+  esac
+done
+
+
+#echo $prog_dir
+#echo $output_dir
+#echo $organism
+
+############## compute known features related to genomic islands #########################
+if [ ! -d $output_dir/$pred_prog/feature/ ]
+then
+  mkdir $output_dir/$pred_prog/feature/
+fi
+
+############## compute compositional bias #########################
+
+# GC bias for each ORF
+echo "##########################################"
+echo "Analyze GC Content"
+if [ ! -f $output_dir/$pred_prog/feature/$organism.feature.gc ]
+then
+  python $prog_dir/analyze_GC.py -g $output_dir/$pred_prog/genome/$organism.ffn -o $output_dir/$pred_prog/feature/$organism.feature.gc
+  # python $prog_dir/find_atypicality.py -n 4 -s 1 -i $output_dir/$pred_prog/feature/$organism.gc -o $output_dir/$pred_prog/feature/$organism.gc.group
+  # less $output_dir/$pred_prog/feature/$organism.gc | cut -f5 > $output_dir/$pred_prog/feature/$organism.gc_skew
+  # paste $output_dir/$pred_prog/feature/$organism.gc.group $output_dir/$pred_prog/feature/$organism.gc_skew > $output_dir/$pred_prog/feature/$organism.feature.gc
+fi
+
+# codon usage
+echo "##########################################"
+echo "Analyze codon usage"
+if [ ! -f $output_dir/$pred_prog/feature/$organism.feature.codon ]
+then
+if [ ! -f $output_dir/$pred_prog/feature/codonw.out ]
+then
+  $prog_dir/bin/codonW/codonw -all_indices -nomenu $output_dir/$pred_prog/genome/$organism.ffn $output_dir/$pred_prog/feature/codonw.out $output_dir/$pred_prog/feature/codonw.blk
+fi
+  less $output_dir/$pred_prog/feature/codonw.out | cut -f6-8 | sed '1d' > $output_dir/$pred_prog/feature/codonw.out.f3
+  python $prog_dir/analyze_codon.py -g $output_dir/$pred_prog/genome/$organism.ffn -o $output_dir/$pred_prog/feature/codon.out
+  paste $output_dir/$pred_prog/feature/codon.out $output_dir/$pred_prog/feature/codonw.out.f3 > $output_dir/$pred_prog/feature/$organism.feature.codon
+fi
+
+# k-mer Frequency
+echo "##########################################"
+echo "Analyze k-mer frequency"
+if [ ! -f $output_dir/$pred_prog/feature/$organism.feature.kmer ]
+then
+  python $prog_dir/analyze_kmer.py -i $output_dir/$organism.fna -g $output_dir/$pred_prog/genome/$organism.ffn -o $output_dir/$pred_prog/feature/$organism.kmer
+  less $output_dir/$pred_prog/feature/$organism.kmer.covariance | cut -f2- > $output_dir/$pred_prog/feature/$organism.feature.kmer
+fi
+
+######################## compute gene content ##############################
+echo "##########################################"
+echo "Predicting ncRNA"
+if [ ! -f $output_dir/$pred_prog/feature/$organism.cmscan ]
+then
+  #cmsearch --cpu $num_cpus --nohmmonly --rfam --cut_ga --tblout $output_dir/$pred_prog/feature/$organism.tbl $prog_dir/db/RNA/CMs/Rfam.cm  $output_dir/$organism.fna > $output_dir/$pred_prog/feature/$organism.cmsearch
+  cmscan --cpu $num_cpus --rfam --cut_ga --nohmmonly --tblout $output_dir/$pred_prog/feature/$organism.cmscan.tbl --oskip --fmt 2 $prog_dir/db/RNA/CMs/Rfam.cm  $output_dir/$organism.fna > $output_dir/$pred_prog/feature/$organism.cmscan
+fi
+#perl $prog_dir/parse_infernal_output.py -i $output_dir/$pred_prog/feature/$organism.cmscan.tbl -o $output_dir/$pred_prog/feature/$organism.rna
+
+# mobgene (mobility gene)
+echo "##########################################"
+echo "Identify mobility genes"
+if [ ! -f $output_dir/$pred_prog/feature/$organism.feature.mobgene ]
+then
+python $prog_dir/extract_mobgene.py -i $prog_dir/db/MOB/Pfam-A.hmm.dat -o $prog_dir/db/MOB/mobgene.list > $prog_dir/db/MOB/Pfam_mobgene.hmm
+fi
+if [ ! -f $output_dir/$pred_prog/feature/$organism.feature.mobgene ]
+then
+  hmmsearch $prog_dir/db/MOB/Pfam_mobgene.hmm $output_dir/$pred_prog/genome/$organism.faa > $output_dir/$pred_prog/feature/$organism.hit.mobgene
+  python $prog_dir/parse_hmmer_output.py -d $output_dir/$pred_prog/feature/$organism.hit.mobgene -g $output_dir/$pred_prog/genome/$organism.gene_id -o $output_dir/$pred_prog/feature/$organism.feature.mobgene
+fi
+
+
+# phage-related gene
+echo "##########################################"
+echo "Identify phage-related genes"
+if [ ! -f $prog_dir/db/PHAST/prophage_virus.pin ]
+then
+  makeblastdb -in $prog_dir/db/PHAST/prophage_virus.db -title prophage_virus -dbtype prot -out $prog_dir/db/PHAST/prophage_virus
+fi
+if [ ! -f $output_dir/$pred_prog/feature/$organism.feature.phage ]
+then
+  blastp -query $output_dir/$pred_prog/genome/$organism.faa -db $prog_dir/db/PHAST/prophage_virus -out $output_dir/$pred_prog/feature/$organism.hit.phage -evalue $phage_evalue -outfmt 6  -num_alignments 1 -num_threads $num_threads
+  python $prog_dir/parse_blast_output.py -b $output_dir/$pred_prog/feature/$organism.hit.phage -g $output_dir/$pred_prog/genome/$organism.gene_id -o $output_dir/$pred_prog/feature/$organism.feature.phage
+fi
+
+
+
+# virulence factor
+echo "##########################################"
+echo "Identify virulence factors"
+# setB refers to the full set, setA contains only experimentally validated VFs
+if [ ! -f $prog_dir/db/VFDB/VFDB_setB_pro.pin ]
+then
+  makeblastdb -in $prog_dir/db/VFDB/VFDB_setB_pro.fas -title VFDB_setB_pro -dbtype prot -out $prog_dir/db/VFDB/VFDB_setB_pro
+fi
+if [ ! -f $output_dir/$pred_prog/feature/$organism.feature.vfdb ]
+then
+  blastp -query $output_dir/$pred_prog/genome/$organism.faa -db $prog_dir/db/VFDB/VFDB_setB_pro -out $output_dir/$pred_prog/feature/$organism.hit.vfdb -evalue $virdb_evalue -outfmt 6  -num_alignments 1 -num_threads $num_threads
+  python $prog_dir/parse_blast_output.py -b $output_dir/$pred_prog/feature/$organism.hit.vfdb -g $output_dir/$pred_prog/genome/$organism.gene_id -o $output_dir/$pred_prog/feature/$organism.feature.vfdb
+fi
+
+
+# antibiotic resistance gene
+echo "##########################################"
+echo "Identify antibiotic resistance genes"
+if [ ! -f $prog_dir/db/CARD/CARD_prot_homolog.pin ]
+then
+  makeblastdb -in $prog_dir/db/CARD/protein_fasta_protein_homolog_model.fasta  -title CARD_prot_homolog -dbtype prot -out $prog_dir/db/CARD/CARD_prot_homolog
+fi
+if [ ! -f $output_dir/$pred_prog/feature/$organism.feature.AR ]
+then
+  blastp -query $output_dir/$pred_prog/genome/$organism.faa -db $prog_dir/db/CARD/CARD_prot_homolog  -out $output_dir/$pred_prog/feature/$organism.hit.AR -evalue $arg_evalue -outfmt 6  -num_alignments 1 -num_threads $num_threads
+  python $prog_dir/parse_blast_output.py -b $output_dir/$pred_prog/feature/$organism.hit.AR -g $output_dir/$pred_prog/genome/$organism.gene_id -o $output_dir/$pred_prog/feature/$organism.feature.AR
+fi
+
+
+# Novel gene
+echo "##########################################"
+echo "Identify novel genes"
+if [ ! -f $prog_dir/db/COG/COGs.pin ]
+then
+  makeblastdb -in $prog_dir/db/COG/prot2003-2014.fa -dbtype prot -out $prog_dir/db/COG/COGs
+fi
+
+if [ ! -f $prog_dir/db/COG/COG.p2o.csv ]
+then
+  less $prog_dir/db/COG/cog2003-2014.csv  | cut -d',' -f3 > $prog_dir/db/COG/cog_protid
+  less $prog_dir/db/COG/cog2003-2014.csv  | cut -d',' -fe > $prog_dir/db/COG/cog_gnomeid
+  paste -d',' $prog_dir/db/COG/cog_protid $prog_dir/db/COG/cog_gnomeid > $prog_dir/db/COG/COG.p2o.csv
+fi
+
+if [ ! -f $output_dir/$pred_prog/genome/"$organism"_db.pin ]
+then
+  makeblastdb -in $output_dir/$pred_prog/genome/$organism.faa -dbtype prot -out $output_dir/$pred_prog/genome/"$organism"_db
+fi
+
+if [ ! -f $output_dir/$pred_prog/feature/"$organism".feature.ngene ]
+then
+  if [ ! -d $output_dir/$pred_prog/BLASTss ]
+  then
+    mkdir $output_dir/$pred_prog/BLASTss
+    mkdir $output_dir/$pred_prog/BLASTno
+    mkdir $output_dir/$pred_prog/BLASTff
+    mkdir $output_dir/$pred_prog/BLASTcogn
+  fi
+  # it may take a long time
+  if [ ! -f $output_dir/$pred_prog/BLASTss/QuerySelf.tab ]
+  then
+    psiblast -query $output_dir/$pred_prog/genome/$organism.faa -db $output_dir/$pred_prog/genome/"$organism"_db -show_gis -outfmt 7 -num_alignments 10 -dbsize 100000000 -comp_based_stats F -seg no -out $output_dir/$pred_prog/BLASTss/QuerySelf.tab -num_threads $num_threads
+  fi
+
+  if [ ! -f $output_dir/$pred_prog/BLASTno/QueryCOGs.tab ]
+  then
+    psiblast -query $output_dir/$pred_prog/genome/$organism.faa -db $prog_dir/db/COG/COGs -show_gis -outfmt 7 -num_alignments 1000 -dbsize 100000000 -comp_based_stats F -seg no -out $output_dir/$pred_prog/BLASTno/QueryCOGs.tab -num_threads $num_threads
+  fi
+
+  if [ ! -f $output_dir/$pred_prog/BLASTff/QueryCOGs.tab ]
+  then
+    psiblast -query $output_dir/$pred_prog/genome/$organism.faa -db $prog_dir/db/COG/COGs -show_gis -outfmt 7 -num_alignments 1000 -dbsize 100000000 -comp_based_stats T -seg yes -out $output_dir/$pred_prog/BLASTff/QueryCOGs.tab -num_threads $num_threads
+  fi
+
+  echo "$organism" > "$output_dir/$pred_prog/genome/$organism".genomeid
+  protnum=`less  "$output_dir/$pred_prog/genome/$organism".gene_id | wc -l`
+  awk -v size="$protnum" '{for(i=0;i<size;i++) print}' "$output_dir/$pred_prog/genome/$organism".genomeid > "$output_dir/$pred_prog/genome/$organism".gid
+  rm "$output_dir/$pred_prog/genome/$organism".genomeid
+
+  if [ "$pred_prog" == "ncbi" ]
+  then
+    less $output_dir/$pred_prog/genome/$organism.gene_id | cut -d'|' -f2 > $output_dir/$pred_prog/genome/$organism.protid
+    paste -d',' $output_dir/$pred_prog/genome/$organism.protid $output_dir/$pred_prog/genome/$organism.gid > $output_dir/$pred_prog/genome/$organism.p2o.csv
+  else
+    paste -d',' $output_dir/$pred_prog/genome/$organism.gene_id $output_dir/$pred_prog/genome/$organism.gid > $output_dir/$pred_prog/genome/$organism.p2o.csv
+    sed -i 's/>//g' $output_dir/$pred_prog/genome/$organism.p2o.csv
+  fi
+
+  cat $output_dir/$pred_prog/genome/"$organism".p2o.csv $prog_dir/db/COG/COG.p2o.csv > $output_dir/$pred_prog/genome/tmp.p2o.csv
+
+  $prog_dir/bin/COGSoft/COGmakehash/COGmakehash -i=$output_dir/$pred_prog/genome/tmp.p2o.csv -o=$output_dir/$pred_prog/BLASTcogn -s="," -n=1
+
+  $prog_dir/bin/COGSoft/COGreadblast/COGreadblast -d=$output_dir/$pred_prog/BLASTcogn -u=$output_dir/$pred_prog/BLASTno -f=$output_dir/$pred_prog/BLASTff -s=$output_dir/$pred_prog/BLASTss -e=0.1 -q=2 -t=2
+
+  $prog_dir/bin/COGSoft/COGcognitor/COGcognitor -i=$output_dir/$pred_prog/BLASTcogn -t=$prog_dir/db/COG/cog2003-2014.csv -q=$output_dir/$pred_prog/genome/"$organism".p2o.csv -o=$output_dir/$pred_prog/genome/"$organism".COG.csv
+
+  if [ "$pred_prog" == "ncbi" ]
+  then
+    python $prog_dir/parse_COG.py -g $output_dir/$pred_prog/genome/"$organism".protid  -c $output_dir/$pred_prog/genome/"$organism".COG.csv  -o  $output_dir/$pred_prog/feature/"$organism".feature.ngene
+  else
+    python $prog_dir/parse_COG.py -g $output_dir/$pred_prog/genome/"$organism".gene_id  -c $output_dir/$pred_prog/genome/"$organism".COG.csv  -o  $output_dir/$pred_prog/feature/"$organism".feature.ngene
+  fi
+fi
+
+############################ Analyze features around the boundary of segments ################################################
+echo "##########################################"
+echo "Predicting tRNA"
+if [ ! -d $output_dir/boundary ]
+then
+  mkdir $output_dir/boundary
+fi
+
+if [ ! -f $output_dir/boundary/$organism.trna_pred ]
+then
+  # tRNA is only dependant on the original genome sequence
+  tRNAscan-SE -B --frag $output_dir/boundary/$organism.trna_frag -o $output_dir/boundary/$organism.trna_pred -m $output_dir/boundary/$organism.trna_stat --brief $output_dir/$organism.fna
+  less $output_dir/boundary/$organism.trna_pred | cut -f3-4 > $output_dir/boundary/$organism.pred_trna
+fi
+
+echo "##########################################"
+echo "Find repeats"
+if [ ! -f $output_dir/boundary/$organism.repseek ]
+then
+# repeat is only dependant on the original genome sequence
+repseek -l 15 -O 0 -r $output_dir/boundary/$organism.repseek $output_dir/$organism.fna
+fi
+
+
+############################ merge files ################################################
+echo "##########################################"
+echo "Merge features"
+paste $output_dir/$pred_prog/genome/$organism.glist $output_dir/$pred_prog/feature/$organism.feature.gc $output_dir/$pred_prog/feature/$organism.feature.codon $output_dir/$pred_prog/feature/$organism.feature.kmer $output_dir/$pred_prog/feature/$organism.feature.mobgene $output_dir/$pred_prog/feature/$organism.feature.phage $output_dir/$pred_prog/feature/$organism.feature.vfdb $output_dir/$pred_prog/feature/$organism.feature.AR  $output_dir/$pred_prog/feature/$organism.feature.ngene > $output_dir/$pred_prog/feature/$organism.feature.multi
