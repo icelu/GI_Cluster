@@ -8,7 +8,8 @@
 #
 # Output:
 # Measures of k-mer:
-# for each gene, the differences between its k-mer spectrum and the k-mer spectrum of whole genome
+# for each gene, the differences between its k-mer spectrum and the k-mer
+# spectrum of whole genome
 
 
 from __future__ import division
@@ -38,8 +39,7 @@ _binary_to_nucleotide = {
 }
 
 
-
-############################# Most of  the following functions are from kMer library #############################
+############################# Most of  the following functions are from kM
 
 ###################### Extracting k-mers ####################
 def dna_to_binary(sequence):
@@ -59,6 +59,7 @@ def dna_to_binary(sequence):
 
     return result
 
+
 def binary_to_dna(number, length):
     """
     Convert an integer to a DNA string.
@@ -75,6 +76,7 @@ def binary_to_dna(number, length):
         number >>= 2
 
     return sequence[::-1]
+
 
 def reverse_complement(number, length):
     """
@@ -95,6 +97,7 @@ def reverse_complement(number, length):
         number >>= 2
 
     return result
+
 
 def kmer_from_sequences(sequences, length):
     """
@@ -212,7 +215,7 @@ def covariance(left, right):
     :rtype: float
     """
     assert len(left) == len(right)
-    dist  = np.dot(left, right)*100 / float(len(left))
+    dist = np.dot(left, right) * 100 / float(len(left))
     # print "size of kmer vector %d, distance %.3f" % (len(left), dist)
     return dist
 
@@ -232,25 +235,24 @@ def distance(left, right, pairwise=pairwise['prod'], distance_function=None):
     return distance_function(left, right)
 
 
-############################# Most of the above functions are from kMer library #############################
+############################# Most of the above functions are from kMer li
 
 ############################## parse files ##################################
 
 # Switch non-standard character to 'AGCT'
 def switch_to_AGCT(Nuc):
-    SWITCH = {'R': lambda: random.choice('AG'), \
-           'Y': lambda: random.choice('CT'), \
-           'M': lambda: random.choice('AC'), \
-           'K': lambda: random.choice('GT'), \
-           'S': lambda: random.choice('GC'), \
-           'W': lambda: random.choice('AT'), \
-           'H': lambda: random.choice('ATC'), \
-           'B': lambda: random.choice('GTC'), \
-           'V': lambda: random.choice('GAC'), \
-           'D': lambda: random.choice('GAT'), \
-           'N': lambda: random.choice('AGCT')}
+    SWITCH = {'R': lambda: random.choice('AG'),
+              'Y': lambda: random.choice('CT'),
+              'M': lambda: random.choice('AC'),
+              'K': lambda: random.choice('GT'),
+              'S': lambda: random.choice('GC'),
+              'W': lambda: random.choice('AT'),
+              'H': lambda: random.choice('ATC'),
+              'B': lambda: random.choice('GTC'),
+              'V': lambda: random.choice('GAC'),
+              'D': lambda: random.choice('GAT'),
+              'N': lambda: random.choice('AGCT')}
     return SWITCH[Nuc]()
-
 
 
 def standardize_DNASeq(genome):
@@ -259,7 +261,7 @@ def standardize_DNASeq(genome):
     '''
     for i in ['R', 'Y', 'M', 'K', 'S', 'W', 'H', 'B', 'V', 'D', 'N']:
         if i in genome:
-           genome = genome.replace(i, switch_to_AGCT(i))
+            genome = genome.replace(i, switch_to_AGCT(i))
     return genome
 
 
@@ -270,6 +272,8 @@ def isheader(line):
 input: .fna file, fasta format, genome sequence
 output: k-mer spectrum
 '''
+
+
 def parse_genome_file(genome_file, klen):
     with open(genome_file, 'rb') as fin:
         for header, group in itertools.groupby(fin, isheader):
@@ -292,7 +296,7 @@ def parse_genome_file(genome_file, klen):
                 #     norm = 1
 
                 kmer_count = kmer_from_sequences(sequence, klen)
-                kmer_freq = kmer_count * 100 / float(glen-klen+1)
+                kmer_freq = kmer_count * 100 / float(glen - klen + 1)
                 kmer_freq = kmer_freq / norm
                 return kmer_freq
 
@@ -307,7 +311,7 @@ def get_genome_profiles(genome_file, klen):
                 sequence = sequence.upper()
                 sequence = standardize_DNASeq(sequence)
                 glen = len(sequence)
-                atcg_fraction= get_atcg_fraction(sequence)
+                atcg_fraction = get_atcg_fraction(sequence)
                 # base_frac = []
                 # for nt in sequence:
                 #     base_frac.append(atcg_fraction[nt])
@@ -319,7 +323,7 @@ def get_genome_profiles(genome_file, klen):
                 for k in range(1, klen + 1):
                     p = kmer_from_sequences(sequence, k)
                     kmer_count = kmer_from_sequences(sequence, k)
-                    kmer_freq = kmer_count * 100 / float(glen-klen+1)
+                    kmer_freq = kmer_count * 100 / float(glen - klen + 1)
                     # kmer_freq = kmer_freq / norm
                     profiles[k] = kmer_freq
 
@@ -327,15 +331,14 @@ def get_genome_profiles(genome_file, klen):
 
 
 def get_atcg_fraction(dna):
-    dict={}
+    dict = {}
     total = float(len(dna))
-    dict['A'] = dna.count('A')/total
-    dict['T'] = dna.count('T')/total
-    dict['C'] = dna.count('C')/total
-    dict['G'] = dna.count('G')/total
+    dict['A'] = dna.count('A') / total
+    dict['T'] = dna.count('T') / total
+    dict['C'] = dna.count('C') / total
+    dict['G'] = dna.count('G') / total
 
     return dict
-
 
 
 def parse_genes(gfile, genome_profiles, klen, genomelen, morder=1, atcg_fraction={}, distance_function=None):
@@ -346,7 +349,7 @@ def parse_genes(gfile, genome_profiles, klen, genomelen, morder=1, atcg_fraction
     i = 0
     dist_dict = {}
     for k in range(2, klen + 1):
-        dist_dict[k]=[]
+        dist_dict[k] = []
 
     with open(gfile, 'rb') as fin:
         for header, group in itertools.groupby(fin, isheader):
@@ -368,10 +371,9 @@ def parse_genes(gfile, genome_profiles, klen, genomelen, morder=1, atcg_fraction
                 #     norm = 1
                 for k in range(2, klen + 1):
                     kmer_count = kmer_from_sequences(sequence, k)
-                    kmer_freq = kmer_count * 100 / float(glen-k+1)
+                    kmer_freq = kmer_count * 100 / float(glen - k + 1)
                     # kmer_freq = kmer_freq / norm
                     gene_kmer_profiles[k] = kmer_freq
-
 
                 for k in range(2, klen + 1):
                     gene_kmer = gene_kmer_profiles[k]
@@ -380,10 +382,9 @@ def parse_genes(gfile, genome_profiles, klen, genomelen, morder=1, atcg_fraction
                     # print 'genome_kmer %s' % genome_kmer
                     dist = distance(gene_kmer, genome_kmer,
                                     distance_function=distance_function)
-                    dist_dict.setdefault(k,[]).append(dist)
+                    dist_dict.setdefault(k, []).append(dist)
 
     return dist_dict
-
 
 
 def parse_segs(gfile, gnome, genome_profiles, klen, genomelen, outfile, morder=1, atcg_fraction={}, distance_function=None):
@@ -394,20 +395,20 @@ def parse_segs(gfile, gnome, genome_profiles, klen, genomelen, outfile, morder=1
     i = 0
     dist_dict = {}
     for k in range(2, klen + 1):
-        dist_dict[k]=[]
+        dist_dict[k] = []
     with open(gfile, 'rb') as fin, open(outfile, 'w') as fout:
         for line in fin:
             fields = line.strip().split('\t')
             start = int(fields[0])
             end = int(fields[1])
-            sequence = gnome[start-1:end]
+            sequence = gnome[start - 1:end]
             glen = len(sequence)
             dists = []
             gene_kmer_profiles = {}
 
             for k in range(2, klen + 1):
                 kmer_count = kmer_from_sequences(sequence, k)
-                kmer_freq = kmer_count * 100 / float(glen-k+1)
+                kmer_freq = kmer_count * 100 / float(glen - k + 1)
                 gene_kmer_profiles[k] = kmer_freq
 
             for k in range(2, klen + 1):
@@ -415,7 +416,7 @@ def parse_segs(gfile, gnome, genome_profiles, klen, genomelen, outfile, morder=1
                 genome_kmer = genome_profiles[k]
                 dist = distance(gene_kmer, genome_kmer,
                                 distance_function=distance_function)
-                dist_dict.setdefault(k,[]).append(dist)
+                dist_dict.setdefault(k, []).append(dist)
 
     return dist_dict
 
@@ -428,13 +429,13 @@ def write_dists(dist_dict, klen, outfile):
         minv = min(values)
         new_values = []
         for v in values:
-            nv = (v-minv)/(maxv-minv)
+            nv = (v - minv) / (maxv - minv)
             new_values.append(nv)
         new_dist_dict[key] = new_values
 
     with open(outfile, 'w') as fout:
         for i in range(len(new_dist_dict[2])):
-            dists=[]
+            dists = []
             for k in range(2, klen + 1):
                 dists.append(new_dist_dict[k][i])
             line = '%d' % i
@@ -443,7 +444,6 @@ def write_dists(dist_dict, klen, outfile):
                 line = "\t%0.3f" % d
                 fout.write(line)
             fout.write('\n')
-
 
 
 if __name__ == '__main__':
@@ -467,15 +467,16 @@ if __name__ == '__main__':
 
     options, args = parser.parse_args()
 
-    gnome, genomelen, genome_profiles, atcg_fraction = get_genome_profiles(options.genome_file, options.klen)
+    gnome, genomelen, genome_profiles, atcg_fraction = get_genome_profiles(
+        options.genome_file, options.klen)
 
     outfile = options.output + '.' + options.distance
-    if options.is_seg:
+    if options.is_seg:  # analyze k-mer for each interval
         dist_dict = parse_segs(options.segfile, gnome, genome_profiles, options.klen, genomelen,
-                outfile, morder=options.morder, atcg_fraction={}, distance_function=eval(options.distance))
+                               outfile, morder=options.morder, atcg_fraction={}, distance_function=eval(options.distance))
         write_dists(dist_dict, options.klen, outfile)
 
     else:
         dist_dict = parse_genes(options.gfile, genome_profiles, options.klen, genomelen,
-                 morder=options.morder, atcg_fraction={}, distance_function=eval(options.distance))
+                                morder=options.morder, atcg_fraction={}, distance_function=eval(options.distance))
         write_dists(dist_dict, options.klen, outfile)

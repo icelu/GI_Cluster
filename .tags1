@@ -4,3 +4,44 @@
 !_TAG_PROGRAM_NAME	Exuberant Ctags	//
 !_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
 !_TAG_PROGRAM_VERSION	5.8	//
+division	F:\git\GI_Cluster\feature\analyze_kmer.py	/^from __future__ import division$/;"	namespace	line:15
+itertools	F:\git\GI_Cluster\feature\analyze_kmer.py	/^import itertools$/;"	namespace	line:16
+optparse	F:\git\GI_Cluster\feature\analyze_kmer.py	/^import optparse$/;"	namespace	line:17
+re	F:\git\GI_Cluster\feature\analyze_kmer.py	/^import re$/;"	namespace	line:18
+np	F:\git\GI_Cluster\feature\analyze_kmer.py	/^import numpy as np$/;"	namespace	line:19
+math	F:\git\GI_Cluster\feature\analyze_kmer.py	/^import math$/;"	namespace	line:20
+random	F:\git\GI_Cluster\feature\analyze_kmer.py	/^import random$/;"	namespace	line:21
+_nucleotide_to_binary	F:\git\GI_Cluster\feature\analyze_kmer.py	/^_nucleotide_to_binary = {$/;"	variable	line:26
+_binary_to_nucleotide	F:\git\GI_Cluster\feature\analyze_kmer.py	/^_binary_to_nucleotide = {$/;"	variable	line:34
+dna_to_binary	F:\git\GI_Cluster\feature\analyze_kmer.py	/^def dna_to_binary(sequence):$/;"	function	line:45
+binary_to_dna	F:\git\GI_Cluster\feature\analyze_kmer.py	/^def binary_to_dna(number, length):$/;"	function	line:63
+reverse_complement	F:\git\GI_Cluster\feature\analyze_kmer.py	/^def reverse_complement(number, length):$/;"	function	line:81
+kmer_from_sequences	F:\git\GI_Cluster\feature\analyze_kmer.py	/^def kmer_from_sequences(sequences, length):$/;"	function	line:102
+pairwise	F:\git\GI_Cluster\feature\analyze_kmer.py	/^pairwise = {$/;"	variable	line:140
+vector_length	F:\git\GI_Cluster\feature\analyze_kmer.py	/^def vector_length(vector):$/;"	function	line:146
+multiset	F:\git\GI_Cluster\feature\analyze_kmer.py	/^def multiset(left, right, pairwise=pairwise['prod']):$/;"	function	line:159
+euclidean	F:\git\GI_Cluster\feature\analyze_kmer.py	/^def euclidean(left, right):$/;"	function	line:184
+cosine_similarity	F:\git\GI_Cluster\feature\analyze_kmer.py	/^def cosine_similarity(left, right):$/;"	function	line:196
+covariance	F:\git\GI_Cluster\feature\analyze_kmer.py	/^def covariance(left, right):$/;"	function	line:208
+distance	F:\git\GI_Cluster\feature\analyze_kmer.py	/^def distance(left, right, pairwise=pairwise['prod'], distance_function=None):$/;"	function	line:223
+switch_to_AGCT	F:\git\GI_Cluster\feature\analyze_kmer.py	/^def switch_to_AGCT(Nuc):$/;"	function	line:243
+standardize_DNASeq	F:\git\GI_Cluster\feature\analyze_kmer.py	/^def standardize_DNASeq(genome):$/;"	function	line:258
+isheader	F:\git\GI_Cluster\feature\analyze_kmer.py	/^def isheader(line):$/;"	function	line:268
+parse_genome_file	F:\git\GI_Cluster\feature\analyze_kmer.py	/^def parse_genome_file(genome_file, klen):$/;"	function	line:277
+get_genome_profiles	F:\git\GI_Cluster\feature\analyze_kmer.py	/^def get_genome_profiles(genome_file, klen):$/;"	function	line:304
+get_atcg_fraction	F:\git\GI_Cluster\feature\analyze_kmer.py	/^def get_atcg_fraction(dna):$/;"	function	line:333
+parse_genes	F:\git\GI_Cluster\feature\analyze_kmer.py	/^def parse_genes(gfile, genome_profiles, klen, genomelen, morder=1, atcg_fraction={}, distance_function=None):$/;"	function	line:344
+parse_segs	F:\git\GI_Cluster\feature\analyze_kmer.py	/^def parse_segs(gfile, gnome, genome_profiles, klen, genomelen, outfile, morder=1, atcg_fraction={}, distance_function=None):$/;"	function	line:390
+write_dists	F:\git\GI_Cluster\feature\analyze_kmer.py	/^def write_dists(dist_dict, klen, outfile):$/;"	function	line:424
+parser	F:\git\GI_Cluster\feature\analyze_kmer.py	/^    parser = optparse.OptionParser()$/;"	variable	line:450
+help	F:\git\GI_Cluster\feature\analyze_kmer.py	/^                      help="The input gene files in fasta format")$/;"	variable	line:452
+help	F:\git\GI_Cluster\feature\analyze_kmer.py	/^                      help="The input genome files in fasta format")$/;"	variable	line:454
+help	F:\git\GI_Cluster\feature\analyze_kmer.py	/^                      help="The output file of metrics for each gene")$/;"	variable	line:456
+help	F:\git\GI_Cluster\feature\analyze_kmer.py	/^                      help="The distance function")$/;"	variable	line:458
+help	F:\git\GI_Cluster\feature\analyze_kmer.py	/^                      help="The maximum k-mer size")$/;"	variable	line:460
+help	F:\git\GI_Cluster\feature\analyze_kmer.py	/^                      help="The order of Markov model for background sequence")$/;"	variable	line:462
+help	F:\git\GI_Cluster\feature\analyze_kmer.py	/^                      help="Analyze GC content in genomic segments rather than genes")$/;"	variable	line:464
+help	F:\git\GI_Cluster\feature\analyze_kmer.py	/^                      help="input file of segment position")$/;"	variable	line:466
+outfile	F:\git\GI_Cluster\feature\analyze_kmer.py	/^    outfile = options.output + '.' + options.distance$/;"	variable	line:473
+dist_dict	F:\git\GI_Cluster\feature\analyze_kmer.py	/^        dist_dict = parse_segs(options.segfile, gnome, genome_profiles, options.klen, genomelen,$/;"	variable	line:475
+dist_dict	F:\git\GI_Cluster\feature\analyze_kmer.py	/^        dist_dict = parse_genes(options.gfile, genome_profiles, options.klen, genomelen,$/;"	variable	line:480
