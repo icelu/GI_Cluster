@@ -1,17 +1,12 @@
 #!/usr/bin/python
-# Lu Bingxin, 2017.3.1
 
-'''
-Given DNA sequence of a genome or a gene or a genomic region, analyze its GC content
-
-Input:
-1. fasta file
-
-Output:
-Measures of GC content:
-GC content, GC skew, GC(k) content
-
-'''
+# Given DNA sequence of a genome or a gene or a genomic region, analyze its GC content
+# Input:
+# 1. fasta file of DNA sequence
+#
+# Output:
+# Measures of GC content:
+# GC content, GC skew, GC(k) content
 
 from __future__ import division
 import itertools
@@ -22,44 +17,44 @@ from scipy.stats import chisquare
 
 # Switch non-standard character to 'AGCT'
 def switch_to_AGCT(Nuc):
-    SWITCH = {'R': lambda: random.choice('AG'), \
-           'Y': lambda: random.choice('CT'), \
-           'M': lambda: random.choice('AC'), \
-           'K': lambda: random.choice('GT'), \
-           'S': lambda: random.choice('GC'), \
-           'W': lambda: random.choice('AT'), \
-           'H': lambda: random.choice('ATC'), \
-           'B': lambda: random.choice('GTC'), \
-           'V': lambda: random.choice('GAC'), \
-           'D': lambda: random.choice('GAT'), \
-           'N': lambda: random.choice('AGCT')}
+    SWITCH = {'R': lambda: random.choice('AG'),
+              'Y': lambda: random.choice('CT'),
+              'M': lambda: random.choice('AC'),
+              'K': lambda: random.choice('GT'),
+              'S': lambda: random.choice('GC'),
+              'W': lambda: random.choice('AT'),
+              'H': lambda: random.choice('ATC'),
+              'B': lambda: random.choice('GTC'),
+              'V': lambda: random.choice('GAC'),
+              'D': lambda: random.choice('GAT'),
+              'N': lambda: random.choice('AGCT')}
     return SWITCH[Nuc]()
 
 
-'''
-Replace ambiguous bases with ATCG
-'''
 def standardize_DNASeq(genome):
+    '''
+    Replace ambiguous bases with ATCG
+    '''
     for i in ['R', 'Y', 'M', 'K', 'S', 'W', 'H', 'B', 'V', 'D', 'N']:
         if i in genome:
-           genome = genome.replace(i, switch_to_AGCT(i))
+            genome = genome.replace(i, switch_to_AGCT(i))
     return genome
 
 
 def isheader(line):
     return line[0] == '>'
 
-'''
-input: .ffn file, fasta format, DNA sequence for each gene
-output: GC measures for each gene in a line
-'''
-def parse_genes(gfile, outfile):
+
+def parse_genes(gene_file, outfile):
+    '''
+    input: .ffn file, fasta format, DNA sequence for each gene
+    output: GC measures for each gene in a line
+    '''
     i = 0
-    with open(gfile, 'rb') as fin, open(outfile, 'w') as fout:
+    with open(gene_file, 'rb') as fin, open(outfile, 'w') as fout:
         for header, group in itertools.groupby(fin, isheader):
             if header:
                 i += 1
-                #line = group.next()
             else:
                 sequence = ''.join(line.strip() for line in group)
                 sequence = sequence.upper()
@@ -67,55 +62,50 @@ def parse_genes(gfile, outfile):
                 gc = GC(sequence)
                 gc1, gc2, gc3 = GC123(sequence)
                 gc_skew = GC_skew(sequence)
-                # line = '%d\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\n' % (
-                #     i, gc, gc1, gc2, gc3, gc_skew)
                 line = '%.3f\t%.3f\t%.3f\t%.3f\t%.3f\n' % (
                     gc, gc1, gc2, gc3, gc_skew)
                 fout.write(line)
 
 
-
-'''
-input: position for each segment (1-based), genome sequence (standardized)
-output: GC measures for each segment in a line
-'''
 def parse_segs(pfile, gnome, outfile):
+    '''
+    input: position for each segment (1-based), genome sequence (standardized)
+    output: GC measures for each segment in a line
+    '''
     i = 0
     with open(pfile, 'rb') as fin, open(outfile, 'w') as fout:
         for line in fin:
             fields = line.strip().split('\t')
             start = int(fields[0])
             end = int(fields[1])
-            sequence = gnome[start-1:end]
+            sequence = gnome[start - 1:end]
             # sequence = sequence.upper()
             # sequence = standardize_DNASeq(sequence)
             gc = GC(sequence)
             gc1, gc2, gc3 = GC123(sequence)
             gc_skew = GC_skew(sequence)
-            # line = '%d\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\n' % (
-            #     i, gc, gc1, gc2, gc3, gc_skew)
             line = '%.3f\t%.3f\t%.3f\t%.3f\t%.3f\n' % (
                 gc, gc1, gc2, gc3, gc_skew)
             fout.write(line)
 
 
-'''
-input: position for each segment (1-based), genome sequence (standardized)
-output: GC measures for each segment in a line -- not meaningful to compute GC123 without knowing codons
-'''
 def parse_segs_dist(pfile, gnome):
+    '''
+    input: position for each segment (1-based), genome sequence (standardized)
+    output: GC measures for each segment in a line -- not meaningful to compute GC123 without knowing codons
+    '''
     i = 0
     gc_genome = GC(gnome)
     gc1_genome, gc2_genome, gc3_genome = GC123(gnome)
     chi_dict = {}
     for i in range(4):
-        chi_dict[i]=[]
+        chi_dict[i] = []
     with open(pfile, 'rb') as fin:
         for line in fin:
             fields = line.strip().split('\t')
             start = int(fields[0])
             end = int(fields[1])
-            sequence = gnome[start-1:end]
+            sequence = gnome[start - 1:end]
             # sequence = sequence.upper()
             # sequence = standardize_DNASeq(sequence)
             gc = GC(sequence)
@@ -123,30 +113,14 @@ def parse_segs_dist(pfile, gnome):
 
             # multiple each number by 100 to avoid small value
             chi = chi_square(gc * 100, gc_genome * 100)
-            chi_dict.setdefault(0,[]).append(chi)
-            chi1 = chi_square(gc1 * 100, gc1_genome * 100)
-            # chi_dict.setdefault(1,[]).append(chi1)
-            # chi2 = chi_square(gc2 * 100, gc2_genome * 100)
-            # chi_dict.setdefault(2,[]).append(chi2)
-            # chi3 = chi_square(gc3 * 100, gc3_genome * 100)
-            # chi_dict.setdefault(3,[]).append(chi3)
-    # print chi_dict
+            chi_dict.setdefault(0, []).append(chi)
     return chi_dict
 
+
 def write_gc_chi(chi_dict, outfile):
-    # new_dist_dict = {}
-    # for key, values in chi_dict.items():
-    #     maxv = max(values)
-    #     minv = min(values)
-    #     new_values = []
-    #     for v in values:
-    #         nv = (v-minv)/(maxv-minv)
-    #         new_values.append(nv)
-    #     new_dist_dict[key] = new_values
-    # print new_dist_dict
     with open(outfile, 'w') as fout:
         for i in range(len(chi_dict[0])):
-            dists=[]
+            dists = []
             for k in range(1):
                 dists.append(chi_dict[k][i])
             line = '%d' % i
@@ -157,10 +131,10 @@ def write_gc_chi(chi_dict, outfile):
             fout.write('\n')
 
 
-
-def get_genome(gfile):
+# Read the genome sequence
+def get_genome(gene_file):
     gnome = ''
-    with open(gfile, 'rb') as fin:
+    with open(gene_file, 'rb') as fin:
         for header, group in itertools.groupby(fin, isheader):
             if not header:
                 sequence = ''.join(line.strip() for line in group)
@@ -170,13 +144,13 @@ def get_genome(gfile):
     return gnome
 
 
-'''
-input: .fna file, fasta format, DNA sequence for the whole genome
-output: GC measures in a line
-'''
-def parse_genome(gfile, outfile):
+def parse_genome(gene_file, outfile):
+    '''
+    input: .fna file, fasta format, DNA sequence for the whole genome
+    output: GC measures in a line
+    '''
     i = 0
-    with open(gfile, 'rb') as fin, open(outfile, 'w') as fout:
+    with open(gene_file, 'rb') as fin, open(outfile, 'w') as fout:
         for header, group in itertools.groupby(fin, isheader):
             if header:
                 i += 1
@@ -187,32 +161,28 @@ def parse_genome(gfile, outfile):
                 sequence = standardize_DNASeq(sequence)
                 gc = GC(sequence) * 100
                 gc_skew = GC_skew(sequence) * 100
-                # line = '%d\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\n' % (
-                #     i, gc, gc1, gc2, gc3, gc_skew)
                 line = '%.2f\t%.2f\n' % (
                     gc, gc_skew)
                 fout.write(line)
 
 
-############################# compute GC measures ##############################
+############################# compute GC measures ########################
 
 def GC(dna):
     gc = dna.count('G') + dna.count('C')
     return gc / (len(dna))
 
 
-'''
-Similar as in BioPython
-http://biopython.org/DIST/docs/api/Bio.SeqUtils-pysrc.html
-'''
-
-
 def GC123(dna):
+    '''
+    Similar as in BioPython
+    http://biopython.org/DIST/docs/api/Bio.SeqUtils-pysrc.html
+    '''
     d = {}
     for nt in ['A', 'T', 'G', 'C']:
         d[nt] = [0, 0, 0]
 
-    remainder = len(dna)%3
+    remainder = len(dna) % 3
     # exclude partial codons
     if remainder != 0:
         dna = dna[0:-remainder]
@@ -236,7 +206,6 @@ def GC123(dna):
     return gc[0], gc[1], gc[2]
 
 
-
 def GC_skew(dna):
     c_count = dna.count('C')
     g_count = dna.count('G')
@@ -250,10 +219,9 @@ def chi_square(val, avg):
     return res[0]
 
 
-
 if __name__ == '__main__':
     parser = optparse.OptionParser()
-    parser.add_option("-g", "--gfile", dest="gfile",
+    parser.add_option("-g", "--gene_file", dest="gene_file",
                       help="input gene file in fasta format")
     parser.add_option("-i", "--genome_file", dest="genome_file",
                       help="input genome file in fasta format")
@@ -261,17 +229,17 @@ if __name__ == '__main__':
                       help="Analyze GC content in genomic segments rather than genes")
     parser.add_option("-m", "--is_metric", dest="is_metric", action='store_true', default=False,
                       help="Compute distance metrics")
-    parser.add_option("-s", "--segfile", dest="segfile",
+    parser.add_option("-s", "--seg_file", dest="seg_file",
                       help="input file of segment position")
     parser.add_option("-n", "--is_genome", dest="is_genome", action='store_true', default=False,
                       help="input gene files in fasta format")
     parser.add_option("-o", "--output", dest="output",
                       help="output file of labeled intervals")
-
     options, args = parser.parse_args()
-    if options.is_metric:
+
+    if options.is_metric:   # compute chisquare values
         gnome = get_genome(options.genome_file)
-        chi_dict = parse_segs_dist(options.segfile, gnome)
+        chi_dict = parse_segs_dist(options.seg_file, gnome)
         write_gc_chi(chi_dict, options.output)
     else:
         if options.is_genome:
@@ -279,6 +247,6 @@ if __name__ == '__main__':
         else:
             if options.is_seg:
                 gnome = get_genome(options.genome_file)
-                parse_segs(options.segfile, gnome, options.output)
+                parse_segs(options.seg_file, gnome, options.output)
             else:
-                parse_genes(options.gfile, options.output)
+                parse_genes(options.gene_file, options.output)

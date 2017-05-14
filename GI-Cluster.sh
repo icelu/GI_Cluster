@@ -1,8 +1,15 @@
 ########## Predict genomic islands (GIs) via integrating multiple GI-related features from a newly sequenced (microbial) genome ##########
 
+##=========================================================
+# Script for GI-Cluster: detecting genomic islands in newly sequenced microbial genomes by consensus clustering on multiple features
+# Author: Bingxin Lu
+# Affiliation : National University of Singapore
+# E-mail : bingxin@comp.nus.edu.sg
+
+
 ########## Input ##########
-# The genome sequence of a newly sequenced bacterium: fasta file format
-# OPTIONAL INPUT: $organism.fna, $organism.ffn, $organism.faa
+# The genome sequence of a newly sequenced bacterium: fasta file format (NCBI file: $organism.fna)
+# OPTIONAL INPUT: $organism.ffn, $organism.faa
 
 ########## prebuilt database ##########
 # PFAM (ftp://ftp.ebi.ac.uk/pub/databases/Pfam/current_release/Pfam-A.hmm.gz)
@@ -14,28 +21,28 @@
 
 ########## external tools ##########
 # prodigal  -- gene prediction
-# sigihmm -- codon bias
 # blast -- database search
 # hmmmer -- database search
 # circos -- visualization
-# tRNAscan-SE
+# tRNAscan-SE -- tRNA
 # Infernal cmscan  -- ncRNA
 
 ########## usage ##########
 # ./GI-Cluster.sh $prog_dir $output_dir $organism
-# e.g. ./GI-Cluster.sh $output_dir/GIFilter /home/ice/vmshare/research/data/species/cft73 NC_004431
+# e.g. ./GI-Cluster.sh ./GIFilter ./research/data/species/cft73 NC_004431
 
-# Contact: bingxin@comp.nus.edu.sg
-
+####################################################
 software=$(basename $0)
 
 function usage() {
   echo -e "GI-Cluster: detecting genomic islands in newly sequenced microbial genomes by consensus clustering on multiple features"
-  echo "Version 0.1
+  echo "Version 1.0
 Usage: $software [options] -s [the directory containing all the scripts] -o [the output directory]
--n [the name of the organism (NCBI Accession, e.g. NC_003198)] -m [programs for genome segmation (e.g. mjsd, gcprofile, gisvm, alienhunter)] -p [programs for gene prediction (e.g. prodigal, ncbi)]
+-n [the name of the organism (NCBI Accession, e.g. NC_003198)] -m [programs for genome segmation (e.g. window, mjsd, gcprofile, gisvm, alienhunter)] -p [programs for gene prediction (e.g. prodigal, ncbi)]
 
 OPTIONS	Default	DESCIPTION
+-b	0	: mode of running: 0 for complete genome, 1 for contigs without gene predictions, 2 for contigs with gene predictions.
+
 -g	2500	: gaps allowed when merging adjacent segments.
 
 -t	1e-5	: e-value used during identification of mobgenes, i.e., hmmsearch against pfam database of mobgenes.
@@ -61,9 +68,13 @@ num_threads=4
 show_figure=1
 num_cpus=16
 len=2500
+mode=0
 
-while getopts "s:o:n:m:p:g:c:e:r:a:d:f:u:h" OPT; do
+
+while getopts "b:s:o:n:m:p:g:c:e:r:a:d:f:u:h" OPT; do
   case $OPT in
+    b) mode=$OPTARG || exit 1;;
+
     s) prog_dir=$OPTARG || exit 1;;
     o) output_dir=$OPTARG || exit 1;;
     n) organism=$OPTARG || exit 1;;
@@ -81,6 +92,7 @@ while getopts "s:o:n:m:p:g:c:e:r:a:d:f:u:h" OPT; do
     d) num_threads=$OPTARG || exit 1;;
     f) show_figure=$OPTARG || exit 1;;
     u) num_cpus=$OPTARG || exit 1;;
+
     h) usage && exit;;
   esac
 done
@@ -92,6 +104,8 @@ done
 
 ############## predict genes from raw genome sequence ##################
 # 3 types of required output files: fna, ffn, faa
+if [ $mode != 1 ]
+then
 if [ ! -d $output_dir/$pred_prog/genome/ ]
 then
   mkdir -p $output_dir/$pred_prog/genome/
@@ -103,6 +117,7 @@ then
   echo "Predict genes with prodigal"
   if [ ! -f $output_dir/$pred_prog/genome/"$organism".ffn ]
   then
+    # TODO: run prodigal directly
     $prog_dir/bin/prodigalrunner $output_dir/$organism.fna
     mv $output_dir/"$organism"_prodigal.orf.fna $output_dir/$pred_prog/genome/"$organism".ffn
     mv $output_dir/"$organism"_prodigal.orf.fsa $output_dir/$pred_prog/genome/"$organism".faa
@@ -138,6 +153,9 @@ fi
 ############## compute known features related to genomic islands #########################
 $prog_dir/GI_Feature.sh -s $prog_dir -o $output_dir -n $organism -m $seg_prog -p $pred_prog
 wait
+fi # for complete genomes
+
+
 ############################## genome segmentation ####################################
 echo "##########################################"
 echo "Get genome segements"
@@ -193,39 +211,66 @@ cp $output_dir/$seg_prog/"$organism"."$seg_prog" $output_dir/$seg_prog/$organism
 # the features are different for different gene predictions
 echo "##########################################"
 echo "Get features of each genome segement"
-if [ ! -d $output_dir/$pred_prog/$seg_prog ]
+if [ ! -d $output_dir/$seg_prog/feature ]
 then
-  mkdir -p $output_dir/$pred_prog/$seg_prog
+  mkdir -p $output_dir/$seg_prog/feature
 fi
 
-if [ ! -f $output_dir/$pred_prog/$seg_prog/$organism.boundary.trna ]
+echo "##########################################"
+echo "Finding tRNA genes around each segment"
+if [ ! -f $output_dir/$seg_prog/feature/$organism.boundary.trna ]
 then
-python $prog_dir/find_trnas.py -i $output_dir/$seg_prog/$organism.segment -t $output_dir/boundary/$organism.pred_trna -o $output_dir/$pred_prog/$seg_prog/$organism.boundary.trna
+python $prog_dir/find_trnas.py -i $output_dir/$seg_prog/$organism.segment -t $output_dir/boundary/$organism.pred_trna -o $output_dir/$seg_prog/feature/$organism.boundary.trna
 fi
 
-if [ ! -f $output_dir/$pred_prog/$seg_prog/$organism.boundary.repeat ]
+echo "##########################################"
+echo "Finding repeats around each segment"
+if [ ! -f $output_dir/$seg_prog/feature/$organism.boundary.repeat ]
 then
 # The output is based on the genomic segments
-python $prog_dir/find_repeats.py -i $output_dir/$seg_prog/$organism.segment -r $output_dir/boundary/$organism.repseek -o $output_dir/$pred_prog/$seg_prog/$organism.boundary.repeat
+python $prog_dir/find_repeats.py -i $output_dir/$seg_prog/$organism.segment -r $output_dir/boundary/$organism.repseek -o $output_dir/$seg_prog/feature/$organism.boundary.repeat
 fi
 
-if [ ! -f $output_dir/$seg_prog/$organism.kmer.covariance ]
+if [ $mode == 1 ]
 then
-python $prog_dir/analyze_kmer.py -r -i $output_dir/$organism.fna -s $output_dir/$seg_prog/$organism.segment -o $output_dir/$seg_prog/$organism.kmer
+echo "##########################################"
+echo "Analyzing GC Content for each segment"
+if [ ! -f $output_dir/$seg_prog/feature/$organism.gc ]
+then
+  python $prog_dir/analyze_GC.py -i $output_dir/$organism.fna -s $output_dir/$seg_prog/$organism.segment -o $output_dir/$seg_prog/feature/$organism.gc
+fi
 fi
 
-python $prog_dir/mergeFeature.py -g $output_dir/$pred_prog/feature/$organism.feature.multi -o $output_dir/$pred_prog/$seg_prog/$organism.seg_feature.multi  -s $output_dir/$seg_prog/$organism.segment -r $output_dir/$pred_prog/feature/$organism.cmscan.tbl
+echo "##########################################"
+echo "Analyzing k-mer frequency for each segment"
+if [ ! -f $output_dir/$seg_prog/feature/$organism.kmer.covariance ]
+then
+python $prog_dir/analyze_kmer.py -r -i $output_dir/$organism.fna -s $output_dir/$seg_prog/$organism.segment -o $output_dir/$seg_prog/feature/$organism.kmer
+fi
+
+
+echo "##########################################"
+echo "Merging features for each segment"
+if [ $mode == 1 ]
+then
+python $prog_dir/mergeFeature.py -g $output_dir/$pred_prog/feature/$organism.feature.multi -o $output_dir/$seg_prog/feature/$organism.seg_feature.multi  -s $output_dir/$seg_prog/$organism.segment -r $output_dir/$pred_prog/feature/$organism.cmscan.tbl
+fi
+
+if [ $mode == 0 ]
+then
+python $prog_dir/mergeFeature.py -g $output_dir/$pred_prog/feature/$organism.feature.multi -o $output_dir/$seg_prog/feature/$organism.seg_feature.multi  -s $output_dir/$seg_prog/$organism.segment -r $output_dir/$pred_prog/feature/$organism.cmscan.tbl
+fi
 
 
 # Form the feature matrix for clustering, for gc and kmer use the value for each segment directly
-python $prog_dir/countFeature.py -i $output_dir/$pred_prog/$seg_prog/$organism.seg_feature.multi -o $output_dir/$pred_prog/$seg_prog/$organism.feature.multi.percentage -r $output_dir/$pred_prog/$seg_prog/$organism.boundary.repeat -t $output_dir/$pred_prog/$seg_prog/$organism.boundary.trna -k $output_dir/$seg_prog/$organism.kmer.covariance
+python $prog_dir/countFeature.py -i $output_dir/$seg_prog/feature/$organism.seg_feature.multi -o $output_dir/$seg_prog/feature/$organism.feature.multi.percentage -r $output_dir/$seg_prog/feature/$organism.boundary.repeat -t $output_dir/$seg_prog/feature/$organism.boundary.trna -k $output_dir/$seg_prog/$organism.kmer.covariance
 
 # Get the labels for each segment when there are references
 # have to run this after changing references
 # python $prog_dir/IntervalIntersection.py --interval1 $output_dir/$seg_prog/$organism.segment --interval2 $output_dir/$organism.refgi -o $output_dir/$seg_prog/"$seg_prog"_refgi -f 0
 #
-# python $prog_dir/assign_cluster.py --interval1 $output_dir/$pred_prog/$seg_prog/$organism.feature.multi.percentage --interval2 $output_dir/$seg_prog/"$seg_prog"_refgi_interval1 -o $output_dir/$pred_prog/$seg_prog/$organism.feature.multi.percentage.labeled
-# python $prog_dir/assign_cluster.py -c --interval1 $output_dir/$pred_prog/$seg_prog/$organism.feature.multi.percentage.labeled --interval2 $output_dir/$seg_prog/"$seg_prog"_pos_overlap_interval1 --interval3 $output_dir/$seg_prog/"$seg_prog"_neg_overlap_interval1 -o $output_dir/$pred_prog/$seg_prog/$organism.feature.multi.percentage.labeled2
+# python $prog_dir/assign_cluster.py --interval1 $output_dir/$seg_prog/feature/$organism.feature.multi.percentage --interval2 $output_dir/$seg_prog/"$seg_prog"_refgi_interval1 -o $output_dir/$seg_prog/feature/$organism.feature.multi.percentage.labeled
+# python $prog_dir/assign_cluster.py -c --interval1 $output_dir/$seg_prog/feature/$organism.feature.multi.percentage.labeled --interval2 $output_dir/$seg_prog/"$seg_prog"_pos_overlap_interval1 --interval3 $output_dir/$seg_prog/"$seg_prog"_neg_overlap_interval1 -o $output_dir/$seg_prog/feature/$organism.feature.multi.percentage.labeled2
 
 
 ###################### run Rscript for consensus clustering ##############################
@@ -238,31 +283,31 @@ method=average
 rep=1
 postprocess=true
 
-if [ ! -f $output_dir/$pred_prog/$seg_prog/$feature/$method/$pFeature/$rep/"$organism"_GI ]
+if [ ! -f $output_dir/$seg_prog/feature/$feature/$method/$pFeature/$rep/"$organism"_GI ]
 then
-  mkdir -p $output_dir/$pred_prog/$seg_prog/$feature/$method/$pFeature/$rep/
-  ffile=$output_dir/$pred_prog/$seg_prog/$organism.feature.multi.percentage
-  nohup Rscript $prog_dir/GI_Clustering.R -f $ffile -o $output_dir/$pred_prog/$seg_prog/$feature/$method/$pFeature/$rep/ -a "$organism" -l $prog_dir/clustering -k 2 -K 3 -r $rep -e $pFeature -s $seg_prog -v true -C hclust -P method=$method -m true -d $feature -S $postprocess 2>&1 > $output_dir/$pred_prog/$seg_prog/$feature/$method/$pFeature/$rep/rscript_std
+  mkdir -p $output_dir/$seg_prog/feature/$feature/$method/$pFeature/$rep/
+  ffile=$output_dir/$seg_prog/feature/$organism.feature.multi.percentage
+  nohup Rscript $prog_dir/GI_Clustering.R -f $ffile -o $output_dir/$seg_prog/feature/$feature/$method/$pFeature/$rep/ -a "$organism" -l $prog_dir/clustering -k 2 -K 3 -r $rep -e $pFeature -s $seg_prog -v true -C hclust -P method=$method -m true -d $feature -S $postprocess 2>&1 > $output_dir/$seg_prog/feature/$feature/$method/$pFeature/$rep/rscript_std
 fi
 
 ###################### boundary refinement ##############################
 echo "##########################################"
 echo "Refine the boundary of predicted GIs"
 dist=1000
-python $prog_dir/refine_boundary.py -i $output_dir/$pred_prog/$seg_prog/$feature/$method/$pFeature/$rep/"$organism"_GI -r $output_dir/$pred_prog/$seg_prog/$organism.boundary.repeat -t $output_dir/$pred_prog/$seg_prog/$organism.boundary.trna -o  $output_dir/$pred_prog/$seg_prog/$feature/$method/$pFeature/$rep/"$organism"_refined_GI -c $dist
+python $prog_dir/refine_boundary.py -i $output_dir/$seg_prog/feature/$feature/$method/$pFeature/$rep/"$organism"_GI -r $output_dir/$seg_prog/feature/$organism.boundary.repeat -t $output_dir/$seg_prog/feature/$organism.boundary.trna -o  $output_dir/$seg_prog/feature/$feature/$method/$pFeature/$rep/"$organism"_refined_GI -c $dist
 
 # post process GI candidates
-# python $prog_dir/postprocess_segments.py  -l $gap -a -i $output_dir/$pred_prog/$seg_prog/$feature/$method/$pFeature/$rep/"$organism"_GI -g $output_dir/$pred_prog/genome/$organism.glist
+# python $prog_dir/postprocess_segments.py  -l $gap -a -i $output_dir/$seg_prog/feature/$feature/$method/$pFeature/$rep/"$organism"_GI -g $output_dir/$pred_prog/genome/$organism.glist
 gap=5000
-python $prog_dir/postprocess_segments.py  -l $gap -a -i $output_dir/$pred_prog/$seg_prog/$feature/$method/$pFeature/$rep/"$organism"_refined_GI -g $output_dir/$pred_prog/genome/$organism.glist
+python $prog_dir/postprocess_segments.py  -l $gap -a -i $output_dir/$seg_prog/feature/$feature/$method/$pFeature/$rep/"$organism"_refined_GI -g $output_dir/$pred_prog/genome/$organism.glist
 
 ##################### visualization  ##############################
-gifile=$output_dir/$pred_prog/$seg_prog/$feature/$method/$pFeature/$rep/merged_"$organism"_refined_GI
+gifile=$output_dir/$seg_prog/feature/$feature/$method/$pFeature/$rep/merged_"$organism"_refined_GI
 # get the features of predicted GIs
-python $prog_dir/mergeFeature.py -g $output_dir/$pred_prog/feature/$organism.feature.multi -s $gifile -r $output_dir/$pred_prog/feature/$organism.cmscan.tbl -o $output_dir/$pred_prog/$seg_prog/$feature/$method/$pFeature/$rep/$organism.gi.feature
+python $prog_dir/mergeFeature.py -g $output_dir/$pred_prog/feature/$organism.feature.multi -s $gifile -r $output_dir/$pred_prog/feature/$organism.cmscan.tbl -o $output_dir/$seg_prog/feature/$feature/$method/$pFeature/$rep/$organism.gi.feature
 
 # get the features of FPs
-python $prog_dir/mergeFeature.py -g $output_dir/$pred_prog/feature/$organism.feature.multi -o $output_dir/$pred_prog/$seg_prog/$feature/$method/$pFeature/$rep/eval_FPs_GI_feature  -s $output_dir/$pred_prog/$seg_prog/$feature/$method/$pFeature/$rep/eval_FPs_GI -r $output_dir/$pred_prog/feature/$organism.cmscan.tbl
+python $prog_dir/mergeFeature.py -g $output_dir/$pred_prog/feature/$organism.feature.multi -o $output_dir/$seg_prog/feature/$feature/$method/$pFeature/$rep/eval_FPs_GI_feature  -s $output_dir/$seg_prog/feature/$feature/$method/$pFeature/$rep/eval_FPs_GI -r $output_dir/$pred_prog/feature/$organism.cmscan.tbl
 
 
 echo "##########################################"
@@ -271,26 +316,26 @@ echo "Create figures to visualize the predicted genomic island and related featu
 show=1
 if [ "$show_figure" -eq "$show" ]
 then
-  if [ ! -d $output_dir/$pred_prog/$seg_prog/visualization/data ]
+  if [ ! -d $output_dir/$seg_prog/feature/visualization/data ]
   then
-    mkdir -p $output_dir/$pred_prog/$seg_prog/visualization/data
-    mkdir -p $output_dir/$pred_prog/$seg_prog/visualization/etc
-    mkdir -p $output_dir/$pred_prog/$seg_prog/visualization/img
+    mkdir -p $output_dir/$seg_prog/feature/visualization/data
+    mkdir -p $output_dir/$seg_prog/feature/visualization/etc
+    mkdir -p $output_dir/$seg_prog/feature/visualization/img
   fi
   # copy template files
-  cp $prog_dir/visualization/etc/* $output_dir/$pred_prog/$seg_prog/visualization/etc
+  cp $prog_dir/visualization/etc/* $output_dir/$seg_prog/feature/visualization/etc
 
-  python $prog_dir/visualization/prepareGIForCircos.py -g $output_dir/$organism.fna -i $gifile -o $output_dir/$pred_prog/$seg_prog/visualization/data/$organism.gi -c $output_dir/$pred_prog/$seg_prog/visualization/data/$organism.chr -f $output_dir/$pred_prog/$seg_prog/visualization/data/$organism.highlight
+  python $prog_dir/visualization/prepareGIForCircos.py -g $output_dir/$organism.fna -i $gifile -o $output_dir/$seg_prog/feature/visualization/data/$organism.gi -c $output_dir/$seg_prog/feature/visualization/data/$organism.chr -f $output_dir/$seg_prog/feature/visualization/data/$organism.highlight
   # use features of all the input segments
-  python $prog_dir/visualization/prepareGIFeatureForCircos.py -a -i $output_dir/$pred_prog/$seg_prog/$organism.feature.multi.percentage -o $output_dir/$pred_prog/$seg_prog/visualization/data
+  python $prog_dir/visualization/prepareGIFeatureForCircos.py -a -i $output_dir/$seg_prog/feature/$organism.feature.multi.percentage -o $output_dir/$seg_prog/feature/visualization/data
 
   # prefix="intervals.feature.percentage"
   prefix="feature.multi.percentage"
-  python $prog_dir/visualization/prepareConfigForCircos.py -i $output_dir/$pred_prog/$seg_prog/visualization/etc/circos.gifeature.conf.template -n $organism -o $output_dir/$pred_prog/$seg_prog/visualization/etc/circos.gifeature.conf -p $prefix -f "$organism"_gifeature
+  python $prog_dir/visualization/prepareConfigForCircos.py -i $output_dir/$seg_prog/feature/visualization/etc/circos.gifeature.conf.template -n $organism -o $output_dir/$seg_prog/feature/visualization/etc/circos.gifeature.conf -p $prefix -f "$organism"_gifeature
 
   # run circos at etc folder since the output directory is relative
-  cd $output_dir/$pred_prog/$seg_prog/visualization/etc
-  circos -conf $output_dir/$pred_prog/$seg_prog/visualization/etc/circos.gifeature.conf
+  cd $output_dir/$seg_prog/feature/visualization/etc
+  circos -conf $output_dir/$seg_prog/feature/visualization/etc/circos.gifeature.conf
   cd $output_dir
 
   # compare with reference GIs

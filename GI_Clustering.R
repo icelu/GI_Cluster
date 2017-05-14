@@ -4,28 +4,29 @@
 # Author: Bingxin Lu
 # Affiliation : National University of Singapore
 # E-mail : bingxin@comp.nus.edu.sg
-# Version : 1.0
+
 
 ##=========================================================
 # sample usage:
-# Rscript ConsensusClustering.R -f NC_011770.feature.percentage -o /home/ice/vmshare/research/data/species/lesb58/GIFilter/mjsd/
+# Rscript ConsensusClustering.R -f NC_011770.feature.percentage -o ./research/data/species/lesb58/GIFilter/mjsd/
 ##=============================================================
+
+
 # Load any required libraries   #
 ##=============================================================
 #install.packages("optparse")
 
-library("optparse")
+library("optparse") # for parsing parameters
 library(methods) # for existsFunction
 library(stats) # for hclust
 
-library(Ckmeans.1d.dp)
-library(mclust)
+library(Ckmeans.1d.dp) # for 1D kmeans
+library(mclust) # for density estimation
 library(fpc) # for cluster statistics
 
 ##=============================================
 # Read the arguments
 ##=============================================
-
 option_list = list(
   make_option(c("-f", "--file"), type="character", default=NULL,
               help="input dataset file name"),
@@ -138,7 +139,9 @@ if (verbose=="true"){
 
 R.utils::sourceDirectory(libdir, modifiedOnly=FALSE)
 
-
+# the format of the feature table:
+# for complete genome with gene annotations
+# 'GeneID\tStart\tEnd\tStrand\tGC\tGC1\tGC2\tGC3\tGC_skew\tCUB\tAAB\tCHI\tCAI\tCBI\tFop\t2-mer\t3-mer\t4-mer\t5-mer\t6-mer\t7-mer\t8-mer\tMobility gene\tPhage\tVirulence factor\tAntibiotic resistance gene\tNovel gene\n'
 ft0 <- read.table(file)
 
 # remove regions with 0 genes or with >2 tRNA+rRNA
@@ -162,6 +165,7 @@ else{
 features=ft[,9:24]
 # head(features)
 # transform features related to GC content into distance values
+# for each value, compute its chisquare value (x-mean)^2/mean
 start=9;
 for(i in 1:4){
   if(i==3) next;
@@ -172,13 +176,8 @@ for(i in 1:4){
   # cat("feature ", paste0("V",start+i), ": ", str(features[, paste0("V",start+i)]), "\n")
 }
 
-# transform features related to gene content (phage, vf, ar, ng) into distance values
-# for each value, compute its chisquare value (x-mean)^2/mean
+# features related to gene content (phage, vf, ar, ng)
 for(i in 1:4){
-  # fv = ft[,25+i]*100
-  # mu = mean(fv)
-  # # cat("mu ", paste0("V",25+i), ": ", mu, "\n")
-  # features[, paste0("V",25+i)] = ((fv-mu)^2)/mu
   features[, paste0("V",25+i)] = ft[,25+i]
   # cat("feature ", paste0("V",25+i), ": ", str(features[, paste0("V",25+i)]), "\n")
 }

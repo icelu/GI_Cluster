@@ -1,27 +1,19 @@
 #!/usr/bin/python
-# Lu Bingxin, 2017.3.2
 
-'''
-Given DNA sequence of a genome or a gene or a genomic region, analyze its k-mer spectrum
+# Given DNA sequence of a genome or a gene or a genomic region, analyze its k-mer spectrum
+#
+# Input:
+# 1. gene sequence file, fasta format
+# 2. genome sequence file, fasta format
+#
+# Output:
+# Measures of k-mer:
+# for each gene, the differences between its k-mer spectrum and the k-mer spectrum of whole genome
 
-Input:
-1. gene sequence file, fasta format
-2. genome sequence file, fasta format
-
-Output:
-Measures of k-mer:
-for each gene, the differences between its k-mer spectrum and the k-mer spectrum of whole genome
-
-Required:
-http://kmer.readthedocs.io/en/stable/intro.html
-pip install kMer
-'''
 
 from __future__ import division
 import itertools
 import optparse
-# kMer seems not well developed for now: errors occur when importing klib
-#import k_mer
 import re
 import numpy as np
 import math
@@ -29,7 +21,7 @@ import random
 
 ################################# k-mer operations #######################
 
-#: Conversion table form nucleotide to binary.
+# Conversion table form nucleotide to binary.
 _nucleotide_to_binary = {
     'A': 0x00, 'a': 0x00,
     'C': 0x01, 'c': 0x01,
@@ -37,7 +29,7 @@ _nucleotide_to_binary = {
     'T': 0x03, 't': 0x03
 }
 
-#: Conversion table form binary to nucleotide.
+# Conversion table form binary to nucleotide.
 _binary_to_nucleotide = {
     0x00: 'A',
     0x01: 'C',
@@ -46,10 +38,10 @@ _binary_to_nucleotide = {
 }
 
 
-'''
-The following functions are from kMer library
-'''
 
+############################# Most of  the following functions are from kMer library #############################
+
+###################### Extracting k-mers ####################
 def dna_to_binary(sequence):
     """
     Convert a string of DNA to an integer.
@@ -140,8 +132,8 @@ def kmer_from_sequences(sequences, length):
     return np.array(counts, dtype='int64')
 
 
-#################################### distance metrics ####################
-#: Pairwise distance functions. Arguments should be of type `numpy.ndarray`.
+###################### distance metrics ####################
+# Pairwise distance functions. Arguments should be of type `numpy.ndarray`.
 pairwise = {
     "prod": lambda x, y: abs(x - y) / ((x + 1) * (y + 1)),
     "sum": lambda x, y: abs(x - y) / (x + y + 1)
@@ -225,7 +217,6 @@ def covariance(left, right):
     return dist
 
 
-
 def distance(left, right, pairwise=pairwise['prod'], distance_function=None):
     """
     Calculate the distance between two *k*-mer profiles.
@@ -240,6 +231,8 @@ def distance(left, right, pairwise=pairwise['prod'], distance_function=None):
         return multiset(left, right, pairwise)
     return distance_function(left, right)
 
+
+############################# Most of the above functions are from kMer library #############################
 
 ############################## parse files ##################################
 
@@ -259,10 +252,11 @@ def switch_to_AGCT(Nuc):
     return SWITCH[Nuc]()
 
 
-'''
-Replace ambiguous bases with ATCG
-'''
+
 def standardize_DNASeq(genome):
+    '''
+    Replace ambiguous bases with ATCG
+    '''
     for i in ['R', 'Y', 'M', 'K', 'S', 'W', 'H', 'B', 'V', 'D', 'N']:
         if i in genome:
            genome = genome.replace(i, switch_to_AGCT(i))
@@ -286,6 +280,7 @@ def parse_genome_file(genome_file, klen):
                 sequence = standardize_DNASeq(sequence)
                 glen = len(sequence)
 
+                # To get normalized k-mer frequency
                 # atcg_fraction= get_atcg_fraction(sequence)
                 # base_frac = []
                 # for nt in sequence:
@@ -342,11 +337,12 @@ def get_atcg_fraction(dna):
     return dict
 
 
-'''
-input: .ffn file, fasta format, DNA sequence for each gene
-output: distance for each gene in a line
-'''
+
 def parse_genes(gfile, genome_profiles, klen, genomelen, morder=1, atcg_fraction={}, distance_function=None):
+    '''
+    input: .ffn file, fasta format, DNA sequence for each gene
+    output: distance for each gene in a line
+    '''
     i = 0
     dist_dict = {}
     for k in range(2, klen + 1):
@@ -389,11 +385,12 @@ def parse_genes(gfile, genome_profiles, klen, genomelen, morder=1, atcg_fraction
     return dist_dict
 
 
-'''
-input: position for each segment (1-based)
-output: kmer measures for each segment in a line
-'''
+
 def parse_segs(gfile, gnome, genome_profiles, klen, genomelen, outfile, morder=1, atcg_fraction={}, distance_function=None):
+    '''
+    input: position for each segment (1-based)
+    output: kmer measures for each segment in a line
+    '''
     i = 0
     dist_dict = {}
     for k in range(2, klen + 1):

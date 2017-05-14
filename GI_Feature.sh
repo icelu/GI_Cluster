@@ -1,7 +1,14 @@
+##=========================================================
+# Script for extracting features related to genomic islands in a genomic region
+# Author: Bingxin Lu
+# Affiliation : National University of Singapore
+# E-mail : bingxin@comp.nus.edu.sg
+
+
 ########## usage ##########
 # ./GI_Feature.sh -s  $prog_dir -o $output_dir -n $organism -m $seg_prog
-# e.g. ./GI_Feature.sh -s $output_dir/GIFilter -o /home/ice/vmshare/research/data/species/cft73 -n NC_004431  -m /home/ice/vmshare/research/software/HGT/mjsd
-# Contact: bingxin@comp.nus.edu.sg
+# e.g. ./GI_Feature.sh -s ./GIFilter -o ./research/data/species/cft73 -n NC_004431  -m ./research/software/HGT/mjsd
+
 
 software=$(basename $0)
 
@@ -12,6 +19,7 @@ Usage: $software [options] -s [the directory containing all the scripts] -o [the
 -n [the name of the organism (NCBI Accession, e.g. NC_003198)] -m [programs for genome segmation (e.g. mjsd, gcprofile, gisvm, alienhunter)] -p [programs for gene prediction (e.g. prodigal, ncbi)]
 
 OPTIONS	Default	DESCIPTION
+-b	0	: mode of running: 0 for complete genome, 1 for contigs.
 # -t	1e-5	: e-value used during identification of mobgenes, i.e., hmmsearch against pfam database of mobgenes.
 -e	1e-5	: e-value used during identification of phage-related genes, i.e., blastp against PHAST.
 
@@ -33,9 +41,13 @@ arg_evalue=1e-5
 num_threads=4
 show_figure=1
 num_cpus=16
+mode=0
 
-while getopts "s:o:n:m:p:g:c:e:r:a:d:f:u:h" OPT; do
+
+while getopts "b:s:o:n:m:p:g:c:e:r:a:d:f:u:h" OPT; do
   case $OPT in
+    b) mode=$OPTARG || exit 1;;
+
     s) prog_dir=$OPTARG || exit 1;;
     o) output_dir=$OPTARG || exit 1;;
     n) organism=$OPTARG || exit 1;;
@@ -55,11 +67,12 @@ while getopts "s:o:n:m:p:g:c:e:r:a:d:f:u:h" OPT; do
   esac
 done
 
-
 #echo $prog_dir
 #echo $output_dir
 #echo $organism
 
+if [ $mode == 0 ]
+then
 ############## compute known features related to genomic islands #########################
 if [ ! -d $output_dir/$pred_prog/feature/ ]
 then
@@ -70,18 +83,15 @@ fi
 
 # GC bias for each ORF
 echo "##########################################"
-echo "Analyze GC Content"
+echo "Analyzing GC Content for each gene/ORF"
 if [ ! -f $output_dir/$pred_prog/feature/$organism.feature.gc ]
 then
   python $prog_dir/analyze_GC.py -g $output_dir/$pred_prog/genome/$organism.ffn -o $output_dir/$pred_prog/feature/$organism.feature.gc
-  # python $prog_dir/find_atypicality.py -n 4 -s 1 -i $output_dir/$pred_prog/feature/$organism.gc -o $output_dir/$pred_prog/feature/$organism.gc.group
-  # less $output_dir/$pred_prog/feature/$organism.gc | cut -f5 > $output_dir/$pred_prog/feature/$organism.gc_skew
-  # paste $output_dir/$pred_prog/feature/$organism.gc.group $output_dir/$pred_prog/feature/$organism.gc_skew > $output_dir/$pred_prog/feature/$organism.feature.gc
-fi
+fi 
 
 # codon usage
 echo "##########################################"
-echo "Analyze codon usage"
+echo "Analyzing codon usage for each gene/ORF"
 if [ ! -f $output_dir/$pred_prog/feature/$organism.feature.codon ]
 then
 if [ ! -f $output_dir/$pred_prog/feature/codonw.out ]
@@ -95,7 +105,7 @@ fi
 
 # k-mer Frequency
 echo "##########################################"
-echo "Analyze k-mer frequency"
+echo "Analyzing k-mer frequency for each gene/ORF"
 if [ ! -f $output_dir/$pred_prog/feature/$organism.feature.kmer ]
 then
   python $prog_dir/analyze_kmer.py -i $output_dir/$organism.fna -g $output_dir/$pred_prog/genome/$organism.ffn -o $output_dir/$pred_prog/feature/$organism.kmer
@@ -114,7 +124,7 @@ fi
 
 # mobgene (mobility gene)
 echo "##########################################"
-echo "Identify mobility genes"
+echo "Identifying mobility genes"
 if [ ! -f $output_dir/$pred_prog/feature/$organism.feature.mobgene ]
 then
 python $prog_dir/extract_mobgene.py -i $prog_dir/db/MOB/Pfam-A.hmm.dat -o $prog_dir/db/MOB/mobgene.list > $prog_dir/db/MOB/Pfam_mobgene.hmm
@@ -128,7 +138,7 @@ fi
 
 # phage-related gene
 echo "##########################################"
-echo "Identify phage-related genes"
+echo "Identifying phage-related genes"
 if [ ! -f $prog_dir/db/PHAST/prophage_virus.pin ]
 then
   makeblastdb -in $prog_dir/db/PHAST/prophage_virus.db -title prophage_virus -dbtype prot -out $prog_dir/db/PHAST/prophage_virus
@@ -139,11 +149,9 @@ then
   python $prog_dir/parse_blast_output.py -b $output_dir/$pred_prog/feature/$organism.hit.phage -g $output_dir/$pred_prog/genome/$organism.gene_id -o $output_dir/$pred_prog/feature/$organism.feature.phage
 fi
 
-
-
 # virulence factor
 echo "##########################################"
-echo "Identify virulence factors"
+echo "Identifying virulence factors"
 # setB refers to the full set, setA contains only experimentally validated VFs
 if [ ! -f $prog_dir/db/VFDB/VFDB_setB_pro.pin ]
 then
@@ -158,7 +166,7 @@ fi
 
 # antibiotic resistance gene
 echo "##########################################"
-echo "Identify antibiotic resistance genes"
+echo "Identifying antibiotic resistance genes"
 if [ ! -f $prog_dir/db/CARD/CARD_prot_homolog.pin ]
 then
   makeblastdb -in $prog_dir/db/CARD/protein_fasta_protein_homolog_model.fasta  -title CARD_prot_homolog -dbtype prot -out $prog_dir/db/CARD/CARD_prot_homolog
@@ -172,7 +180,7 @@ fi
 
 # Novel gene
 echo "##########################################"
-echo "Identify novel genes"
+echo "Identifying novel genes"
 if [ ! -f $prog_dir/db/COG/COGs.pin ]
 then
   makeblastdb -in $prog_dir/db/COG/prot2003-2014.fa -dbtype prot -out $prog_dir/db/COG/COGs
@@ -245,7 +253,15 @@ then
   fi
 fi
 
-############################ Analyze features around the boundary of segments ################################################
+fi # for complete genome
+
+############################ merge files ################################################
+echo "##########################################"
+echo "Merging features for each ORF"
+paste $output_dir/$pred_prog/genome/$organism.glist $output_dir/$pred_prog/feature/$organism.feature.gc $output_dir/$pred_prog/feature/$organism.feature.codon $output_dir/$pred_prog/feature/$organism.feature.kmer $output_dir/$pred_prog/feature/$organism.feature.mobgene $output_dir/$pred_prog/feature/$organism.feature.phage $output_dir/$pred_prog/feature/$organism.feature.vfdb $output_dir/$pred_prog/feature/$organism.feature.AR  $output_dir/$pred_prog/feature/$organism.feature.ngene > $output_dir/$pred_prog/feature/$organism.feature.multi
+
+
+############################ Analyzing boundary features ################################################
 echo "##########################################"
 echo "Predicting tRNA"
 if [ ! -d $output_dir/boundary ]
@@ -261,15 +277,9 @@ then
 fi
 
 echo "##########################################"
-echo "Find repeats"
+echo "Finding repeats"
 if [ ! -f $output_dir/boundary/$organism.repseek ]
 then
 # repeat is only dependant on the original genome sequence
 repseek -l 15 -O 0 -r $output_dir/boundary/$organism.repseek $output_dir/$organism.fna
 fi
-
-
-############################ merge files ################################################
-echo "##########################################"
-echo "Merge features"
-paste $output_dir/$pred_prog/genome/$organism.glist $output_dir/$pred_prog/feature/$organism.feature.gc $output_dir/$pred_prog/feature/$organism.feature.codon $output_dir/$pred_prog/feature/$organism.feature.kmer $output_dir/$pred_prog/feature/$organism.feature.mobgene $output_dir/$pred_prog/feature/$organism.feature.phage $output_dir/$pred_prog/feature/$organism.feature.vfdb $output_dir/$pred_prog/feature/$organism.feature.AR  $output_dir/$pred_prog/feature/$organism.feature.ngene > $output_dir/$pred_prog/feature/$organism.feature.multi

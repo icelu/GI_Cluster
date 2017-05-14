@@ -1,0 +1,186 @@
+#!/usr/bin/perl
+
+# Authors: Matloob Qureshi
+# For license see /usr/biotools/CMG-biotools.license
+
+use warnings;
+use strict;
+use Data::Dumper;
+use File::Spec;
+use Bio::SeqIO;
+use Bio::Tools::GFF;
+use Cwd;
+use Getopt::Long;
+use FindBin;
+use lib "$FindBin::Bin/../lib";
+#use CBS::FastaUtil;
+
+
+my($PRODIGAL, $FORMAT, $TRAIN);
+GetOptions('prodigal=s' => \$PRODIGAL, 'format=s' => \$FORMAT, 'train=s' => \$TRAIN);
+
+my (@inputs) = @ARGV;
+#$PRODIGAL = '/usr/biotools/indirect/prodigal.v2_00.linux';
+$PRODIGAL = '/home/b/bingxin/GI-Cluster/bin/prodigal';
+checkOptions($PRODIGAL, @inputs);
+
+processFiles(@inputs);
+
+#process each input fasta file
+# 1. fix fasta sequence names
+# 2. run prodigal
+# 3. read the GFF file and map  back to the sequence
+# 4. write the output file as genbank, fasta
+# 5. write the translated output to a fasta file
+sub processFiles {
+	my (@files) = @_;
+	
+	foreach my $file (@files) {
+		warn("File [$file] not found") unless (-e $file);
+		
+		my $tempFile = writeTempSeqFiles($file);
+		my $features = runProdigal($PRODIGAL, $tempFile, $TRAIN);
+		mapFeaturesToSequence($features, $tempFile);
+		system("rm $tempFile");
+	}	
+}
+
+sub mapFeaturesToSequence{
+	my ($featureFile, $tempFile) = @_;
+	my ($vol, $dir, $filename) = File::Spec->splitpath($featureFile);
+	my ($fileStem) = ($filename =~ /(.*?)\./);
+	$fileStem = $filename unless ($fileStem);
+	
+	my $gff = new Bio::Tools::GFF(-file => "<$featureFile");
+			
+	my %seqFeatures;
+	my (%names, $repeatedNames);
+	while (my $feature = $gff->next_feature()) {
+		push(@{$seqFeatures{$feature->seq_id()}}, $feature);
+		$repeatedNames = 1; #if (!defined $feature->display_id() || $names{$feature->display_id()});
+		#$names{$feature->display_id()} += 1 if (defined $feature->display_id);
+	}
+	
+	#read in sequence data files as Bio::Seqs
+	my $seqIn = new Bio::SeqIO(-format => "fasta", -file => $tempFile);
+	
+	my $genbankFile .= $fileStem."_prodigal.gbk";
+	my $fastaFile .= $fileStem."_prodigal.orf.fna";
+	my $proteinFile .= $fileStem."_prodigal.orf.fsa";
+	
+	my $seqOut = new Bio::SeqIO(-format => "genbank", -file => ">$genbankFile");
+	my $fastaOut = new Bio::SeqIO(-format => "fasta", -file => ">$fastaFile");
+	my $proteinOut = new Bio::SeqIO(-format => "fasta", -file => ">$proteinFile");
+	
+	while (my $seqObj = $seqIn->next_seq()) {
+		print "Processing SEQ ".$seqObj->display_id()." len = ".length($seqObj->seq())."\n";
+		if ($seqFeatures{$seqObj->id()}) {
+			my %featureNames;
+			foreach my $feature (@{$seqFeatures{$seqObj->id()}}) {
+				$seqObj->add_SeqFeature($feature);
+				my $featureSeq = $feature->spliced_seq();
+				#$featureSeq->display_id(
+				#	$feature->has_tag('gene') ? join(',',sort $feature->each_tag_value('gene')) :
+				#	$feature->has_tag('label') ? join(',',$feature->each_tag_value('label')):
+				#	$featureSeq->display_id
+				#);
+				
+				my ($start, $end);
+				if ($feature->strand > 0) {
+					$start = $feature->start();
+					$end = $feature->end();
+				} else {
+					$end = $feature->start();
+					$start = $feature->end();
+				}
+				
+				$featureSeq->display_id($featureSeq->display_id()."_CDS_".$start."-".$end) if ($repeatedNames);
+				$fastaOut->write_seq($featureSeq);
+				my $pseq = $featureSeq->translate();
+				my $seqWithoutStopCodon = $pseq->subseq(1, ($pseq->length()-1)); #This step removes the stop codon which is otherwise output as an asterisk (*) and causes problems
+				$pseq->seq($seqWithoutStopCodon);
+				$proteinOut->write_seq($pseq);
+			}
+			$seqOut->write_seq($seqObj);
+		} else {
+			warn("Sequence [".$seqObj->id()."] has no matching features");
+		}
+	}
+}
+
+sub runProdigal{
+	my ($prodigal, $file, $train) = @_;
+	my @featureFiles;
+	my ($vol, $dir, $filename) = File::Spec->splitpath($file);
+	my ($fileStem) = ($filename =~ /(.*?)\./);
+	$fileStem = $filename unless ($fileStem);
+	my $featureFile = $fileStem.".gff";
+	print "PRODIGAL: input from [$file] output to [$featureFile]";
+	if (defined $train) {
+		system("$prodigal -m -f gff -t $train -i $file -o $featureFile");
+	} else {
+		system("$prodigal -m -f gff -i $file -o $featureFile");
+	}
+	return $featureFile;
+}
+
+sub writeTempSeqFiles {
+	my ($file) = @_;
+	my ($vol, $dir, $filename) = File::Spec->splitpath($file);
+	my ($fileStem) = ($filename =~ /(.*?)\./);
+	$fileStem = $filename unless ($fileStem);
+	
+	my $seqIn = Bio::SeqIO->new('-file' => $file, '-format' => $FORMAT);
+	my (@seqs, %seqNames, $repeatedNames);
+	while(my $seq = $seqIn->next_seq()) {
+		#prodigal only takes the 1st 16 alpha-numeric characters of the sequence name
+		#my ($prodigalSeqName) = substr($seq->id(),0,16); #TODO delete if prodigal is ever fixed!
+		my ($prodigalSeqName) = ($seq->id() =~ /(\w{0,16})/); #TODO delete if prodigal is ever fixed!
+		$repeatedNames = 1 if ($seqNames{$prodigalSeqName});
+		my $namedSeq = {'name' => $prodigalSeqName, 'seq' => $seq};
+		print "Renamed ".$seq->id()." to $prodigalSeqName\n" if ($seq->id() ne $prodigalSeqName);
+		push(@seqs, $namedSeq);
+	}
+	#write all seq objects to a "fixed" file
+	my $seqFile = "$fileStem.fasta";
+	my $seqOut = Bio::SeqIO->new('-file' => ">$seqFile", '-format' => 'fasta');
+	
+	for(my $i=0; $i < @seqs; $i++) {
+		my $seq = $seqs[$i]->{'seq'};
+				
+		#fix the seq names if more than one sequence has the same name
+		my $seqName;
+		if ($repeatedNames) {
+			$seqName = ($seqs[$i]->{'name'}).$i;
+		} else {
+			$seqName = $seqs[$i]->{'name'};
+		}
+		
+		$seq->id($seqName);
+		$seqOut->write_seq($seq);
+	}
+	
+	return $seqFile;
+}
+
+#checkOptions: test existence of prodigal executable and temp path
+sub checkOptions {
+	my ($prodigal, @inputs) = @_;
+	my @errors;
+	push(@errors, "ERROR: The full path to the prodigal executable must be supplied [$prodigal") unless (defined $prodigal && -e $prodigal);
+	
+	if (@errors) {
+		foreach my $err (@errors) {
+			print "$err\n";
+		}
+		printUsage();
+	} elsif (@inputs == 0) {
+		printUsage();
+	}
+}
+
+sub printUsage {
+	print "usage: prodigalrunner <list of fasta files>\n";
+	print "e.g: prodigalrunner file1.fasta file2.fasta\n";
+	exit(0);
+}
