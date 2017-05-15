@@ -1,9 +1,8 @@
 import os
 import optparse
 
-'''
-get the segments from MJSD
-'''
+# get the segments from MJSD
+
 # get segment boundaries
 def parse_segs(fname, genome, minsize=5000):
     windows = []

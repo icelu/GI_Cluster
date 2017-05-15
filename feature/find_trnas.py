@@ -1,41 +1,41 @@
-#!/usr/bin/python
-# Lu Bingxin, 2017.2.27
 import optparse
-from quicksect import IntervalNode
+from util.quicksect import IntervalNode
 
-'''
-For
-Input:
-1. predicted GIs (genomic intervals)
-2. predicted trnas
 
-Sample command to predict tRNA by tRNAscan-SE
-output_dir=/home/b/bingxin/genome/StypiCT18
-organism=NC_010161
-tRNAscan-SE -B --frag $output_dir/boundary/$organism.trna_frag -o $output_dir/boundary/$organism.trna_pred -m $output_dir/boundary/$organism.trna_stat --brief $output_dir/$organism.fna
-less $output_dir/boundary/$organism.trna_pred | cut -f3-4 > $output_dir/boundary/$organism.pred_trna
+# For finding tRNAs around a genomic interval
+# Input:
+# 1. predicted GIs (genomic intervals)
+# 2. predicted trnas
+#
+# Sample command to predict tRNA by tRNAscan-SE
+# output_dir=/home/b/bingxin/genome/StypiCT18
+# organism=NC_010161
+# tRNAscan-SE -B --frag $output_dir/boundary/$organism.trna_frag -o $output_dir/boundary/$organism.trna_pred -m $output_dir/boundary/$organism.trna_stat --brief $output_dir/$organism.fna
+# less $output_dir/boundary/$organism.trna_pred | cut -f3-4 > $output_dir/boundary/$organism.pred_trna
+#
+# Output:
+# predicted GIs annotated with nearby trnas
 
-Output:
-predicted GIs annotated with nearby trnas
 
-'''
 
 
 ############################## interval operation ########################################
-'''
-Find all the intervals overlapping with the query interval
-'''
+
 def find(start, end, tree):
-    "Returns a list with the overlapping intervals"
+    '''
+    Find all the intervals overlapping with the query interval
+    Returns a list with the overlapping intervals
+    '''
     out = []
     tree.intersect(start, end, lambda x: out.append(x))
     # x.other may be none if no score is assigned to the interval
     return [ (x.start, x.end, x.other) for x in out ]
 
-'''
-Build an interval tree for all the query intervals
-'''
-def getWindowTree(selectRes):
+
+def get_window_tree(selectRes):
+    '''
+    Build an interval tree for all the query intervals
+    '''
     if len(selectRes[0]) == 3:
         start, end, score = selectRes[0]
         tree = IntervalNode(start, end, other=score)
@@ -52,20 +52,21 @@ def getWindowTree(selectRes):
     return tree
 
 
-'''
-From http://stackoverflow.com/questions/2953967/built-in-function-for-computing-overlap-in-python
-Find the number of overlapping bases between two intervals
-Add by 1 for 1-based interval
-'''
-def getOverlap(a, b):
+def get_overlap(a, b):
+    '''
+    From http://stackoverflow.com/questions/2953967/built-in-function-for-computing-overlap-in-python
+    Find the number of overlapping bases between two intervals
+    Add by 1 for 1-based interval
+    '''
     return max(0, min(a[1], b[1]) - max(a[0], b[0]) + 1)
 
 
 ################################### find trnas in a segment #######################################
-'''
-return a list of interval tuples
-'''
+
 def get_intervals(intervalfile):
+    '''
+    Return a list of interval tuples
+    '''
     intervals = []
     with open(intervalfile, 'rb') as fin:
         for line in fin:
@@ -76,11 +77,9 @@ def get_intervals(intervalfile):
             intervals.append(coord)
     return intervals
 
-'''
 
-'''
 def parse_trnas(infile, intervals, offset):
-    tree = getWindowTree(intervals)
+    tree = get_window_tree(intervals)
     trna_dict = {}
 
     with open(infile, 'rb') as fin:
@@ -109,7 +108,6 @@ def parse_trnas(infile, intervals, offset):
 def write_trnas(outfile, trna_dict):
     with open(outfile, 'w') as fout:
         for key, value in trna_dict.items():
-            #line='%s\t%s\t%d\t%s\n' % (key[0], key[1], len(value),value)
             line='%s\t%s\t%d\t' % (key[0], key[1], len(value))
             fout.write(line)
             line=''
@@ -117,6 +115,7 @@ def write_trnas(outfile, trna_dict):
                 line+='%s;' % (str(pos))
             line = line[:-1]  + '\n'
             fout.write(line)
+
 
 if __name__ == '__main__':
         parser = optparse.OptionParser()

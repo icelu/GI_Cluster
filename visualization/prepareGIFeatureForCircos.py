@@ -1,4 +1,4 @@
-#!/usr/bin/python
+
 # Lu Bingxin
 
 import os

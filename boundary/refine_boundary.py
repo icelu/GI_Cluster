@@ -1,4 +1,4 @@
-#!/usr/bin/python
+
 # Lu Bingxin, 2017.2.12
 
 from __future__ import division

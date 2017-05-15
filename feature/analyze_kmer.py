@@ -1,7 +1,8 @@
-#!/usr/bin/python
-
 # Given DNA sequence of a genome or a gene or a genomic region, analyze its k-mer spectrum
-#
+# Author: Bingxin Lu
+# Affiliation : National University of Singapore
+# E-mail : bingxin@comp.nus.edu.sg
+
 # Input:
 # 1. gene sequence file, fasta format
 # 2. genome sequence file, fasta format
@@ -19,6 +20,7 @@ import re
 import numpy as np
 import math
 import random
+
 
 ################################# k-mer operations #######################
 
@@ -446,6 +448,54 @@ def write_dists(dist_dict, klen, outfile):
             fout.write('\n')
 
 
+######################### compute k-mer frequency for contigs #################
+def get_contigs(infile):
+    '''
+    infile -- Input file containing the sequence of contigs
+    '''
+    # id_mapping = {}
+    contig_sequence = {}
+    i = 0
+    with open(gene_file, 'rb') as fin, open(outfile, 'w') as fout:
+        for header, group in itertools.groupby(fin, isheader):
+            # if header:
+            #     i += 1
+            #     name = header.strip().split()
+            #     id_mapping[i] = name
+            # else:
+            if not header:
+                sequence = ''.join(line.strip() for line in group)
+                sequence = sequence.upper()
+                sequence = standardize_DNASeq(sequence)
+                contig_sequence[i] = sequence
+
+    return contig_sequence
+
+
+# def parse_segs_contigs(pfile, contig_sequence, genome_profiles, klen, genomelen, outfile, morder=1, atcg_fraction={}, distance_function=None):
+#     '''
+#     input: pfile -- position for each segment (1-based);  contig_sequence -- contig sequence (standardized)
+#     output: GC measures for each segment in a line
+#     '''
+#     i = 0
+#     with open(pfile, 'rb') as fin, open(outfile, 'w') as fout:
+#         for line in fin:
+#             fields = line.strip().split('\t')
+#             p1 = fields[0]
+#             mark = p1.index('_')
+#             start = int(p1[mark + 1:])
+#             p2 = fields[1]
+#             end = int(p2[mark + 1:])
+#             contig_id = p1[0:mark]
+#             sequence = contig_sequence[contig_id]
+#             # sequence = sequence.upper()
+#             # sequence = standardize_DNASeq(sequence)
+#             gc = GC(sequence)
+#             line = '%.3f\n' % (gc)
+#             fout.write(line)
+
+
+####################################################################
 if __name__ == '__main__':
     parser = optparse.OptionParser()
     parser.add_option("-g", "--gfile", dest="gfile",
@@ -464,7 +514,8 @@ if __name__ == '__main__':
                       help="Analyze GC content in genomic segments rather than genes")
     parser.add_option("-s", "--segfile", dest="segfile",
                       help="input file of segment position")
-
+    parser.add_option("-c", "--is_contig", dest="is_contig", action='store_true', default=False,
+                      help="Analyze contigs from unassembled genomes")
     options, args = parser.parse_args()
 
     gnome, genomelen, genome_profiles, atcg_fraction = get_genome_profiles(
@@ -475,7 +526,11 @@ if __name__ == '__main__':
         dist_dict = parse_segs(options.segfile, gnome, genome_profiles, options.klen, genomelen,
                                outfile, morder=options.morder, atcg_fraction={}, distance_function=eval(options.distance))
         write_dists(dist_dict, options.klen, outfile)
-
+    elif options.is_contig:
+        contig_sequence = get_contigs(options.genome_file)
+        # dist_dict = parse_segs_contigs(options.seg_file, contig_sequence, genome_profiles, options.klen, genomelen,
+        #                        outfile, morder=options.morder, atcg_fraction={}, distance_function=eval(options.distance))
+        # write_dists(dist_dict, options.klen, outfile)
     else:
         dist_dict = parse_genes(options.gfile, genome_profiles, options.klen, genomelen,
                                 morder=options.morder, atcg_fraction={}, distance_function=eval(options.distance))

@@ -1,8 +1,8 @@
-#!/usr/bin/python
+
 
 import os
 import optparse
-from quicksect import IntervalNode
+from util.quicksect import IntervalNode
 
 '''
 The adjacent candidate segments were joined and the boundary is relocated by the outmost ORF if an ORF intersects with a segment.

@@ -1,20 +1,14 @@
-#!/usr/bin/env Rscript
 ##=========================================================
 # Script for running Consensus Clustering on genomic regions with extracted GI-related features
 # Author: Bingxin Lu
 # Affiliation : National University of Singapore
 # E-mail : bingxin@comp.nus.edu.sg
 
-
 ##=========================================================
 # sample usage:
 # Rscript ConsensusClustering.R -f NC_011770.feature.percentage -o ./research/data/species/lesb58/GIFilter/mjsd/
 ##=============================================================
 
-
-# Load any required libraries   #
-##=============================================================
-#install.packages("optparse")
 
 library("optparse") # for parsing parameters
 library(methods) # for existsFunction
@@ -23,6 +17,7 @@ library(stats) # for hclust
 library(Ckmeans.1d.dp) # for 1D kmeans
 library(mclust) # for density estimation
 library(fpc) # for cluster statistics
+
 
 ##=============================================
 # Read the arguments

@@ -1,10 +1,13 @@
+#!/usr/bin/env python
+
 import os
 import optparse
 
-'''
-find the location of all genes/ORFs in a genome
-'''
+
 def read_loc_ncbi(locfile):
+    '''
+    find the location of all genes/ORFs in a genome from the annotations of NCBI
+    '''
     loc_dict = {}
     i = 1
     with open(locfile, 'r') as fin:
@@ -42,29 +45,46 @@ def read_loc_ncbi(locfile):
     return loc_dict
 
 
-'''
-find the location of all genes/ORFs in a genome
-'''
-def read_loc_pred(locfile):
+
+def read_loc_pred(locfile, format=1):
+    '''
+    Find the location of all genes/ORFs in a genome from annotations
+    format -- 0: ">gi_CDS_337-2796" (predictions from NCBI); 1: " 337 # 2796 # 1" or " 45473 # 46630 # -1" (predictions from Prodigal)
+    '''
     loc_dict = {}
     i = 1
-    with open(locfile, 'r') as fin:
-        for line in fin:
-            fields = line.strip().split('_')
-            pos = fields[-1].split('-')
-            p1 = int(pos[0])
-            p2 = int(pos[1])
-            if (p1 > p2):
-                start = p2
-                end = p1
-                strand = 'R'
-            else:
-                start = p1
-                end = p2
-                strand = 'F'
-            loc_dict[i] = [start, end, strand]
-            i += 1
 
+    if format == 0:     # for format ">gi_CDS_337-2796"
+        with open(locfile, 'r') as fin:
+            for line in fin:
+                fields = line.strip().split('_')
+                pos = fields[-1].split('-')
+                p1 = int(pos[0])
+                p2 = int(pos[1])
+                if (p1 > p2):
+                    start = p2
+                    end = p1
+                    strand = 'R'
+                else:
+                    start = p1
+                    end = p2
+                    strand = 'F'
+                loc_dict[i] = [start, end, strand]
+                i += 1
+
+    elif format == 1:    # for format " 337 # 2796 # 1" or " 45473 # 46630 # -1"
+        with open(locfile, 'r') as fin:
+            for line in fin:
+                fields = line.strip().split('#')
+                start = int(fields[0].strip())
+                end  = int(fields[1].strip())
+                strand = int(fields[2].strip())
+                if (strand == 1):
+                    strand = 'F'
+                else:
+                    strand = 'R'
+                loc_dict[i] = [start, end, strand]
+                i += 1
     return loc_dict
 
 
@@ -98,13 +118,13 @@ if __name__ == '__main__':
         parser.add_option("-l", "--locfile", dest="locfile", help="input file of gene/ORF locus")
         parser.add_option("-p", "--funcfile", dest="funcfile", help="input file of gene products/function")
         parser.add_option("-o", "--outfile", dest="outfile", help="output file")
-        parser.add_option("-n", "--ncbi", dest="ncbi", action="store_true", default=False, help="the gene file is from ncbi")
+        parser.add_option("-n", "--is_NCBI", dest="is_NCBI", action="store_true", default=False, help="the gene file is from ncbi")
         options, args = parser.parse_args()
 
-        if options.ncbi:
-            loc_dict = read_loc_ncbi(options.locfile)
+        if options.is_NCBI:
+            loc_dict = read_loc_ncbi(options.locfile, format=0)
         else:
-            loc_dict = read_loc_pred(options.locfile)
+            loc_dict = read_loc_pred(options.locfile, format=1)
         if options.funcfile:
             loc_dict = read_func(options.funcfile, loc_dict)
         write_gene(options.outfile, loc_dict)

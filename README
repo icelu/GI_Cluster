@@ -13,7 +13,7 @@ So it is not convenient to run on Windows system.
 
 There are several external tools and packages that GI-Cluster depends on.
 
-########## prebuilt database ##########
+########## Prebuilt database ##########
 # PFAM (ftp://ftp.ebi.ac.uk/pub/databases/Pfam/current_release/Pfam-A.hmm.gz)
 # RFAM (ftp://ftp.ebi.ac.uk/pub/databases/Rfam/CURRENT/Rfam.tar.gz)
 # PHAST (http://phast.wishartlab.com/phage_finder/DB/prophage_virus.db)
@@ -22,14 +22,14 @@ There are several external tools and packages that GI-Cluster depends on.
 # COG (https://www.ncbi.nlm.nih.gov/COG/)
 
 
-
-########## external tools ##########
-# prodigal  -- gene prediction
-# blast -- database search
-# hmmmer -- database search
-# circos -- visualization
-# tRNAscan-SE -- tRNA
-# Infernal cmscan  -- ncRNA
+########## External tools ##########
+# Prodigal  -- gene prediction
+# Blast -- database search
+# Hmmmer -- database search
+# Circos -- visualization
+# tRNAscan-SE -- tRNA prediction
+# Infernal cmscan  -- ncRNA prediction
+# Repseek -- repeat detection
 
 
 ########## Python packages to install ##########

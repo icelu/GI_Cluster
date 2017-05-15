@@ -1,4 +1,5 @@
-#!/usr/bin/python
+import os
+import optparse
 
 # Find the features for each genomic segment
 # Input:
@@ -13,10 +14,6 @@
 # Procedure:
 # store the features for each ORF in a dicionary
 
-import os
-import optparse
-
-
 def get_gene_feature(infile):
     '''
     Note: the input genes are sorted and kept in this order
@@ -28,10 +25,9 @@ def get_gene_feature(infile):
             fields = line.strip().split('\t')
             id = fields[0]
             feature = fields[1:]
-            # features[id] = fields[1:]
             item = (id, feature)
             features.append(item)
-    # sort the genes by position
+
     return features
 
 
@@ -64,10 +60,16 @@ def parse_cmscan(infile):
 
 # Output merged features
 def group_genes(infile, features, rnas, outfile):
+    '''
+    infile -- Input file containing segments of a genome. Each line contains the start and end positions of a segment
+    features -- A list containing GI-related featues for each gene/ORF
+    rnas -- A list of predicted ncRNAs
+    outfile -- Output file containing ncRNAs and genes overlapping with each segment along with their featues  
+    '''
     fout = open(outfile, 'w')
     header = 'GeneID\tStart\tEnd\tStrand\tGC\tGC1\tGC2\tGC3\tGC_skew\tCUB\tAAB\tCHI\tCAI\tCBI\tFop\t2-mer\t3-mer\t4-mer\t5-mer\t6-mer\t7-mer\t8-mer\tMobility gene\tPhage\tVirulence factor\tAntibiotic resistance gene\tNovel gene\n'
     fout.write(header)
-    # for each region, find the genes inside it
+    # For each region, find the genes inside it
     i = 0
     with open(infile, 'rb') as fin:
         for line in fin:
@@ -105,10 +107,9 @@ def group_genes(infile, features, rnas, outfile):
                 # genes strictly inside a region
                 # if (gstart >= start and gend <= end):
                 # include genes across the boundary (even with only 1 bp overlap), so one gene may be considerred in multiple segements
-                # if ((gstart >= start and gstart <= end) or ( gend >= start
-                # and gend <= end)):
+                # if ((gstart >= start and gstart <= end) or ( gend >= start and gend <= end)):
                 if not ((gstart > end) or (gend < start)):
-                    # since segments are non-overlapping, if a gene is across >1 segments, if half of the gene is inside a segment, this gene is seen as inside this segment
+                    # since segments are non-overlapping, if a gene is across >1 segments, if half of the gene is inside a segment, this gene can be seen as inside this segment
                     # if ((gstart >= start and gmid <= end) or (gmid >= start and gend <= end)):
                     # write the output
                     items = [gid]

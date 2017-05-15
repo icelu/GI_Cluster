@@ -1,29 +1,19 @@
-#!/usr/bin/python
-##=========================================================
-# Script for finding repeats in a genome
-# Author: Bingxin Lu
-# Affiliation : National University of Singapore
-# E-mail : bingxin@comp.nus.edu.sg
-# Version : 1.0
-
 import optparse
-from quicksect import IntervalNode
+from util.quicksect import IntervalNode
 
-'''
-For
-Input:
-1. predicted GIs (genomic intervals)
-2. repseek output
 
-Sample command to run repseek:
-output_dir=/home/b/bingxin/genome/StypiCT18
-organism=NC_010161
-repseek -l 15 -O 0 -r $output_dir/boundary/$organism.repseek $output_dir/$organism.fna
-
-Output:
-predicted GIs annotated with nearby repeats
-
-'''
+# For finding repeats around each genomic interval
+# Input:
+# 1. predicted GIs (genomic intervals)
+# 2. repseek output
+#
+# Sample command to run repseek:
+# output_dir=/home/b/bingxin/genome/StypiCT18
+# organism=NC_010161
+# repseek -l 15 -O 0 -r $output_dir/boundary/$organism.repseek $output_dir/$organism.fna
+#
+# Output:
+# genomic interval annotated with nearby repeats
 
 
 ############################## interval operation ########################################
