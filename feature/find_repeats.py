@@ -1,6 +1,8 @@
 import optparse
+import sys, os
+parentdir = os.path.dirname(os.path.dirname(sys.argv[0]))
+sys.path.insert(0, parentdir)
 from util.quicksect import IntervalNode
-
 
 # For finding repeats around each genomic interval
 # Input:

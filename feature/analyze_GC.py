@@ -2,7 +2,7 @@
 # Author: Bingxin Lu
 # Affiliation : National University of Singapore
 # E-mail : bingxin@comp.nus.edu.sg
-
+#
 # Input:
 # 1. fasta file of DNA sequence
 #
@@ -16,36 +16,10 @@ import itertools
 import optparse
 import random
 from scipy.stats import chisquare
-
-
-# Switch non-standard character to 'AGCT'
-def switch_to_AGCT(Nuc):
-    SWITCH = {'R': lambda: random.choice('AG'),
-              'Y': lambda: random.choice('CT'),
-              'M': lambda: random.choice('AC'),
-              'K': lambda: random.choice('GT'),
-              'S': lambda: random.choice('GC'),
-              'W': lambda: random.choice('AT'),
-              'H': lambda: random.choice('ATC'),
-              'B': lambda: random.choice('GTC'),
-              'V': lambda: random.choice('GAC'),
-              'D': lambda: random.choice('GAT'),
-              'N': lambda: random.choice('AGCT')}
-    return SWITCH[Nuc]()
-
-
-def standardize_DNASeq(genome):
-    '''
-    Replace ambiguous bases with ATCG
-    '''
-    for i in ['R', 'Y', 'M', 'K', 'S', 'W', 'H', 'B', 'V', 'D', 'N']:
-        if i in genome:
-            genome = genome.replace(i, switch_to_AGCT(i))
-    return genome
-
-
-def isheader(line):
-    return line[0] == '>'
+import sys, os
+parentdir = os.path.dirname(os.path.dirname(sys.argv[0]))
+sys.path.insert(0, parentdir)
+from util.parseDNA import switch_to_AGCT, standardize_DNASeq, isheader
 
 
 def parse_genes(gene_file, outfile):
@@ -227,17 +201,13 @@ def get_contigs(infile):
     '''
     infile -- Input file containing the sequence of contigs
     '''
-    # id_mapping = {}
     contig_sequence = {}
     i = 0
-    with open(gene_file, 'rb') as fin, open(outfile, 'w') as fout:
+    with open(infile, 'rb') as fin:
         for header, group in itertools.groupby(fin, isheader):
-            # if header:
-            #     i += 1
-            #     name = header.strip().split()
-            #     id_mapping[i] = name
-            # else:
-            if not header:
+            if header:
+                i += 1
+            else:
                 sequence = ''.join(line.strip() for line in group)
                 sequence = sequence.upper()
                 sequence = standardize_DNASeq(sequence)
@@ -260,10 +230,9 @@ def parse_segs_contigs(pfile, contig_sequence, outfile):
             start = int(p1[mark + 1:])
             p2 = fields[1]
             end = int(p2[mark + 1:])
-            contig_id = p1[0:mark]
-            sequence = contig_sequence[contig_id]
-            # sequence = sequence.upper()
-            # sequence = standardize_DNASeq(sequence)
+            contig_id = int(p1[0:mark])
+            contig = contig_sequence[contig_id]
+            sequence = contig[start - 1:end]
             gc = GC(sequence)
             line = '%.3f\n' % (gc)
             fout.write(line)
@@ -299,6 +268,7 @@ if __name__ == '__main__':
             parse_genome(options.genome_file, options.output)
         elif options.is_contig:
             contig_sequence = get_contigs(options.genome_file)
+            # print contig_sequence
             parse_segs_contigs(options.seg_file, contig_sequence, options.output)
         else:
             if options.is_seg:

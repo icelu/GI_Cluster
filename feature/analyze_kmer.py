@@ -304,6 +304,9 @@ def parse_genome_file(genome_file, klen):
 
 
 def get_genome_profiles(genome_file, klen):
+    '''
+    Compute k-mer frequency for a genome
+    '''
     profiles = {}
 
     with open(genome_file, 'rb') as fin:
@@ -313,7 +316,7 @@ def get_genome_profiles(genome_file, klen):
                 sequence = sequence.upper()
                 sequence = standardize_DNASeq(sequence)
                 glen = len(sequence)
-                atcg_fraction = get_atcg_fraction(sequence)
+                # atcg_fraction = get_atcg_fraction(sequence)
                 # base_frac = []
                 # for nt in sequence:
                 #     base_frac.append(atcg_fraction[nt])
@@ -325,11 +328,12 @@ def get_genome_profiles(genome_file, klen):
                 for k in range(1, klen + 1):
                     p = kmer_from_sequences(sequence, k)
                     kmer_count = kmer_from_sequences(sequence, k)
-                    kmer_freq = kmer_count * 100 / float(glen - klen + 1)
+                    kmer_freq = kmer_count * 100 / float(glen - k + 1)
                     # kmer_freq = kmer_freq / norm
                     profiles[k] = kmer_freq
 
-                return sequence, glen, profiles, atcg_fraction
+                return sequence, glen, profiles
+
 
 
 def get_atcg_fraction(dna):
@@ -343,7 +347,7 @@ def get_atcg_fraction(dna):
     return dict
 
 
-def parse_genes(gfile, genome_profiles, klen, genomelen, morder=1, atcg_fraction={}, distance_function=None):
+def parse_genes(gfile, genome_profiles, klen, morder=1, atcg_fraction={}, distance_function=None):
     '''
     input: .ffn file, fasta format, DNA sequence for each gene
     output: distance for each gene in a line
@@ -389,7 +393,7 @@ def parse_genes(gfile, genome_profiles, klen, genomelen, morder=1, atcg_fraction
     return dist_dict
 
 
-def parse_segs(gfile, gnome, genome_profiles, klen, genomelen, outfile, morder=1, atcg_fraction={}, distance_function=None):
+def parse_segs(gfile, gnome, genome_profiles, klen, outfile, morder=1, atcg_fraction={}, distance_function=None):
     '''
     input: position for each segment (1-based)
     output: kmer measures for each segment in a line
@@ -406,17 +410,17 @@ def parse_segs(gfile, gnome, genome_profiles, klen, genomelen, outfile, morder=1
             sequence = gnome[start - 1:end]
             glen = len(sequence)
             dists = []
-            gene_kmer_profiles = {}
+            seg_kmer_profiles = {}
 
             for k in range(2, klen + 1):
                 kmer_count = kmer_from_sequences(sequence, k)
                 kmer_freq = kmer_count * 100 / float(glen - k + 1)
-                gene_kmer_profiles[k] = kmer_freq
+                seg_kmer_profiles[k] = kmer_freq
 
             for k in range(2, klen + 1):
-                gene_kmer = gene_kmer_profiles[k]
+                seg_kmer = seg_kmer_profiles[k]
                 genome_kmer = genome_profiles[k]
-                dist = distance(gene_kmer, genome_kmer,
+                dist = distance(seg_kmer, genome_kmer,
                                 distance_function=distance_function)
                 dist_dict.setdefault(k, []).append(dist)
 
@@ -449,6 +453,38 @@ def write_dists(dist_dict, klen, outfile):
 
 
 ######################### compute k-mer frequency for contigs #################
+def get_contigs_profile(genome_file, klen):
+    profiles = {}
+
+    for k in range(1, klen + 1):
+        kmer_dict = {}
+        number = 4 ** k
+        bitmask = number - 0x01
+        counts = [0] * number
+        kmer_count = np.array(counts, dtype='int64')
+        total_kmer = 0
+        i = 0
+        with open(genome_file, 'rb') as fin:
+            for header, group in itertools.groupby(fin, isheader):
+                if header:
+                    i += 1
+                else:
+                    sequence = ''.join(line.strip() for line in group)
+                    sequence = sequence.upper()
+                    sequence = standardize_DNASeq(sequence)
+                    glen = len(sequence)
+                    p = kmer_from_sequences(sequence, k)
+                    kmer_count += kmer_from_sequences(sequence, k)
+                    total_kmer += glen - k + 1
+
+            # print kmer_count
+            # print total_kmer
+            kmer_freq = kmer_count * 100 / float(total_kmer)
+            profiles[k] = kmer_freq
+
+    return profiles
+
+
 def get_contigs(infile):
     '''
     infile -- Input file containing the sequence of contigs
@@ -456,14 +492,13 @@ def get_contigs(infile):
     # id_mapping = {}
     contig_sequence = {}
     i = 0
-    with open(gene_file, 'rb') as fin, open(outfile, 'w') as fout:
+    with open(infile, 'rb') as fin:
         for header, group in itertools.groupby(fin, isheader):
-            # if header:
-            #     i += 1
+            if header:
+                i += 1
             #     name = header.strip().split()
             #     id_mapping[i] = name
-            # else:
-            if not header:
+            else:
                 sequence = ''.join(line.strip() for line in group)
                 sequence = sequence.upper()
                 sequence = standardize_DNASeq(sequence)
@@ -472,27 +507,44 @@ def get_contigs(infile):
     return contig_sequence
 
 
-# def parse_segs_contigs(pfile, contig_sequence, genome_profiles, klen, genomelen, outfile, morder=1, atcg_fraction={}, distance_function=None):
-#     '''
-#     input: pfile -- position for each segment (1-based);  contig_sequence -- contig sequence (standardized)
-#     output: GC measures for each segment in a line
-#     '''
-#     i = 0
-#     with open(pfile, 'rb') as fin, open(outfile, 'w') as fout:
-#         for line in fin:
-#             fields = line.strip().split('\t')
-#             p1 = fields[0]
-#             mark = p1.index('_')
-#             start = int(p1[mark + 1:])
-#             p2 = fields[1]
-#             end = int(p2[mark + 1:])
-#             contig_id = p1[0:mark]
-#             sequence = contig_sequence[contig_id]
-#             # sequence = sequence.upper()
-#             # sequence = standardize_DNASeq(sequence)
-#             gc = GC(sequence)
-#             line = '%.3f\n' % (gc)
-#             fout.write(line)
+def parse_segs_contigs(pfile, contig_sequence, genome_profiles, klen, outfile, morder=1, atcg_fraction={}, distance_function=None):
+    '''
+    input: pfile -- position for each segment (1-based);  contig_sequence -- contig sequence (standardized)
+    output: GC measures for each segment in a line
+    '''
+    dist_dict = {}
+    for k in range(2, klen + 1):
+        dist_dict[k] = []
+
+    i = 0
+    with open(pfile, 'rb') as fin, open(outfile, 'w') as fout:
+        for line in fin:
+            fields = line.strip().split('\t')
+            p1 = fields[0]
+            mark = p1.index('_')
+            start = int(p1[mark + 1:])
+            p2 = fields[1]
+            end = int(p2[mark + 1:])
+            contig_id = int(p1[0:mark])
+            contig = contig_sequence[contig_id]
+            sequence = contig[start - 1:end]
+            glen = len(sequence)
+            dists = []
+            seg_kmer_profiles = {}
+
+            for k in range(2, klen + 1):
+                kmer_count = kmer_from_sequences(sequence, k)
+                kmer_freq = kmer_count * 100 / float(glen - k + 1)
+                seg_kmer_profiles[k] = kmer_freq
+
+            for k in range(2, klen + 1):
+                seg_kmer = seg_kmer_profiles[k]
+                genome_kmer = genome_profiles[k]
+                dist = distance(seg_kmer, genome_kmer,
+                                distance_function=distance_function)
+                dist_dict.setdefault(k, []).append(dist)
+
+    return dist_dict
 
 
 ####################################################################
@@ -512,26 +564,28 @@ if __name__ == '__main__':
                       help="The order of Markov model for background sequence")
     parser.add_option("-r", "--is_seg", dest="is_seg", action='store_true', default=False,
                       help="Analyze GC content in genomic segments rather than genes")
-    parser.add_option("-s", "--segfile", dest="segfile",
+    parser.add_option("-s", "--seg_file", dest="seg_file",
                       help="input file of segment position")
     parser.add_option("-c", "--is_contig", dest="is_contig", action='store_true', default=False,
                       help="Analyze contigs from unassembled genomes")
     options, args = parser.parse_args()
 
-    gnome, genomelen, genome_profiles, atcg_fraction = get_genome_profiles(
-        options.genome_file, options.klen)
+
 
     outfile = options.output + '.' + options.distance
     if options.is_seg:  # analyze k-mer for each interval
-        dist_dict = parse_segs(options.segfile, gnome, genome_profiles, options.klen, genomelen,
+        gnome, genome_profiles = get_genome_profiles(options.genome_file, options.klen)
+        dist_dict = parse_segs(options.seg_file, gnome, genome_profiles, options.klen,
                                outfile, morder=options.morder, atcg_fraction={}, distance_function=eval(options.distance))
         write_dists(dist_dict, options.klen, outfile)
     elif options.is_contig:
+        genome_profiles = get_contigs_profile(options.genome_file, options.klen)
         contig_sequence = get_contigs(options.genome_file)
-        # dist_dict = parse_segs_contigs(options.seg_file, contig_sequence, genome_profiles, options.klen, genomelen,
-        #                        outfile, morder=options.morder, atcg_fraction={}, distance_function=eval(options.distance))
-        # write_dists(dist_dict, options.klen, outfile)
+        dist_dict = parse_segs_contigs(options.seg_file, contig_sequence, genome_profiles, options.klen,
+                               outfile, morder=options.morder, atcg_fraction={}, distance_function=eval(options.distance))
+        write_dists(dist_dict, options.klen, outfile)
     else:
-        dist_dict = parse_genes(options.gfile, genome_profiles, options.klen, genomelen,
+        gnome, genome_profiles = get_genome_profiles(options.genome_file, options.klen)
+        dist_dict = parse_genes(options.gfile, genome_profiles, options.klen,
                                 morder=options.morder, atcg_fraction={}, distance_function=eval(options.distance))
         write_dists(dist_dict, options.klen, outfile)

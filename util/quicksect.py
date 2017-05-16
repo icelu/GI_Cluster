@@ -2,8 +2,8 @@
 Intersects ... faster.  Suports GenomicInterval datatype and multiple
 chromosomes.
 
-seems to be from bx-python
-not find the size of overlap
+from bx-python
+This script does not find the size of overlap
 """
 import math
 import time
@@ -51,7 +51,7 @@ class IntervalNode(object):
         if start > self.start:
             # insert to right tree
             if self.right:
-                self.right = self.right.insert(start, end, linenum, other) 
+                self.right = self.right.insert(start, end, linenum, other)
             else:
                 self.right = IntervalNode(start, end, linenum, other)
             # rebalance tree
@@ -66,10 +66,10 @@ class IntervalNode(object):
             # rebalance tree
             if self.priority < self.left.priority:
                 root = self.rotateright()
-        if root.right and root.left: 
+        if root.right and root.left:
             root.maxend = max(root.end, root.right.maxend, root.left.maxend)
             root.minend = min(root.end, root.right.minend, root.left.minend)
-        elif root.right: 
+        elif root.right:
             root.maxend = max(root.end, root.right.maxend)
             root.minend = min(root.end, root.right.minend)
         elif root.left:
@@ -81,7 +81,7 @@ class IntervalNode(object):
         root = self.left
         self.left = self.left.right
         root.right = self
-        if self.right and self.left: 
+        if self.right and self.left:
             self.maxend = max(self.end, self.right.maxend, self.left.maxend)
             self.minend = min(self.end, self.right.minend, self.left.minend)
         elif self.right:
@@ -91,12 +91,12 @@ class IntervalNode(object):
             self.maxend = max(self.end, self.left.maxend)
             self.minend = min(self.end, self.left.minend)
         return root
-        
+
     def rotateleft(self):
         root = self.right
         self.right = self.right.left
         root.left = self
-        if self.right and self.left: 
+        if self.right and self.left:
             self.maxend = max(self.end, self.right.maxend, self.left.maxend)
             self.minend = min(self.end, self.right.minend, self.left.minend)
         elif self.right:
@@ -129,7 +129,7 @@ def test1():
         if test: test = test.insert(start, end)
         else: test = IntervalNode(start, end)
         intlist.append((start, end))
-    
+
     starttime = time.clock()
     for x in range(5000):
         start = random.randint(0, 10000000)
@@ -143,11 +143,10 @@ def test1():
         end = start + random.randint(1, 1000)
         bad_sect(intlist, start, end)
     print "%f for linear (bad) method" % (time.clock() - starttime)
-    
 
-'''
-find all the intervals overlapping with the query interval
-'''
+
+
+# find all the intervals overlapping with the query interval
 def find(start, end, tree):
     "Returns a list with the overlapping intervals"
     out = []
@@ -155,15 +154,15 @@ def find(start, end, tree):
     # x.other may be none if no score is assigned to the interval
     return [ (x.start, x.end, x.other) for x in out ]
 
-    
+
 def main():
     intlist = []
     intlist.extend([(13, 16), (18, 25)])
     start, end = intlist[0]
-    tree = IntervalNode(start, end)    
+    tree = IntervalNode(start, end)
     # build an interval tree from the rest of the data
     for start, end in intlist[1:]:
-        tree = tree.insert(start, end) 
+        tree = tree.insert(start, end)
     start = 13
     end = 16
     overlap = find(start, end , tree)
@@ -172,7 +171,7 @@ def main():
     # intlist.extend([(13, 15), (18, 25)]) ---- overlap,  [(18, 25, None)]
     # intlist.extend([(13, 16), (18, 25)]) ---- overlap,  [(13, 16, None), (18, 25, None)]
 
-          
+
 
 def test_func(node):
     print "[%d, %d), %d" % (node.start, node.end, node.maxend)
@@ -186,5 +185,3 @@ def bad_sect(lst, int_start, int_end):
 
 if __name__ == "__main__":
     main()
-
-

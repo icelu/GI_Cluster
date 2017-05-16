@@ -10,13 +10,9 @@ import re
 # PATTERN:
 # less Pfam-A.hmm.dat | grep -E '[Tt]ransposase|[Ii]ntegrase|[Tt]ransposon|[Rr]esolvase|[Rr]elaxase|[Ii]nsertion element|[Rr]ecombinase|Bacterial mobilisation|[Tt]ransposable|Mu\b|[Tt]ransposition'
 #
-# PROCEDURE:
-# Record the ACC and whole record if DESC contains description related to mobility
-# each record is separated by '//'
-#
-# One needs to store the first few lines until the DESC
-#
-# The best way is to use hmmfetch
+# Sample command:
+# python extract_mobgene.py -i Pfam-A.hmm.dat -o mobgene.list
+# hmmfetch -f Pfam-A.hmm mobgene.list > Pfam_mobgene.hmm
 
 
 def extract_mob_domain(infile, outfile):

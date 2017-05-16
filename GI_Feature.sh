@@ -122,7 +122,8 @@ echo "##########################################"
 echo "Identifying mobility-related genes"
 if [ ! -f $prog_dir/db/MOB/Pfam_mobgene.hmm ]
 then
-  python $prog_dir/feature/extract_mobgene.py -i $prog_dir/db/MOB/Pfam-A.hmm.dat -o $prog_dir/db/MOB/mobgene.list -o $prog_dir/db/MOB/Pfam_mobgene.hmm
+  python $prog_dir/feature/extract_mobgene.py -i $prog_dir/db/MOB/Pfam-A.hmm.dat -o $prog_dir/db/MOB/mobgene.list
+  hmmfetch -f $prog_dir/db/MOB/Pfam-A.hmm $prog_dir/db/MOB/mobgene.list > $prog_dir/db/MOB/Pfam_mobgene.hmm
 fi
 if [ ! -f $output_dir/$pred_prog/feature/$organism.feature.mobgene ]
 then
@@ -267,7 +268,7 @@ if [ ! -f $output_dir/boundary/$organism.trna_pred ]
 then
   # tRNA is only dependant on the original genome sequence
   tRNAscan-SE -B --frag $output_dir/boundary/$organism.trna_frag -o $output_dir/boundary/$organism.trna_pred -m $output_dir/boundary/$organism.trna_stat --brief $output_dir/$organism.fna
-  less $output_dir/boundary/$organism.trna_pred | cut -f3-4 > $output_dir/boundary/$organism.pred_trna
+  less $output_dir/boundary/$organism.trna_pred | cut -f1-4 > $output_dir/boundary/$organism.pred_trna
 fi
 
 if [ $mode == 0 ]  # Predict repeats only for finished complete genomes

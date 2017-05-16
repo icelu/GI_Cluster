@@ -1,14 +1,15 @@
+# The adjacent candidate segments were joined and the boundary is relocated by the outmost ORF if an ORF intersects with a segment.
+# Note: the segment will only be extended
+# For features: sum the numbers, recompute the percentages
 
 
 import os
 import optparse
+import sys, os
+parentdir = os.path.dirname(os.path.dirname(sys.argv[0]))
+sys.path.insert(0, parentdir)
 from util.quicksect import IntervalNode
 
-'''
-The adjacent candidate segments were joined and the boundary is relocated by the outmost ORF if an ORF intersects with a segment.
-Note: the segment will only be extended
-For features: sum the numbers, recompute the percentages
-'''
 
 def get_input_interval(intervalfile):
     intervals = []
