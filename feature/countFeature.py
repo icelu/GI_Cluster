@@ -1,51 +1,19 @@
-
-
+# This script is used to convert feature values into values that can be used for clustering
+#
+# Author: Bingxin Lu
+# Affiliation : National University of Singapore
+# E-mail : bingxin@comp.nus.edu.sg
+#
 
 from __future__ import division
 import optparse
 import numpy as np
 
-# Find tRNA genes around each segment
+import sys, os
+parentdir = os.path.dirname(os.path.dirname(sys.argv[0]))
+sys.path.insert(0, parentdir)
+from util.parse_sequence import get_rna_segment, get_repeat_segment
 
-
-def get_rna(infile):
-    rna_dict = {}
-    with open(infile, 'rb') as fin:
-        for line in fin:
-            fields = line.strip().split('\t')
-            coord = (int(fields[0]), int(fields[1]))
-            num = int(fields[2])
-            rnas = fields[3].split(';')
-            rna_pos = []
-            for rp in rnas:
-                items = rp.split(',')
-                # remove brackets
-                rpos = (int(items[0][1:]), int(items[1][:-1]))
-                rna_pos.append(rpos)
-            rna_dict[coord] = rna_pos
-        # print rna_dict
-    return rna_dict
-
-
-# Find short repeats around each segment
-def get_repeat(infile):
-    repeat_dict = {}
-    with open(infile, 'rb') as fin:
-        for line in fin:
-            fields = line.strip().split('\t')
-            coord = (int(fields[0]), int(fields[1]))
-            num = int(fields[2])
-            repeats = fields[3].split(';')
-            # keep only the position
-            repeats_pos = []
-            for rp in repeats:
-                items = rp.split(',')
-                # print items
-                rpos = (int(items[1]), int(items[2]))
-                repeats_pos.append(rpos)
-            repeat_dict[coord] = repeats_pos
-    # print repeat_dict
-    return repeat_dict
 
 
 def get_gc_dist(infile):
@@ -55,7 +23,7 @@ def get_gc_dist(infile):
         for line in fin:
             i += 1
             fields = line.strip().split('\t')
-            # 1st column is ID
+            # Suppose the first column is ID
             gc_dict[i] = [float(f) for f in fields[1:]]
 
     return gc_dict
@@ -68,6 +36,7 @@ def get_kmer_dist(infile):
         for line in fin:
             i += 1
             fields = line.strip().split('\t')
+            # # Suppose the first column is ID
             kmer_dict[i] = [float(f) for f in fields[1:]]
 
     return kmer_dict
@@ -76,21 +45,30 @@ def get_kmer_dist(infile):
 def get_feature_dict_segment(infile, rna_dict={}, repeat_dict={}, gc_dict={}, kmer_dict={}):
     '''
     Summarize the features of the genes within a genomic segment
-    Use the indicator value for sequence compositional metrics (atypical outside 1.5 sd)
+    Input:
+    infile -- File containing the segments of a genome
+    rna_dict -- A dicionary containing tRNAs around each segment
+    repeat_dict -- A dicionary containing repeats around each segment
+    gc_dict -- A dicionary containing GC distance values (e.g. Chi-square) around each segment
+    kmer_dict  -- A dicionary containing k-mer distance values (e.g. covariance) around each segment
     '''
-
 
 
 def get_feature_dict_gene(infile, rna_dict={}, repeat_dict={}, gc_dict={}, kmer_dict={}):
     '''
-    Summarize the features of the genes within a genomic segment
-    Use the indicator value for sequence compositional metrics (atypical outside 1.5 sd)
+    Summarize GI-related features of the genes within a genomic segment
+    Input:
+    infile -- File containing values of GI-related features for each gene
+    rna_dict -- A dicionary containing tRNAs around each segment
+    repeat_dict -- A dicionary containing repeats around each segment
+    gc_dict -- A dicionary containing GC distance values (e.g. Chi-square) around each segment
+    kmer_dict  -- A dicionary containing k-mer distance values (e.g. covariance) around each segment
     '''
     head_num = 0
     feature_dict = {}
     cluster_set = []
 
-    # number of each feature
+    # The number of each feature in a genomic region
     gc = 0
     gc1 = 0
     gc2 = 0
@@ -124,7 +102,7 @@ def get_feature_dict_gene(infile, rna_dict={}, repeat_dict={}, gc_dict={}, kmer_
     ngt = 0
     vfarngt = 0
 
-    # percentage of each feature
+    # The percentage of each feature
     gcp = 0
     gc1p = 0
     gc2p = 0
@@ -148,17 +126,15 @@ def get_feature_dict_gene(infile, rna_dict={}, repeat_dict={}, gc_dict={}, kmer_
     rnap = 0
 
     with open(infile, 'rb') as fin:
-        # skip 1st line, which is header
+        # Skip 1st line, which is header
         firstline = fin.readline()
         line = fin.readline()
         while line:
             if line.startswith('>'):
                 head_num += 1
                 fields = line.strip().split('\t')
-                # print 'fields in header: %s' % fields
-
-                start = int(fields[1])
-                end = int(fields[2])
+                start = (fields[1])
+                end = (fields[2])
                 coord = (start, end)
 
                 has_trna = 0
@@ -168,7 +144,10 @@ def get_feature_dict_gene(infile, rna_dict={}, repeat_dict={}, gc_dict={}, kmer_
                 if coord in repeat_dict.keys():
                     has_repeat = 1
 
-                size = end - start + 1
+                if '_' in end:
+                    size = int(end[end.index("_") + 1:]) - int(start[start.index("_") + 1:]) + 1
+                else:
+                    size = int(end) - int(start) + 1
                 cluster = (head_num, start, end, size, has_trna, has_repeat)
                 cluster_set.append(cluster)
 
@@ -196,7 +175,6 @@ def get_feature_dict_gene(infile, rna_dict={}, repeat_dict={}, gc_dict={}, kmer_
                     if (not line.startswith('r')):
                         cdst += 1
                         fields = line.strip().split('\t')
-                        # print 'fields',fields
 
                         gstart = int(fields[1])
                         gend = int(fields[2])
@@ -243,7 +221,6 @@ def get_feature_dict_gene(infile, rna_dict={}, repeat_dict={}, gc_dict={}, kmer_
                             vfarngt += 1
 
                     if (not line.startswith('>')) and (line.startswith('r')):
-
                         rfields = line.strip().split('\t')
                         rstart = rfields[1]
                         rend = rfields[2]
@@ -253,7 +230,7 @@ def get_feature_dict_gene(infile, rna_dict={}, repeat_dict={}, gc_dict={}, kmer_
                         gene_list.append((int(rstart), int(rend)))
                     line = fin.readline()
 
-                # summarize the features of a segment
+                # Summarize the features of a segment
                 if cdst > 0:
                     gc = np.mean(gc_list)
                     gc1 = np.mean(gc1_list)
@@ -359,23 +336,35 @@ if __name__ == '__main__':
                       help="input file containing kmer distribution in a genomic interval")
     parser.add_option("-t", "--trnas", dest="trnas",
                       help="input file containing trnas overlapping with the input regions")
+    parser.add_option("-a", "--has_gene", dest="has_gene", action='store_true', default=False,
+                      help="The gene predictions are available")
     options, args = parser.parse_args()
 
-    rna_dict = get_rna(options.trnas)
-    repeat_dict = get_repeat(options.repeats)
+    rna_dict = get_rna_segment(options.trnas)
+    repeat_dict = get_repeat_segment(options.repeats)
     # gc_dict = get_gc_dist(options.gcfile)
     kmer_dict = get_kmer_dist(options.kmerfile)
 
-    
-    feature_dict = get_feature_dict_gene(
-        options.input, rna_dict=rna_dict, repeat_dict=repeat_dict, gc_dict={}, kmer_dict=kmer_dict)
-
-    with open(options.output, 'w') as fout:
-        for cluster, feature in feature_dict.values():
-            content = cluster + feature
-            format = '%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d'
-            for i in range(2, len(feature)):
-                format += '\t%.3f'
-            format += '\n'
-            line = format % content
-            fout.write(line)
+    if options.has_gene:
+        feature_dict = get_feature_dict_gene(
+            options.input, rna_dict=rna_dict, repeat_dict=repeat_dict, gc_dict={}, kmer_dict=kmer_dict)
+        with open(options.output, 'w') as fout:
+            for cluster, feature in feature_dict.values():
+                content = cluster + feature
+                format = '%d\t%s\t%s\t%d\t%d\t%d\t%d\t%d'
+                for i in range(2, len(feature)):
+                    format += '\t%.3f'
+                format += '\n'
+                line = format % content
+                fout.write(line)
+    else:
+        feature_dict = get_feature_dict_segment(rna_dict=rna_dict, repeat_dict=repeat_dict, gc_dict={}, kmer_dict=kmer_dict)
+        with open(options.output, 'w') as fout:
+            for cluster, feature in feature_dict.values():
+                content = cluster + feature
+                format = '%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d'
+                for i in range(2, len(feature)):
+                    format += '\t%.3f'
+                format += '\n'
+                line = format % content
+                fout.write(line)
