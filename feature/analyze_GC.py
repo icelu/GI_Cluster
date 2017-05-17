@@ -1,10 +1,11 @@
 # Given DNA sequence of a genome or a gene or a genomic region, analyze its GC content
+#
 # Author: Bingxin Lu
 # Affiliation : National University of Singapore
 # E-mail : bingxin@comp.nus.edu.sg
 #
 # Input:
-# 1. fasta file of DNA sequence
+# The fasta file of DNA sequence
 #
 # Output:
 # Measures of GC content:
@@ -19,7 +20,7 @@ from scipy.stats import chisquare
 import sys, os
 parentdir = os.path.dirname(os.path.dirname(sys.argv[0]))
 sys.path.insert(0, parentdir)
-from util.parseDNA import switch_to_AGCT, standardize_DNASeq, isheader
+from util.parse_sequence import switch_to_AGCT, standardize_DNASeq, isheader
 
 
 def parse_genes(gene_file, outfile):

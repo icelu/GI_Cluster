@@ -2,8 +2,7 @@ import optparse
 import sys, os
 parentdir = os.path.dirname(os.path.dirname(sys.argv[0]))
 sys.path.insert(0, parentdir)
-from util.quicksect import IntervalNode
-from util.parseDNA import switch_to_AGCT, standardize_DNASeq, isheader, get_contig_IDs
+from util.parse_sequence import switch_to_AGCT, standardize_DNASeq, isheader, get_contig_IDs
 from util.interval_operations import get_intervals, get_intervals_contigs, find, get_window_tree, get_overlap
 import itertools
 

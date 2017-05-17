@@ -1,6 +1,7 @@
 # Functions to read and standardize fasta files
 
 import itertools
+import os
 
 # Switch non-standard character to 'AGCT'
 def switch_to_AGCT(Nuc):
@@ -63,3 +64,49 @@ def get_contig_gene_IDs(infile):
             id_mapping[i] = name
 
     return id_mapping
+
+
+
+# Find tRNA genes around each segment
+def get_rna_segment(infile):
+    if not os.path.exists(infile):
+        return {}
+    rna_dict = {}
+    with open(infile, 'rb') as fin:
+        for line in fin:
+            fields = line.strip().split('\t')
+            coord = ((fields[0]), (fields[1]))
+            num = int(fields[2])
+            rnas = fields[3].split(';')
+            rna_pos = []
+            for rp in rnas:
+                items = rp.split(',')
+                # remove brackets
+                rpos = (int(items[0][1:]), int(items[1][:-1]))
+                rna_pos.append(rpos)
+            rna_dict[coord] = rna_pos
+        # print rna_dict
+    return rna_dict
+
+
+# Find short repeats around each segment
+def get_repeat_segment(infile):
+    if not os.path.exists(infile):
+        return {}
+    repeat_dict = {}
+    with open(infile, 'rb') as fin:
+        for line in fin:
+            fields = line.strip().split('\t')
+            coord = ((fields[0]), (fields[1]))
+            num = int(fields[2])
+            repeats = fields[3].split(';')
+            # keep only the position
+            repeats_pos = []
+            for rp in repeats:
+                items = rp.split(',')
+                # print items
+                rpos = (int(items[1]), int(items[2]))
+                repeats_pos.append(rpos)
+            repeat_dict[coord] = repeats_pos
+    # print repeat_dict
+    return repeat_dict

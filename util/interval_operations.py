@@ -5,6 +5,21 @@ sys.path.insert(0, parentdir)
 from util.quicksect import IntervalNode
 
 
+def get_orig_intervals(intervalfile):
+    '''
+    Return a list of interval tuples without type conversion
+    '''
+    intervals = []
+    with open(intervalfile, 'rb') as fin:
+        for line in fin:
+            fields = line.strip().split('\t')
+            start = (fields[0])
+            end = (fields[1])
+            coord = (start, end)
+            intervals.append(coord)
+    return intervals
+
+
 def get_intervals(intervalfile):
     '''
     Return a list of interval tuples
@@ -22,7 +37,7 @@ def get_intervals(intervalfile):
 
 def get_intervals_contigs(intervalfile):
     '''
-    Input: intervalfile containing a list of intervals, with row has format "id_start\tid_end", such as "1_1     1_5000"
+    Input:  intervalfile -- file containing a list of intervals, with row has format "id_start\tid_end", such as "1_1     1_5000"
     Return a list of intervals for each contig
     '''
     intervals = {}

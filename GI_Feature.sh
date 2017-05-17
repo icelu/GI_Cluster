@@ -1,4 +1,4 @@
-# Script for extracting features related to genomic islands in a genomic region
+# Script for extracting features related to genomic islands in the unit of genes
 # Author: Bingxin Lu
 # Affiliation : National University of Singapore
 # E-mail : bingxin@comp.nus.edu.sg
@@ -15,7 +15,7 @@ function usage() {
   echo -e "GI_Feature: extracting features related to genomic islands in a genomic region"
   echo "Version 1.0
 Usage: $software [options] -s [the directory containing all the scripts] -o [the output directory]
--n [the name of the organism (NCBI Accession, e.g. NC_003198)] -m [programs for genome segmation (e.g. mjsd, gcprofile, gisvm, alienhunter)] -p [programs for gene prediction (e.g. prodigal, ncbi)]
+-n [the name of the organism (e.g. NC_003198)] -m [programs for genome segmation (e.g. mjsd, gcprofile, gisvm, alienhunter)] -p [programs for gene prediction (e.g. prodigal, ncbi)]
 
 OPTIONS	Default	DESCIPTION
 -b	0	: mode of running: 0 for complete genome, 1 for contigs without gene predictions, 2 for contigs with gene predictions.
@@ -268,8 +268,9 @@ if [ ! -f $output_dir/boundary/$organism.trna_pred ]
 then
   # tRNA is only dependant on the original genome sequence
   tRNAscan-SE -B --frag $output_dir/boundary/$organism.trna_frag -o $output_dir/boundary/$organism.trna_pred -m $output_dir/boundary/$organism.trna_stat --brief $output_dir/$organism.fna
-  less $output_dir/boundary/$organism.trna_pred | cut -f1-4 > $output_dir/boundary/$organism.pred_trna
 fi
+less $output_dir/boundary/$organism.trna_pred | cut -f1-4 > $output_dir/boundary/$organism.pred_trna
+
 
 if [ $mode == 0 ]  # Predict repeats only for finished complete genomes
 then

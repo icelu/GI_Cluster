@@ -332,7 +332,7 @@ def get_genome_profiles(genome_file, klen):
                     # kmer_freq = kmer_freq / norm
                     profiles[k] = kmer_freq
 
-                return sequence, glen, profiles
+                return sequence, profiles
 
 
 

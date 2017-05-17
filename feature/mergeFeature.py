@@ -1,15 +1,13 @@
-import os
-import optparse
-import sys, os
-parentdir = os.path.dirname(os.path.dirname(sys.argv[0]))
-sys.path.insert(0, parentdir)
-from util.parseDNA import get_contig_IDs, get_contig_gene_IDs
-
-
-# Find the features for each genomic segment
+# This script is used to find the features for each genomic segment
+#
+# Author: Bingxin Lu
+# Affiliation : National University of Singapore
+# E-mail : bingxin@comp.nus.edu.sg
+#
 # Input:
 # A list of clusters (segments)
 # A list of features for each ORF
+#
 # Output:
 # Group the ORFs by clusters
 #     format:
@@ -17,7 +15,17 @@ from util.parseDNA import get_contig_IDs, get_contig_gene_IDs
 #     genes inside this region along with their features
 #
 # Procedure:
-# store the features for each ORF in a dicionary
+# Store the features for each ORF in a dicionary, and then write out the values in a file
+
+
+import os
+import optparse
+
+import sys, os
+parentdir = os.path.dirname(os.path.dirname(sys.argv[0]))
+sys.path.insert(0, parentdir)
+from util.parse_sequence import get_contig_IDs, get_contig_gene_IDs
+
 
 def get_gene_feature(infile):
     '''

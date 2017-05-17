@@ -1,3 +1,5 @@
+INTRODUCTION
+-------------
 GI-Cluster is a program for detecting genomic islands in newly sequenced microbial genomes by consensus clustering on multiple features.
 It includes a sets of scripts for extracting GI-related features from a newly sequenced microbial genome,
 performing consensus clustering on the obtained feature matrix to get potential GIs,
@@ -6,11 +8,14 @@ Author: Bingxin Lu
 Affiliation : National University of Singapore
 E-mail : bingxin@comp.nus.edu.sg
 
-
+SYSTEM REQUIREMENTS
+------------------
 GI-Cluster uses bash scripts to connect each step.
 So it is not convenient to run on Windows system.
 
 
+SOFTWARE REQUIREMENTS
+--------------------
 There are several external tools and packages that GI-Cluster depends on.
 
 ########## Prebuilt database ##########
@@ -35,8 +40,6 @@ There are several external tools and packages that GI-Cluster depends on.
 ########## Python packages to install ##########
 scipy  -- for chisquare
 
-
-
 ########## R packages to install ##########
 install.packages("R.utils")
 
@@ -53,3 +56,17 @@ install.packages("clues")
 install.packages("NbClust")
 install.packages("clustertend")
 install.packages("factoextra")
+
+
+INSTALLATION
+------------
+Uncompress the distribution GI_Cluster
+
+
+TO RUN
+-------
+The programs can be called by
+
+
+OUTPUT FILE
+-----------

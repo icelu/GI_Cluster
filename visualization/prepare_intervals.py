@@ -1,3 +1,5 @@
+# Create interval files for visualization in Circos
+
 import os
 import optparse
 

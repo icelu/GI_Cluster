@@ -135,7 +135,7 @@ fill_color = vlgrey
 <highlight>
 show = yes
 file = data/$organism.highlight
-#r0   = 0r+85p
+# r0   = 0r+85p
 r0   = 0.1r
 r1   = 1r
 </highlight>

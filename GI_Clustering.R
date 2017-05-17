@@ -10,7 +10,7 @@
 ##=============================================================
 
 
-library("optparse") # for parsing parameters
+library(optparse) # for parsing parameters
 library(methods) # for existsFunction
 library(stats) # for hclust
 

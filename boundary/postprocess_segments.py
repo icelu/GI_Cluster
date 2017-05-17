@@ -1,26 +1,20 @@
 # The adjacent candidate segments were joined and the boundary is relocated by the outmost ORF if an ORF intersects with a segment.
 # Note: the segment will only be extended
 # For features: sum the numbers, recompute the percentages
-
+#
+# Author: Bingxin Lu
+# Affiliation : National University of Singapore
+# E-mail : bingxin@comp.nus.edu.sg
+#
 
 import os
 import optparse
+
 import sys, os
 parentdir = os.path.dirname(os.path.dirname(sys.argv[0]))
 sys.path.insert(0, parentdir)
 from util.quicksect import IntervalNode
-
-
-def get_input_interval(intervalfile):
-    intervals = []
-    with open(intervalfile, 'rb') as fin:
-        for line in fin:
-            fields = line.strip().split('\t')
-            coord = (int(fields[0]), int(fields[1]))
-            intervals.append(coord)
-
-    # print len(intervals)
-    return intervals
+from util.interval_operations import get_intervals, get_intervals_contigs, find, get_window_tree
 
 
 # gene positions in different fields
@@ -50,9 +44,8 @@ def merge_intervals(intervals):
     yield tuple(saved)
 
 
-'''
-merge overlapped regions or regions with small gap
-'''
+
+# Merge overlapped regions or regions with small gap
 def merge_intervals_offset(intervals, allow_gap, gap_len):
     intervals = sorted(intervals, key=lambda x : (int(x[0]), int(x[1])))
     merged_intervals = []
@@ -74,7 +67,7 @@ def merge_intervals_offset(intervals, allow_gap, gap_len):
 
 
 
-def writeListOfTupleToFile(filename, list):
+def write2file(filename, list):
     outfile = open(filename, 'w')
 
     for value in list:
@@ -87,40 +80,9 @@ def writeListOfTupleToFile(filename, list):
     outfile.close()
 
 
-'''
-Build an interval tree for all the query intervals
-'''
-def getWindowTree(selectRes):
-    if len(selectRes[0]) == 3:
-        start, end, score = selectRes[0]
-        tree = IntervalNode(start, end, other=score)
-        # build an interval tree from the rest of the data
-        for start, end, score in selectRes[1:]:
-            tree = tree.insert(start, end, other=score)
-    else:
-        start, end = selectRes[0]
-        tree = IntervalNode(start, end, other=(end - start + 1))
-        # build an interval tree from the rest of the data
-        for start, end in selectRes[1:]:
-            # use size as the 3rd column
-            tree = tree.insert(start, end, other=(end - start + 1))
-    return tree
-
-
-'''
-Find all the intervals overlapping with the query interval
-'''
-def find(start, end, tree):
-    "Returns a list with the overlapping intervals"
-    out = []
-    tree.intersect(start, end, lambda x: out.append(x))
-    # x.other may be none if no score is assigned to the interval
-    return [ (x.start, x.end, x.other) for x in out ]
-
-
 def extend_boundary(intervals, genes):
     # build an interval to facilitate querying
-    tree = getWindowTree(genes)
+    tree = get_window_tree(genes)
     new_intervals = []
     for start, end in intervals:
         overlap = find(start, end, tree)
@@ -159,8 +121,11 @@ if __name__ == '__main__':
     parser.add_option("-g", "--genefile", dest="genefile", help="input file of genes and their locations")
     parser.add_option("-i", "--gifile", dest="gifile", help="input file of predicted GIs")
     parser.add_option("-o", "--outfile", dest="outfile", help="output file")
-    parser.add_option("-a", dest="allow_gap", default=False, action="store_true", help="allow to combine adjacent intervals that are very close")
+    parser.add_option("-p", dest="allow_gap", default=False, action="store_true", help="allow to combine adjacent intervals that are very close")
     parser.add_option("-l", "--gap_len", dest="gap_len", type='int', default=2500, help="threshold to merge adjacent intervals")
+    parser.add_option("-a", "--has_gene", dest="has_gene", action='store_true', default=False,
+                      help="The gene predictions are available")
+    parser.add_option("-c", "--is_contig", dest="is_contig", action='store_true', default=False, help="Analyze contigs from unassembled genomes")
     (options, args) = parser.parse_args()
 
     directory = os.path.dirname(os.path.realpath(options.gifile))
@@ -169,16 +134,33 @@ if __name__ == '__main__':
     # suffix = base[i + 1:]
     # print directory, suffix
 
-    origRes = get_input_interval(options.gifile)
-    print 'The number of intevals before merging adjacent ones: %d' % len(origRes)
+    if options.is_contig:
+        orig_intervals = get_intervals_contigs(options.gifile)
+        count_orig = 0
+        count_merged = 0
+        merged_intervals = []
+        for id, intervals in orig_intervals.items():
+            count_orig += len(intervals)
+            m_intervals = list(merge_intervals(intervals))
+            count_merged += len(m_intervals)
+            for start, end in m_intervals:
+                ns = '_'.join([str(id), str(start)])
+                ne = '_'.join([str(id), str(end)])
+                merged_intervals.append((ns, ne))
+        print 'The number of intevals before merging adjacent ones: %d' % count_orig
+        print 'The number of intevals after merging adjacent ones: %d' % count_merged
+        write2file(os.sep.join([directory, 'merged_']) + suffix, merged_intervals)
+    else:
+        orig_intervals = get_intervals(options.gifile)
+        merged_intervals = list(merge_intervals(orig_intervals))
+        print 'The number of intevals before merging adjacent ones: %d' % len(orig_intervals)
+        print 'The number of intevals after merging adjacent ones: %d' % len(merged_intervals)
 
-    mergedRes = list(merge_intervals(origRes))
-    print 'The number of intevals after merging adjacent ones: %d' % len(mergedRes)
-
-    genes = get_genes(options.genefile)
-    new_intervals = extend_boundary(mergedRes, genes)
-
-    merged_new_intervals = merge_intervals_offset(new_intervals, options.allow_gap, options.gap_len)
-
-    # merge intervals again to avoid overlapping regions and combine close intervals
-    writeListOfTupleToFile(os.sep.join([directory, 'merged_']) + suffix, merged_new_intervals)
+        if options.has_gene:
+            genes = get_genes(options.genefile)
+            new_intervals = extend_boundary(merged_intervals, genes)
+            # Merge intervals again to avoid overlapping regions and combine close intervals
+            merged_new_intervals = merge_intervals_offset(new_intervals, options.allow_gap, options.gap_len)
+            write2file(os.sep.join([directory, 'merged_']) + suffix, merged_new_intervals)
+        else:
+            write2file(os.sep.join([directory, 'merged_']) + suffix, merged_intervals)

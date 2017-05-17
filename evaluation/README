@@ -1,0 +1,7 @@
+Datasets used for comparing tools for predicting genomic islands (GIs)
+
+C-dataset:
+This dataset includes GIs predicted by comparative genomics
+
+L-dataset:
+This dataset includes GIs collected from literature

@@ -1,9 +1,8 @@
+# Fill template file for visualizing GI-related features in Circos
 import os
 import optparse
 
-'''
-Create files for visualization in Circos
-'''
+
 def createConfig(input_file, name, output_file, prefix, oname):
     with open(input_file, 'rb') as infile, open(output_file, 'w') as outfile:
         for line in infile:
