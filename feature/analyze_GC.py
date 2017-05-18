@@ -60,10 +60,12 @@ def parse_segs(pfile, gnome, outfile):
             # sequence = sequence.upper()
             # sequence = standardize_DNASeq(sequence)
             gc = GC(sequence)
-            gc1, gc2, gc3 = GC123(sequence)
-            gc_skew = GC_skew(sequence)
-            line = '%.3f\t%.3f\t%.3f\t%.3f\t%.3f\n' % (
-                gc, gc1, gc2, gc3, gc_skew)
+            # gc1, gc2, gc3 = GC123(sequence)
+            # gc_skew = GC_skew(sequence)
+            # line = '%.3f\t%.3f\t%.3f\t%.3f\t%.3f\n' % (
+            #     gc, gc1, gc2, gc3, gc_skew)
+            line = '%.3f\n' % (gc)
+            fout.write(line)            
             fout.write(line)
 
 

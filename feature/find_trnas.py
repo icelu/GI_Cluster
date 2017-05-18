@@ -1,11 +1,3 @@
-import optparse
-import sys, os
-parentdir = os.path.dirname(os.path.dirname(sys.argv[0]))
-sys.path.insert(0, parentdir)
-from util.parse_sequence import switch_to_AGCT, standardize_DNASeq, isheader, get_contig_IDs
-from util.interval_operations import get_intervals, get_intervals_contigs, find, get_window_tree, get_overlap
-import itertools
-
 # For finding tRNAs around a genomic interval
 # Input:
 # 1. predicted GIs (genomic intervals)
@@ -19,6 +11,15 @@ import itertools
 #
 # Output:
 # predicted GIs annotated with nearby trnas
+
+
+import optparse
+import sys, os
+parentdir = os.path.dirname(os.path.dirname(sys.argv[0]))
+sys.path.insert(0, parentdir)
+from util.parse_sequence import switch_to_AGCT, standardize_DNASeq, isheader, get_contig_IDs
+from util.interval_operations import get_intervals, get_intervals_contigs, find, get_window_tree, get_overlap
+import itertools
 
 
 ################################### find trnas in a segment ##############

@@ -17,10 +17,8 @@ Usage: $software -s [the directory containing all the scripts] -o [the output di
 }
 
 
-while getopts "b:s:o:n:m:p:h" OPT; do
+while getopts "s:o:n:m:p:h" OPT; do
   case $OPT in
-    b) mode=$OPTARG || exit 1;;
-
     s) prog_dir=$OPTARG || exit 1;;
     o) output_dir=$OPTARG || exit 1;;
     n) organism=$OPTARG || exit 1;;

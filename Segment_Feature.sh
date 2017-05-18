@@ -17,17 +17,20 @@ Usage: $software [options] -s [the directory containing all the scripts] -o [the
 -n [the name of the organism (e.g. NC_003198)] -m [programs for genome segmation (e.g. mjsd, gcprofile, gisvm, alienhunter)] -p [programs for gene prediction (e.g. prodigal, ncbi)]
 
 OPTIONS	Default	DESCIPTION
--b	0	: mode of running: 0 for complete genome, 1 for contigs without gene predictions, 2 for contigs with gene predictions.
+-b	0	: mode of running: 0 for complete genome, 1 for draft genome (contigs).
+-t  1 : availablity of gene predictions: 1: with gene predictions, 0: without gene predictions.
 -h 	----	: print this help
   "
   exit -1
 }
 
 mode=0
+gene_prediction=1
 
 while getopts "b:s:o:n:m:p:h" OPT; do
   case $OPT in
     b) mode=$OPTARG || exit 1;;
+    t) gene_prediction=$OPTARG || exit 1;;
 
     s) prog_dir=$OPTARG || exit 1;;
     o) output_dir=$OPTARG || exit 1;;
@@ -77,13 +80,22 @@ then
   fi
 fi
 
-if [ $mode == 1 ] # Only for contigs without gene predictions, not dependant on gene predictions
+
+if [ $gene_prediction == 0 ]  # Only for sequences without gene predictions
 then
-echo "##########################################"
-echo "Analyzing GC Content for each segment"
-if [ ! -f $output_dir/$seg_prog/feature/$organism.gc ]
-then
-  python $prog_dir/feature/analyze_GC.py -c -i $output_dir/$organism.fna -s $output_dir/$seg_prog/$organism.segment -o $output_dir/$seg_prog/feature/$organism.gc
+  echo "##########################################"
+  echo "Analyzing GC Content for each segment"
+  if [ ! -f $output_dir/$seg_prog/feature/$organism.gc ]
+  then
+    if [ $mode == 0 ] # For complete genome
+    then
+      python $prog_dir/feature/analyze_GC.py -r -i $output_dir/$organism.fna -s $output_dir/$seg_prog/$organism.segment -o $output_dir/$seg_prog/feature/$organism.gc
+    fi
+    if [ $mode == 1 ] # For draft genome
+    then
+      python $prog_dir/feature/analyze_GC.py -c -i $output_dir/$organism.fna -s $output_dir/$seg_prog/$organism.segment -o $output_dir/$seg_prog/feature/$organism.gc
+    fi
+  fi
 fi
 fi
 
@@ -102,22 +114,22 @@ fi
 
 echo "##########################################"
 echo "Merging features for each segment"
-if [ $mode == 2 ] # For contigs with gene predictions
+segs=$output_dir/$seg_prog/$organism.segment
+seg_feature1=$output_dir/$pred_prog/$seg_prog/$organism.seg_feature.multi
+seg_feature1_percentage=$output_dir/$pred_prog/$seg_prog/$organism.feature.multi.percentage
+seg_feature2=$output_dir/$seg_prog/feature/$organism.feature.multi.percentage
+if [ $gene_prediction == 1 ] # With gene predictions
 then
-  python $prog_dir/feature/mergeFeature.py -g $output_dir/$pred_prog/feature/$organism.feature.multi -o $output_dir/$pred_prog/$seg_prog/$organism.seg_feature.multi  -s $output_dir/$seg_prog/$organism.segment -r $output_dir/$pred_prog/feature/$organism.cmscan.tbl -c -m $output_dir/$organism.fna -d $output_dir/$pred_prog/genome/$organism.gene_id
-
-  python $prog_dir/feature/countFeature.py -a -i $output_dir/$pred_prog/$seg_prog/$organism.seg_feature.multi -o $output_dir/$pred_prog/$seg_prog/$organism.feature.multi.percentage -r $output_dir/$seg_prog/feature/$organism.boundary.repeat -t $output_dir/$seg_prog/feature/$organism.boundary.trna -k $output_dir/$seg_prog/feature/$organism.kmer.covariance
-fi
-
-if [ $mode == 1 ] # TODO: For contigs without gene predictions
-then
-  python $prog_dir/feature/mergeFeature.py -g $output_dir/$pred_prog/feature/$organism.feature.multi -o $output_dir/$seg_prog/feature/$organism.seg_feature.multi  -s $output_dir/$seg_prog/$organism.segment -r $output_dir/$pred_prog/feature/$organism.cmscan.tbl
-fi
-
-if [ $mode == 0 ] # For compute genome with gene predictions
-then
-  python $prog_dir/feature/mergeFeature.py -g $output_dir/$pred_prog/feature/$organism.feature.multi -o $output_dir/$pred_prog/$seg_prog/$organism.seg_feature.multi  -s $output_dir/$seg_prog/$organism.segment -r $output_dir/$pred_prog/feature/$organism.cmscan.tbl
-
-  # Form the feature matrix for clustering. For kmer,  use the value for each segment directly
-  python $prog_dir/feature/countFeature.py -a -i $output_dir/$pred_prog/$seg_prog/$organism.seg_feature.multi -o $output_dir/$pred_prog/$seg_prog/$organism.feature.multi.percentage -r $output_dir/$seg_prog/feature/$organism.boundary.repeat -t $output_dir/$seg_prog/feature/$organism.boundary.trna -k $output_dir/$seg_prog/feature/$organism.kmer.covariance
+  if [ $mode == 1 ] # For contigs with gene predictions
+  then
+    python $prog_dir/feature/mergeFeature.py -g $output_dir/$pred_prog/feature/$organism.feature.multi -o $seg_feature1 -s $segs -r $output_dir/$pred_prog/feature/$organism.cmscan.tbl -c -m $output_dir/$organism.fna -d $output_dir/$pred_prog/genome/$organism.gene_id
+  fi
+  if [ $mode == 0 ] # For compute genome with gene predictions
+  then
+      python $prog_dir/feature/mergeFeature.py -g $output_dir/$pred_prog/feature/$organism.feature.multi -o $seg_feature1 -s $segs -r $output_dir/$pred_prog/feature/$organism.cmscan.tbl
+  fi
+  # Form the feature matrix for clustering. For kmer,  use the value for each segment directly. No need to distinguish mode
+  python $prog_dir/feature/countFeature.py -a -i $seg_feature1 -o $seg_feature1_percentage -r $output_dir/$seg_prog/feature/$organism.boundary.repeat -t $output_dir/$seg_prog/feature/$organism.boundary.trna -k $output_dir/$seg_prog/feature/$organism.kmer.covariance
+else  # Without gene predictions
+  python $prog_dir/feature/countFeature.py -i $segs -o $seg_feature2 -r $output_dir/$seg_prog/feature/$organism.boundary.repeat -t $output_dir/$seg_prog/feature/$organism.boundary.trna -k  $output_dir/$seg_prog/feature/$organism.kmer.covariance -g $output_dir/$seg_prog/feature/$organism.gc
 fi

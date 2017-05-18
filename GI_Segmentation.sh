@@ -18,7 +18,7 @@ Usage: $software [options] -s [the directory containing all the scripts] -o [the
 -n [the name of the organism (NCBI Accession, e.g. NC_003198)] -m [programs for genome segmation (e.g. mjsd, gcprofile, gisvm, alienhunter)] -p [programs for gene prediction (e.g. prodigal, ncbi)]
 
 OPTIONS	Default	DESCIPTION
--b	0	: mode of running: 0 for complete genome, 1 for contigs without gene predictions, 2 for contigs with gene predictions.
+-b	0	: mode of running: 0 for complete genome, 1 for draft genome (contigs).
 -h 	----	: print this help
   "
   exit -1
@@ -56,9 +56,9 @@ then
   then
     if [ $mode == 0 ]  # For finished complete genomes
     then
-    python $prog_dir/segmentation/generate_segs.py -i $output_dir/$organism.fna -o $output_dir/$seg_prog/$organism."$seg_prog"
+      python $prog_dir/segmentation/generate_segs.py -i $output_dir/$organism.fna -o $output_dir/$seg_prog/$organism."$seg_prog"
     else  # For contigs
-    python $prog_dir/segmentation/generate_segs.py -c -i $output_dir/$organism.fna -o $output_dir/$seg_prog/$organism."$seg_prog"
+      python $prog_dir/segmentation/generate_segs.py -c -i $output_dir/$organism.fna -o $output_dir/$seg_prog/$organism."$seg_prog"
     fi
   fi
 
@@ -90,7 +90,7 @@ then
       less $output_dir/$seg_prog/$organism."$seg_prog".orig | grep 'misc_feature'| sed 's/\s\+/ /g' | cut -d' ' -f3 > $output_dir/$seg_prog/$organism."$seg_prog"
       sed -i 's/\.\./\t/g' $output_dir/$seg_prog/$organism."$seg_prog"
     fi
-     
+
   fi
 fi
 

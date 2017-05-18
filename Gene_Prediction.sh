@@ -17,7 +17,7 @@ Usage: $software [options] -s [the directory containing all the scripts] -o [the
 -n [the name of the organism (e.g. NC_003198)] -m [programs for genome segmation (e.g. mjsd, gcprofile, gisvm, alienhunter)] -p [programs for gene prediction (e.g. prodigal, ncbi)]
 
 OPTIONS	Default	DESCIPTION
--b	0	: mode of running: 0 for complete genome, 1 for contigs without gene predictions, 2 for contigs with gene predictions.
+-b	0	: mode of running: 0 for complete genome, 1 for draft genome (contigs).
 
 -h 	----	: print this help
   "
@@ -55,7 +55,7 @@ then
     then
       $prog_dir/bin/prodigal -m -i $output_dir/$organism.fna -o $output_dir/$pred_prog/genome/"$organism".gbk -a $output_dir/$pred_prog/genome/"$organism".faa -d $output_dir/$pred_prog/genome/"$organism".ffn
     fi
-    if [ $mode == 2 ]
+    if [ $mode == 1 ]
     then
       $prog_dir/bin/prodigal -p meta -m -i $output_dir/$organism.fna -o $output_dir/$pred_prog/genome/"$organism".gbk -a $output_dir/$pred_prog/genome/"$organism".faa -d $output_dir/$pred_prog/genome/"$organism".ffn
     fi

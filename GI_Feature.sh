@@ -18,7 +18,7 @@ Usage: $software [options] -s [the directory containing all the scripts] -o [the
 -n [the name of the organism (e.g. NC_003198)] -m [programs for genome segmation (e.g. mjsd, gcprofile, gisvm, alienhunter)] -p [programs for gene prediction (e.g. prodigal, ncbi)]
 
 OPTIONS	Default	DESCIPTION
--b	0	: mode of running: 0 for complete genome, 1 for contigs without gene predictions, 2 for contigs with gene predictions.
+-b	0	: mode of running: 0 for complete genome, 1 for draft genome (contigs).
 
 -e	1e-5	: e-value used during identification of phage-related genes, i.e., blastp against PHAST.
 -r	1e-5	: e-value used during identification of virulence factors, i.e., blastp against VFDB.
@@ -66,8 +66,6 @@ while getopts "b:s:o:n:m:p:c:e:r:a:d:u:f:h" OPT; do
 done
 
 
-if [ $mode != 1 ]
-then
 ############## compute known features related to genomic islands #########################
 if [ ! -d $output_dir/$pred_prog/feature/ ]
 then
@@ -248,7 +246,6 @@ then
   fi
 fi
 
-fi # for a complete genome
 
 ############################ merge files ################################################
 echo "##########################################"

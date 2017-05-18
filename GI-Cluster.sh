@@ -21,7 +21,8 @@ Usage: $software [options] -s [the directory containing all the scripts] -o [the
 -n [the name of the organism (NCBI Accession, e.g. NC_003198)] -m [programs for genome segmation (e.g. window, mjsd, gcprofile, gisvm, alienhunter)] -p [programs for gene prediction (e.g. prodigal, ncbi, none)]
 
 OPTIONS	Default	DESCIPTION
--b	0	: mode of running: 0 for complete genome, 1 for contigs without gene predictions, 2 for contigs with gene predictions.
+-b	0	: mode of running: 0 for complete genome, 1 for draft genome (contigs).
+-t  1 : availablity of gene predictions: 1: with gene predictions, 0: without gene predictions.
 
 -e	1e-5	: e-value used during identification of phage-related genes, i.e., blastp against PHAST.
 -r	1e-5	: e-value used during identification of virulence factors, i.e., blastp against VFDB.
@@ -32,7 +33,8 @@ OPTIONS	Default	DESCIPTION
 
 -g	2500	: gaps allowed when merging adjacent segments.
 
--f 	1	: show the visualization of features related to genomic island
+-f 	1	: show the visualization of features related to genomic islands
+-q 	0	: show the visualizations of genomic islands from different methods
 -h ---- : print this help
 -v ---- : Version 1.0
   "
@@ -52,13 +54,15 @@ num_cpus=16
 gap=5000
 
 mode=0
+gene_prediction=1
 
 show_figure=1
+comparison=0
 
-
-while getopts "b:s:o:n:m:p:g:c:e:r:a:d:u:f:h" OPT; do
+while getopts "b:t:s:o:n:m:p:g:c:e:r:a:d:u:f:q:h" OPT; do
   case $OPT in
     b) mode=$OPTARG || exit 1;;
+    t) gene_prediction=$OPTARG || exit 1;;
 
     s) prog_dir=$OPTARG || exit 1;;
     o) output_dir=$OPTARG || exit 1;;
@@ -77,6 +81,7 @@ while getopts "b:s:o:n:m:p:g:c:e:r:a:d:u:f:h" OPT; do
     u) num_cpus=$OPTARG || exit 1;;
 
     f) show_figure=$OPTARG || exit 1;;
+    q) comparison=$OPTARG || exit 1;;
 
     h) usage && exit;;
   esac
@@ -90,16 +95,12 @@ echo "Running GI-Cluster for a complete genome"
 fi
 if [ $mode == 1 ]
 then
-echo "Running GI-Cluster for contigs (without gene predictions)"
-fi
-if [ $mode == 2 ]
-then
-echo "Running GI-Cluster for contigs (with gene predictions)"
+echo "Running GI-Cluster for a draft genome"
 fi
 
-
-if [ $mode != 1 ]
+if [ $gene_prediction == 1 ] # With gene predictions
 then
+  echo "Running GI-Cluster with gene predictions"
 ############## Predict genes from raw genome sequence ##################
 # 3 types of required output files: fna (DNA sequence), ffn (gene sequence), faa (protein sequence)
   sh $prog_dir/Gene_Prediction.sh -s $prog_dir -o $output_dir -n $organism -m $seg_prog -p $pred_prog -b $mode
@@ -107,8 +108,8 @@ then
 ############## Compute known features related to genomic islands in the unit of genes #########################
   if [ "$pred_prog" != "none" ]
   then
-  sh $prog_dir/GI_Feature.sh -s $prog_dir -o $output_dir -n $organism -m $seg_prog -p $pred_prog -b $mode -e $phage_evalue -r $virdb_evalue -a $arg_evalue -d $num_threads -u $num_cpus
-  wait
+    sh $prog_dir/GI_Feature.sh -s $prog_dir -o $output_dir -n $organism -m $seg_prog -p $pred_prog -b $mode -e $phage_evalue -r $virdb_evalue -a $arg_evalue -d $num_threads -u $num_cpus
+    wait
   fi
 fi # for complete genomes
 
@@ -131,14 +132,6 @@ then
   wait
 fi
 
-# Get the labels for each segment when there are references
-# have to run this after changing references
-# python $prog_dir/IntervalIntersection.py --interval1 $output_dir/$seg_prog/$organism.segment --interval2 $output_dir/$organism.refgi -o $output_dir/$seg_prog/"$seg_prog"_refgi -f 0
-#
-# python $prog_dir/assign_cluster.py --interval1 $output_dir/$seg_prog/feature/$organism.feature.multi.percentage --interval2 $output_dir/$seg_prog/"$seg_prog"_refgi_interval1 -o $output_dir/$seg_prog/feature/$organism.feature.multi.percentage.labeled
-# python $prog_dir/assign_cluster.py -c --interval1 $output_dir/$seg_prog/feature/$organism.feature.multi.percentage.labeled --interval2 $output_dir/$seg_prog/"$seg_prog"_pos_overlap_interval1 --interval3 $output_dir/$seg_prog/"$seg_prog"_neg_overlap_interval1 -o $output_dir/$seg_prog/feature/$organism.feature.multi.percentage.labeled2
-
-
 ###################### Run Rscript for consensus clustering ##############################
 echo "##########################################"
 echo "Running consensus clustering on the feature matrix"
@@ -149,10 +142,14 @@ feature=comp_content
 method=average
 rep=1
 postprocess=true
-if [ $mode == 1 ] # Not dependant on gene predictions
+if [ $gene_prediction == 0 ] # Not dependant on gene predictions
 then
-  # TODO: make R code more flexible
-  echo
+  if [ ! -f $output_dir/unannotated/$seg_prog/$feature/$method/$pFeature/$rep/"$organism"_GI ]
+  then
+    mkdir -p $output_dir/unannotated/$seg_prog/$feature/$method/$pFeature/$rep/
+    ffile=$output_dir/$seg_prog/feature/$organism.feature.multi.percentage
+    nohup Rscript $prog_dir/GI_Clustering.R -f $ffile -o $output_dir/unannotated/$seg_prog/$feature/$method/$pFeature/$rep/ -a "$organism" -l $prog_dir/clustering -k 2 -K 3 -r $rep -e $pFeature -s $seg_prog -v true -C hclust -P method=$method -m true -d $feature -S false -g 0 2>&1 > $output_dir/unannotated/$seg_prog/$feature/$method/$pFeature/$rep/rscript_std
+  fi
 else  # Dependant on gene predictions
   if [ ! -f $output_dir/$pred_prog/$seg_prog/$feature/$method/$pFeature/$rep/"$organism"_GI ]
   then
@@ -171,13 +168,22 @@ dist=1000
 python $prog_dir/boundary/refine_boundary.py -i $output_dir/$pred_prog/$seg_prog/$feature/$method/$pFeature/$rep/"$organism"_GI -r $output_dir/$seg_prog/feature/$organism.boundary.repeat -t $output_dir/$seg_prog/feature/$organism.boundary.trna -o  $output_dir/$pred_prog/$seg_prog/$feature/$method/$pFeature/$rep/"$organism"_refined_GI -c $dist
 
 
-# gap=2500
 # post process GI candidates
 if [ $mode == 0 ] # For complete genomes
 then
-  python $prog_dir/boundary/postprocess_segments.py -l $gap -i $output_dir/$pred_prog/$seg_prog/$feature/$method/$pFeature/$rep/"$organism"_refined_GI -a -g $output_dir/$pred_prog/genome/$organism.glist
+  if [ $gene_prediction == 1 ] # With gene predictions
+  then
+    python $prog_dir/boundary/postprocess_segments.py -l $gap -i $output_dir/$pred_prog/$seg_prog/$feature/$method/$pFeature/$rep/"$organism"_refined_GI -a -g $output_dir/$pred_prog/genome/$organism.glist
+  else
+    python $prog_dir/boundary/postprocess_segments.py -l $gap -i $output_dir/$pred_prog/$seg_prog/$feature/$method/$pFeature/$rep/"$organism"_refined_GI
+  fi
 else  # TODO: utilize gene predictions
-  python $prog_dir/boundary/postprocess_segments.py -c -l $gap -i $output_dir/$pred_prog/$seg_prog/$feature/$method/$pFeature/$rep/"$organism"_refined_GI -g $output_dir/$pred_prog/genome/$organism.glist
+  if [ $gene_prediction == 1 ] # With gene predictions
+  then
+    python $prog_dir/boundary/postprocess_segments.py -c -l $gap -i $output_dir/$pred_prog/$seg_prog/$feature/$method/$pFeature/$rep/"$organism"_refined_GI -g $output_dir/$pred_prog/genome/$organism.glist
+  else
+    python $prog_dir/boundary/postprocess_segments.py -c -l $gap -i $output_dir/$pred_prog/$seg_prog/$feature/$method/$pFeature/$rep/"$organism"_refined_GI -g $output_dir/$pred_prog/genome/$organism.glist
+  fi
 fi
 
 # python $prog_dir/boundary/convert_contig_GIs.py -i $output_dir/$pred_prog/$seg_prog/$feature/$method/$pFeature/$rep/merged_"$organism"_refined_GI -o $output_dir/$pred_prog/$seg_prog/$feature/$method/$pFeature/$rep/reformated_merged_"$organism"_refined_GI
@@ -185,64 +191,68 @@ fi
 ##################### Get the features of predicted GIs #####################
 echo "##########################################"
 echo "Getting the features of predicted GIs"
-gifile=$output_dir/$pred_prog/$seg_prog/$feature/$method/$pFeature/$rep/merged_"$organism"_refined_GI
-
-if [ $mode == 2 ] # For contigs with gene predictions
+gifile1=$output_dir/$pred_prog/$seg_prog/$feature/$method/$pFeature/$rep/merged_"$organism"_refined_GI
+gifile2=$output_dir/unannotated/$seg_prog/$feature/$method/$pFeature/$rep/merged_"$organism"_refined_GI
+seg_feature1=$output_dir/$pred_prog/$seg_prog/$feature/$method/$pFeature/$rep/$organism.gi.feature
+seg_feature1_percentage=$output_dir/$pred_prog/$seg_prog/$feature/$method/$pFeature/$rep/$organism.gi.feature.percentage
+seg_feature2==$output_dir/unannotated/$seg_prog/$feature/$method/$pFeature/$rep/$organism.gi.feature.percentage
+if [ $gene_prediction == 1 ] # With gene predictions
 then
-  python $prog_dir/feature/mergeFeature.py -g $output_dir/$pred_prog/feature/$organism.feature.multi -o $output_dir/$pred_prog/$seg_prog/$feature/$method/$pFeature/$rep/$organism.gi.feature -s $gifile -r $output_dir/$pred_prog/feature/$organism.cmscan.tbl -c -m $output_dir/$organism.fna -d $output_dir/$pred_prog/genome/$organism.gene_id
-
-  python $prog_dir/feature/countFeature.py -a -i $output_dir/$pred_prog/$seg_prog/$feature/$method/$pFeature/$rep/$organism.gi.feature -o $output_dir/$pred_prog/$seg_prog/$feature/$method/$pFeature/$rep/$organism.gi.feature.percentage -r $output_dir/$seg_prog/feature/$organism.boundary.repeat -t $output_dir/$seg_prog/feature/$organism.boundary.trna -k $output_dir/$seg_prog/feature/$organism.kmer.covariance
-fi
-
-if [ $mode == 1 ] # TODO: For contigs without gene predictions
-then
-  python $prog_dir/feature/mergeFeature.py -g $output_dir/$pred_prog/feature/$organism.feature.multi -o $output_dir/$pred_prog/$seg_prog/$feature/$method/$pFeature/$rep/$organism.gi.feature  -s $gifile -r $output_dir/$pred_prog/feature/$organism.cmscan.tbl
-fi
-
-if [ $mode == 0 ] # For compute genome with gene predictions
-then
-  python $prog_dir/feature/mergeFeature.py -g $output_dir/$pred_prog/feature/$organism.feature.multi -o $output_dir/$pred_prog/$seg_prog/$feature/$method/$pFeature/$rep/$organism.gi.feature  -s $gifile -r $output_dir/$pred_prog/feature/$organism.cmscan.tbl
-
-  # Form the feature matrix for clustering. For kmer,  use the value for each segment directly
-  python $prog_dir/feature/countFeature.py -a -i $output_dir/$pred_prog/$seg_prog/$feature/$method/$pFeature/$rep/$organism.gi.feature -o $output_dir/$pred_prog/$seg_prog/$feature/$method/$pFeature/$rep/$organism.gi.feature.percentage -r $output_dir/$seg_prog/feature/$organism.boundary.repeat -t $output_dir/$seg_prog/feature/$organism.boundary.trna -k $output_dir/$seg_prog/feature/$organism.kmer.covariance
+  segs=$gifile1
+  if [ $mode == 1 ] # For contigs with gene predictions
+  then
+    python $prog_dir/feature/mergeFeature.py -g $output_dir/$pred_prog/feature/$organism.feature.multi -o $seg_feature1 -s $segs -r $output_dir/$pred_prog/feature/$organism.cmscan.tbl -c -m $output_dir/$organism.fna -d $output_dir/$pred_prog/genome/$organism.gene_id
+  fi
+  if [ $mode == 0 ] # For compute genome with gene predictions
+  then
+      python $prog_dir/feature/mergeFeature.py -g $output_dir/$pred_prog/feature/$organism.feature.multi -o $seg_feature1 -s $segs -r $output_dir/$pred_prog/feature/$organism.cmscan.tbl
+  fi
+  # Form the feature matrix for clustering. For kmer,  use the value for each segment directly. No need to distinguish mode
+  python $prog_dir/feature/countFeature.py -a -i $seg_feature1 -o $seg_feature1_percentage -r $output_dir/$seg_prog/feature/$organism.boundary.repeat -t $output_dir/$seg_prog/feature/$organism.boundary.trna -k $output_dir/$seg_prog/feature/$organism.kmer.covariance
+else  # Without gene predictions
+  segs=$gifile2
+  python $prog_dir/feature/countFeature.py -i $segs -o $seg_feature2 -r $output_dir/$seg_prog/feature/$organism.boundary.repeat -t $output_dir/$seg_prog/feature/$organism.boundary.trna -k  $output_dir/$seg_prog/feature/$organism.kmer.covariance -g $output_dir/$seg_prog/feature/$organism.gc
 fi
 
 ##################### Visualization  ##############################
-if [ $mode == 0 ] # Only support complete genomes
+if [ $mode == 0 ] # Only support complete genomes and gene predictions
   then
-  echo "##########################################"
-  echo "Create figures to visualize the predicted genomic islands and related features"
-  # sh $prog_dir/GI_Visualization.sh -s $prog_dir -o $output_dir -n $organism -m $seg_prog -p $pred_prog
-  show=1
-  if [ "$show_figure" -eq "$show" ]
-  then
-    if [ ! -d $output_dir/$seg_prog/feature/visualization/data ]
+    if [ $gene_prediction == 1 ]
     then
-      mkdir -p $output_dir/$seg_prog/feature/visualization/data
-      mkdir -p $output_dir/$seg_prog/feature/visualization/etc
-      mkdir -p $output_dir/$seg_prog/feature/visualization/img
+    echo "##########################################"
+    echo "Create figures to visualize the predicted genomic islands and related features"
+    # sh $prog_dir/GI_Visualization.sh -s $prog_dir -o $output_dir -n $organism -m $seg_prog -p $pred_prog
+    show=1
+    if [ "$show_figure" -eq "$show" ]
+    then
+      if [ ! -d $output_dir/$seg_prog/feature/visualization/data ]
+      then
+        mkdir -p $output_dir/$seg_prog/feature/visualization/data
+        mkdir -p $output_dir/$seg_prog/feature/visualization/etc
+        mkdir -p $output_dir/$seg_prog/feature/visualization/img
+      fi
+      # Copy template files
+      cp $prog_dir/visualization/etc/* $output_dir/$seg_prog/feature/visualization/etc
+
+      python $prog_dir/visualization/prepare_intervals.py -g $output_dir/$organism.fna -i $gifile -o $output_dir/$seg_prog/feature/visualization/data/$organism.gi -c $output_dir/$seg_prog/feature/visualization/data/$organism.chr -f $output_dir/$seg_prog/feature/visualization/data/$organism.highlight
+      # Use features of all the input segments
+      python $prog_dir/visualization/prepare_features.py -a -i $output_dir/$pred_prog/$seg_prog/$organism.feature.multi.percentage -o $output_dir/$seg_prog/feature/visualization/data
+
+      prefix="feature.multi.percentage"
+      python $prog_dir/visualization/prepare_feature_config.py -i $output_dir/$seg_prog/feature/visualization/etc/circos.gifeature.conf.template -n $organism -o $output_dir/$seg_prog/feature/visualization/etc/circos.gifeature.conf -p $prefix -f "$organism"_gifeature
+
+      # Run circos at etc folder since the output directory is relative
+      cd $output_dir/$seg_prog/feature/visualization/etc
+      circos -conf $output_dir/$seg_prog/feature/visualization/etc/circos.gifeature.conf
+      cd $output_dir
     fi
-    # Copy template files
-    cp $prog_dir/visualization/etc/* $output_dir/$seg_prog/feature/visualization/etc
-
-    python $prog_dir/visualization/prepare_intervals.py -g $output_dir/$organism.fna -i $gifile -o $output_dir/$seg_prog/feature/visualization/data/$organism.gi -c $output_dir/$seg_prog/feature/visualization/data/$organism.chr -f $output_dir/$seg_prog/feature/visualization/data/$organism.highlight
-    # Use features of all the input segments
-    python $prog_dir/visualization/prepare_features.py -a -i $output_dir/$pred_prog/$seg_prog/$organism.feature.multi.percentage -o $output_dir/$seg_prog/feature/visualization/data
-
-    prefix="feature.multi.percentage"
-    python $prog_dir/visualization/prepare_feature_config.py -i $output_dir/$seg_prog/feature/visualization/etc/circos.gifeature.conf.template -n $organism -o $output_dir/$seg_prog/feature/visualization/etc/circos.gifeature.conf -p $prefix -f "$organism"_gifeature
-
-    # Run circos at etc folder since the output directory is relative
-    cd $output_dir/$seg_prog/feature/visualization/etc
-    circos -conf $output_dir/$seg_prog/feature/visualization/etc/circos.gifeature.conf
-    cd $output_dir
   fi
-fi
 
-if [ $comparison == 1 ] # Compare with the predictions from other programs
-  then
-  echo "##########################################"
-  echo "Create figures to visualize the predicted genomic islands of different GI prediction methods"
-  # sh $prog_dir/GI_Visualization.sh -s $prog_dir -o $output_dir -n $organism -m $seg_prog -p $pred_prog
-  sh $prog_dir/GI_Comparison.sh -s $prog_dir -o $output_dir -n $organism -m $seg_prog -p $pred_prog -b $mode
+  if [ $comparison == 1 ] # Compare with the predictions from other programs
+    then
+    echo "##########################################"
+    echo "Create figures to visualize the predicted genomic islands of different GI prediction methods"
+    sh $prog_dir/GI_Comparison.sh -s $prog_dir -o $output_dir -n $organism -m $seg_prog -p $pred_prog
+  fi
+
 fi

@@ -60,7 +60,9 @@ option_list = list(
   make_option(c("-v", "--verbose"), type="character", default="false",
               help="output more information for reference [default= %default]"),
   make_option(c("-m", "--heatmap"), type="character", default="false",
-              help="output consensus matrix as a heatmap [default= %default]")
+              help="output consensus matrix as a heatmap [default= %default]"),
+  make_option(c("-g", "--gene_prediction"), type="integer", default="1",
+              help="availablity of gene predictions: 1: with gene predictions, 0: without gene predictions")
 );
 
 opt_parser = OptionParser(option_list=option_list);
@@ -74,7 +76,7 @@ if (is.null(opt$file)){
 file = opt$file
 outdir = opt$outdir
 libdir = opt$libdir
-
+gene_prediction = opt$gene_prediction
 clnum = opt$clnum
 internalK = opt$internalK
 seg_prog = opt$seg_prog
@@ -134,96 +136,117 @@ if (verbose=="true"){
 
 R.utils::sourceDirectory(libdir, modifiedOnly=FALSE)
 
-# the format of the feature table:
-# for complete genome with gene annotations
-# 'GeneID\tStart\tEnd\tStrand\tGC\tGC1\tGC2\tGC3\tGC_skew\tCUB\tAAB\tCHI\tCAI\tCBI\tFop\t2-mer\t3-mer\t4-mer\t5-mer\t6-mer\t7-mer\t8-mer\tMobility gene\tPhage\tVirulence factor\tAntibiotic resistance gene\tNovel gene\n'
+# The format of the feature table:
+# For genome with gene annotations:
+# (ID, start, end, size, has_trna, has_repeat, cdst, rnat, gc, gc1, gc3, cub, aab, chi, cai, cbi, fop, kmer2, kmer3, kmer4, kmer5, kmer6, kmer7, kmer8, mbp, phagep, vfp, arp, ngp, cdsp, inter_gene_dist)
+# For genome without gene annotations:
+# (ID, start, end, size, has_trna, has_repeat, gc, kmer2, kmer3, kmer4, kmer5, kmer6, kmer7, kmer8)
 ft0 <- read.table(file)
 
-# remove regions with 0 genes or with >2 tRNA+rRNA
+# Remove regions with 0 genes or with too many ncRNAs
 {
 if(pre_process=="true"){
-  # 5 kb window, for larger window the threshold has to be changed to get better predictions
-  if(seg_prog == "window"){
-  fte = ft0[ft0$V7==0|ft0$V8>=3,]
-  ft = ft0[ft0$V7!=0&ft0$V8<3,]
-  }
-  else{
+  # # 5 kb window, for larger window the threshold has to be changed to get better predictions
+  # if(seg_prog == "window"){
+  # fte = ft0[ft0$V7==0|ft0$V8>=3,]
+  # ft = ft0[ft0$V7!=0&ft0$V8<3,]
+  # }
+  # else{
+    # V7 -- Number of genes, V8 -- Number of ncRNAs
     fte = ft0[ft0$V7==0|ft0$V7!=0&ft0$V8/ft0$V7>0.5,]
     ft = ft0[ft0$V7!=0&ft0$V8/ft0$V7<=0.5,]
-  }
+  # }
 }
 else{
   ft = ft0;
 }
 }
 
-features=ft[,9:24]
-# head(features)
-# transform features related to GC content into distance values
-# for each value, compute its chisquare value (x-mean)^2/mean
-start=9;
-for(i in 1:4){
-  if(i==3) next;
-  fv = ft[,start+i]*100
-  mu = mean(fv)
-  # cat("mu ", paste0("V",start+i), ": ", mu, "\n")
-  features[, paste0("V",start+i)] = ((fv-mu)^2)/mu
-  # cat("feature ", paste0("V",start+i), ": ", str(features[, paste0("V",start+i)]), "\n")
-}
-
-# features related to gene content (phage, vf, ar, ng)
-for(i in 1:4){
-  features[, paste0("V",25+i)] = ft[,25+i]
-  # cat("feature ", paste0("V",25+i), ": ", str(features[, paste0("V",25+i)]), "\n")
-}
-
 {
-if (feature=="gc") {data=features[1:3]}
-else if (feature=="codon")
-{
-  # data=features[4:9]
-  data=features[4:7]
+# gc, gc1, gc3, cub, aab, chi, cai, cbi, fop, kmer2, kmer3, kmer4, kmer5, kmer6, kmer7, kmer8, mbp, phagep, vfp, arp, ngp, cdsp, inter_gene_dist
+if(gene_prediction==1){
+  features=ft[,9:24]
 
-}
+  # transform features related to GC content into distance values
+  # for each value, compute its chisquare value (x-mean)^2/mean
+  start=9;
+  for(i in 1:4){
+    if(i==3) next;
+    fv = ft[,start+i]*100
+    mu = mean(fv)
+    # cat("mu ", paste0("V",start+i), ": ", mu, "\n")
+    features[, paste0("V",start+i)] = ((fv-mu)^2)/mu
+    # cat("feature ", paste0("V",start+i), ": ", str(features[, paste0("V",start+i)]), "\n")
+  }
+
+  # features related to gene content (phage, vf, ar, ng)
+  for(i in 1:4){
+    features[, paste0("V",25+i)] = ft[,25+i]
+    # cat("feature ", paste0("V",25+i), ": ", str(features[, paste0("V",25+i)]), "\n")
+  }
+
+  {
+  if (feature=="gc") {data=features[1:3]}
+  else if (feature=="codon")
+  {
+    # data=features[4:9]
+    data=features[4:7]
+
+  }
+  else if (feature=="kmer"){
+    data=features[10:16]
+  }
+  else if (feature=="content")
+  {
+    data=features[17:20]
+  }
+  else if (feature=="gc_kmer")
+  {
+    data1=features[1:3]
+    data2=features[10:16]
+    data=cbind(data1, data2)
+  }
+  # only use compositional features for clustering
+  else if (feature=="comp")
+  {
+    data1=features[1:3]
+    data2=features[4:7]
+    data3=features[10:16]
+    data=cbind(data1, data2, data3)
+  }
+  else if (feature=="comp_content")
+  {
+    data1=features[1:3]
+    data2=features[4:7]
+    data3=features[10:16]
+    data4=features[17:20]
+    # data4=features[17]
+    data=cbind(data1, data2, data3, data4)
+  }
+  else
+  {
+    data1=features[1:3]
+    data2=features[4:7]
+    data3=features[10:16]
+    data4=features[17:20]
+    data=cbind(data1, data2, data3, data4)
+  }
+
+  }
+} # With gene predictions
+else{
+# gc, kmer2, kmer3, kmer4, kmer5, kmer6, kmer7, kmer8
+features=ft[,7:14]
+if (feature=="gc") {data=features[1]}
 else if (feature=="kmer"){
-  data=features[10:16]
+  data=features[2:8]
 }
-else if (feature=="content")
+else  # gc_kmer
 {
-  data=features[17:20]
-}
-else if (feature=="gc_kmer")
-{
-  data1=features[1:3]
-  data2=features[10:16]
-  data=cbind(data1, data2)
-}
-# only use compositional features for clustering
-else if (feature=="comp")
-{
-  data1=features[1:3]
-  data2=features[4:7]
-  data3=features[10:16]
-  data=cbind(data1, data2, data3)
-}
-else if (feature=="comp_content")
-{
-  data1=features[1:3]
-  data2=features[4:7]
-  data3=features[10:16]
-  data4=features[17:20]
-  # data4=features[17]
-  data=cbind(data1, data2, data3, data4)
-}
-else
-{
-  data1=features[1:3]
-  data2=features[4:7]
-  data3=features[10:16]
-  data4=features[17:20]
-  data=cbind(data1, data2, data3, data4)
+  data=features
 }
 
+}
 }
 
 cat("Number of selected features:", floor(pFeature*ncol(data)), "\n")
@@ -232,7 +255,7 @@ cat("Number of selected features:", floor(pFeature*ncol(data)), "\n")
 outdir_sep=paste0(outdir, "sepcluster/")
 ifelse(!dir.exists(outdir_sep), dir.create(outdir_sep), FALSE)
 res_list=clustering.1D(data, clnum=internalK, pCol=pFeature, algorithms=clusterAlg,alparams=alParams, rep=reps, verbose=verbose, outdir=outdir_sep, ft=ft)
-#str(res_list)
+
 # compute the average concensus matrix
 avg_cm=matrix(0,nrow=dim(data)[1],ncol=dim(data)[1],dimnames=list(row.names(data),row.names(data)));
 for(i in 1:length(res_list)){
@@ -339,18 +362,18 @@ for(j in 1:length(mergeAlg)){
     }
   }
 }
-
-  if("V32" %in% colnames(ft))
-  {
-    message('comparison with segments labeled as GIs in L-data:')
-    print(table(ft$V32,Clab2))
-  }
-
-  if("V33" %in% colnames(ft))
-  {
-    message('comparison with segments labeled as GIs in C-data:')
-    print(table(ft$V33,Clab2))
-  }
+  # If there are known labeled for each item
+  # if("V32" %in% colnames(ft))
+  # {
+  #   message('comparison with segments labeled as GIs in L-data:')
+  #   print(table(ft$V32,Clab2))
+  # }
+  #
+  # if("V33" %in% colnames(ft))
+  # {
+  #   message('comparison with segments labeled as GIs in C-data:')
+  #   print(table(ft$V33,Clab2))
+  # }
   # Compute cluster stats
   message('cluster stats:')
   clust_stats <- cluster.stats(d = x, as.vector(t(Clab2)))
@@ -373,12 +396,12 @@ gi0 = ft[gi,]
 ngi0 = ft[ngi,]
 
 {
-if (post_process=="false")
+if (post_process=="false")  # For mode 2, post_process should be "false"
 {
   gi = gi0
   ngi = ngi0
 }
-# message("before processing gi")
+# The rules used in postprocessing can be modified to adapt different requirements
 else {
   if(seg_prog=="window"){
     # find GIs from ngi by other evidence

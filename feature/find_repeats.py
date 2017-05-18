@@ -1,9 +1,3 @@
-import optparse
-import sys, os
-parentdir = os.path.dirname(os.path.dirname(sys.argv[0]))
-sys.path.insert(0, parentdir)
-from util.quicksect import IntervalNode
-
 # For finding repeats around each genomic interval
 # Input:
 # 1. predicted GIs (genomic intervals)
@@ -18,66 +12,16 @@ from util.quicksect import IntervalNode
 # genomic interval annotated with nearby repeats
 
 
-############################## interval operation ########################################
-'''
-Find all the intervals overlapping with the query interval
-'''
-def find(start, end, tree):
-    "Returns a list with the overlapping intervals"
-    out = []
-    tree.intersect(start, end, lambda x: out.append(x))
-    # x.other may be none if no score is assigned to the interval
-    return [ (x.start, x.end, x.other) for x in out ]
-
-'''
-Build an interval tree for all the query intervals
-'''
-def getWindowTree(selectRes):
-    if len(selectRes[0]) == 3:
-        start, end, score = selectRes[0]
-        tree = IntervalNode(start, end, other=score)
-        # build an interval tree from the rest of the data
-        for start, end, score in selectRes[1:]:
-            tree = tree.insert(start, end, other=score)
-    else:
-        start, end = selectRes[0]
-        tree = IntervalNode(start, end, other=(end - start + 1))
-        # build an interval tree from the rest of the data
-        for start, end in selectRes[1:]:
-            # use size as the 3rd column
-            tree = tree.insert(start, end, other=(end - start + 1))
-    return tree
-
-
-'''
-From http://stackoverflow.com/questions/2953967/built-in-function-for-computing-overlap-in-python
-Find the number of overlapping bases between two intervals
-Add by 1 for 1-based interval
-'''
-def getOverlap(a, b):
-    return max(0, min(a[1], b[1]) - max(a[0], b[0]) + 1)
+import optparse
+import sys, os
+parentdir = os.path.dirname(os.path.dirname(sys.argv[0]))
+sys.path.insert(0, parentdir)
+from util.interval_operations import get_intervals, find, get_window_tree, get_overlap
 
 
 ################################### find repeats in a segment #######################################
-'''
-return a list of interval tuples
-'''
-def get_intervals(intervalfile):
-    intervals = []
-    with open(intervalfile, 'rb') as fin:
-        for line in fin:
-            fields = line.strip().split('\t')
-            start = int(fields[0])
-            end = int(fields[1])
-            coord = (start, end)
-            intervals.append(coord)
-    return intervals
-
-'''
-
-'''
 def parse_repseek_output(infile, intervals):
-    tree = getWindowTree(intervals)
+    tree = get_window_tree(intervals)
     repeat_dict = {}
 
     with open(infile, 'rb') as fin:

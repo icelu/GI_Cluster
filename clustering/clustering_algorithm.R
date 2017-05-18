@@ -14,17 +14,15 @@
 #		diana  - divisive hierarchical clustering
 #		apcluster - affinity propagation clustering
 ###############################################################################
-#load the cluster package, including kmeans, pam, clara
+# To include kmeans, pam, clara
 library(cluster);
-#load the apcluster package
+# load the apcluster package
 library(apcluster);
-
 library(mclust);
-# for kmeanspp, or kmeans++
+# To include kmeanspp, or kmeans++
 library(LICORS);
-# for Kernel Clustering
+# To include Kernel Clustering
 library(kernlab);
-# for clues
 library(clues);
 
 #agnes
