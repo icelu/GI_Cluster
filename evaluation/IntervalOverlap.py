@@ -5,7 +5,7 @@
 # Steps:
 # 1. Find the overlap regions for each reference interval
 # 2. The regions in query intervals with no overlap with reference intervals are FPs
-# for accurate comparison, the intervals should be 1-based.
+# For accurate comparison, the intervals should be 1-based.
 #
 # Differences between 0-based and 1-based intervals:
 # 0-based (12,15), (15,20) --> actually means 1-based (13,15), (16,20).
@@ -13,14 +13,14 @@
 # but for 1-based intervals, the condition for merging is st-1 <= saved[1].
 # As reference intervals are 1-based, here query intervals should also be 1-based.
 #
-# Use quicksect to find all the query intervals overlapping with a reference interval
-# quicksect use no equal comparison,
-# so given two intervals in 1-based query [(13, 15), (18, 25)], and 1-based reference interval (15,20),
+# Use quicksect to find all the query intervals overlapping with a reference interval.
+# Because quicksect use no equal comparison,
+# given two intervals in 1-based query [(13, 15), (18, 25)] and 1-based reference interval (15,20),
 # we cannot find overlap of 1bp. Namely, (13, 15) will not be reported.
-# but if the query is 0-based, it will become [(12,15), (14,20)].
+# But if the query is 0-based, it will become [(12,15), (14,20)].
 # Then if reference intervals are still 1-based, 1bp overlap can still not be found.
-# if reference intervals are 0-based (14,20), the overlap of 1bp can be found, namely (12,15) will be reported.
-# since 1bp overlap is minimal compared with the size of GI, we use 1-based query for consistency.
+# If reference intervals are 0-based (14,20), the overlap of 1bp can be found, namely (12,15) will be reported.
+# Since 1bp overlap is minimal compared with the size of a genomic island, we use 1-based query for consistency.
 #
 # Output file:
 # *_offset: the predicted regions overlapping with each reference region
@@ -41,10 +41,11 @@ from util.interval_operations import find, get_window_tree, get_overlap
 
 
 ################################ parse input ############################################
-'''
-Return an array of tuples
-'''
+
 def getGeneCoords(intervalfile):
+    '''
+    Return an array of tuples
+    '''
     intervals = []
     with open(intervalfile, 'rb') as fin:
         for line in fin:
@@ -55,11 +56,12 @@ def getGeneCoords(intervalfile):
     return intervals
 
 
-'''
-Return a list of interval tuples with additional information (score)
-Assume 1-based coordinates
-'''
+
 def getIntervals(intervalfile):
+    '''
+    Return a list of interval tuples with additional information (score)
+    Assume 1-based coordinates
+    '''
     intervals = []
     with open(intervalfile, 'rb') as fin:
         for line in fin:
@@ -74,14 +76,14 @@ def getIntervals(intervalfile):
                 coord = (start, end, size)
             intervals.append(coord)
 
-    # print len(intervals)
     return intervals
 
-'''
-Return a list of interval tuples with additional information (score)
-Assume 0-based coordinates
-'''
+
 def getIntervals_0based(intervalfile):
+    '''
+    Return a list of interval tuples with additional information (score)
+    Assume 0-based coordinates
+    '''
     intervals = []
     with open(intervalfile, 'rb') as fin:
         for line in fin:
@@ -92,26 +94,27 @@ def getIntervals_0based(intervalfile):
                 coord = (int(fields[0]) + 1, int(fields[1]))
             intervals.append(coord)
 
-    # print len(intervals)
     return intervals
 
 
 
 ############################## interval operation ########################################
-'''
-Get the union of (overlap) intervals
-'''
+
 def getOverlapInterval(a, b):
+    '''
+    Get the union of (overlap) intervals
+    '''
     start = max(a[0], b[0])
     end = min(a[1], b[1])
     if end >= start:
         return (start, end)
 
-'''
-The interval_list may contain overlapping regions
-Use merge() to get only unique regions
-'''
+
 def getOverlapIntervalSize(interval_list):
+    '''
+    The interval_list may contain overlapping regions
+    Use merge() to get only unique regions
+    '''
     intervals = []
     if len(interval_list[0]) == 3:
         intervals = merge_score(interval_list)
@@ -122,24 +125,23 @@ def getOverlapIntervalSize(interval_list):
         size += i[1] - i[0] + 1
     return size
 
-'''
-Assume intervals are not overlapping,
-Add up the bases of all the intervals
-'''
+
 def getIntervalLen(intervals):
+    '''
+    Assume intervals are not overlapping,
+    Add up the bases of all the intervals
+    '''
     length = 0
-    # can not use len as variable name, or else it will be confused with the function len
-    # TypeError: object of type 'generator' has no len()
-    # if len(intervals) > 0:
     for interval in intervals:
         length += interval[1] - interval[0] + 1
     return length
 
 
-'''
-Get the average size of all the intervals
-'''
+
 def getIntervalAvg(intervals):
+    '''
+    Get the average size of all the intervals
+    '''
     length = 0
 
     for interval in intervals:
@@ -148,6 +150,9 @@ def getIntervalAvg(intervals):
 
 
 def merge(intervals):
+    '''
+    Given a list of intervals, merge overlapping ones and return results by generator
+    '''
     if len(intervals) < 0: return
     intervals = sorted(intervals, key=lambda x : (int(x[0]), int(x[1])))
     saved = list(intervals[0])
@@ -160,10 +165,11 @@ def merge(intervals):
             saved[1] = en
     yield tuple(saved)
 
-'''
-Given a list of intervals, merge overlapping ones, return a list of non-overlapping intervals
-'''
+
 def merge_ref(intervals):
+    '''
+    Given a list of intervals, merge overlapping ones and return a list of non-overlapping intervals
+    '''
     if len(intervals) < 0: return
     intervals = sorted(intervals, key=lambda x : (int(x[0]), int(x[1])))
     saved = list(intervals[0])
@@ -180,10 +186,11 @@ def merge_ref(intervals):
     return merged_intervals
 
 
-'''
-Merge regions with score
-'''
+
 def merge_score(intervals):
+    '''
+    Merge regions with score
+    '''
     intervals = sorted(intervals, key=lambda x : (int(x[0]), int(x[1])))
     merged_intervals = []
     saved = list(intervals[0])
@@ -230,15 +237,16 @@ def writeListOfTupleToFile(filename, list):
 
 
 #################################### GI prediction metrics #####################################################
-'''
-Protein-coding gene position can be read from ptt file
-input format:
-Salmonella enterica subsp. enterica serovar Typhi str. CT18, complete genome - 1..4809037
-4111 proteins
-Location        Strand  Length  PID     Gene    Synonym Code    COG     Product
-190..255        +       21      16758994        -       STY0001 -       -       thr operon leader peptide
-'''
+
 def getGenelocList(infile):
+    '''
+    Protein-coding gene position can be read from NCBI ptt file
+    Input format:
+    Salmonella enterica subsp. enterica serovar Typhi str. CT18, complete genome - 1..4809037
+    4111 proteins
+    Location        Strand  Length  PID     Gene    Synonym Code    COG     Product
+    190..255        +       21      16758994        -       STY0001 -       -       thr operon leader peptide
+    '''
     genelist = []
     with open(infile, 'rb') as fin:
         # skip the first 3 lines
@@ -253,25 +261,21 @@ def getGenelocList(infile):
     return genelist
 
 
-'''
-alpha: the degree of overlap
-'''
+
 def getGenesInInterval(interval, genelist, alpha=0):
+    '''
+    alpha: the degree of overlap
+    '''
     start = interval[0]
     end = interval[1]
-    # store all genes covered in an interval in a dict
-    # dict = {}
-    # dict[(start, end)] = []
     genes = []
     for g_start, g_end in genelist:
         # check whether gene is included in the interval
-        # not overlap
         if end < g_start or start > g_end:
             continue
 
         # completely included genes
         if start <= g_start and end >= g_end:
-        # dict[(start, end)].append((g_start, g_end))
             genes.append((g_start, g_end))
         # partly covered genes
         else:
@@ -283,11 +287,10 @@ def getGenesInInterval(interval, genelist, alpha=0):
     return list(set(genes))
 
 
-
-'''
-Input: a list of offset tuple (abs(left_ext), abs(right_ext))
-'''
 def getAvgBoundaryError(extentions):
+    '''
+    Input: a list of offset tuple (abs(left_ext), abs(right_ext))
+    '''
     if len(extentions) <= 0:
         return (0, 0, 0)
     sum_left = 0
@@ -302,12 +305,11 @@ def getAvgBoundaryError(extentions):
     avg_right = sum_right / total
     avg_offset = (avg_left + avg_right) / 2
 
-    '''
-    avg_offset2 = (sum_left + sum_right) / (total * 2)
-    # there may be some errors due to float precision
-    if not avg_offset == avg_offset2:
-        print 'avg_offset:%s\tavg_offset2:%s' % (avg_offset, avg_offset2)
-    '''
+    # avg_offset2 = (sum_left + sum_right) / (total * 2)
+    # # There may be some errors due to float precision
+    # if not avg_offset == avg_offset2:
+    #     print 'avg_offset:%s\tavg_offset2:%s' % (avg_offset, avg_offset2)
+'
     return (avg_left, avg_right, avg_offset)
 
 
@@ -492,23 +494,22 @@ def getMetric_base(ref_intervals, query_intervals, genelist, options):
 
         ############################## PR in #intervals ###############################################
         '''
-        this is in term of #intervals. not meaningful
-        in principle, should be based on reference intervals
+        This is in term of #intervals. not meaningful
         '''
         # recall: TP/(TP+FN), precision= TP/(TP+FP)
         tp = tp_interval
         # The number of predicted intervals not overlapping with the reference, hard to be mapped to reference intervals
         # fp = len(query_intervals) - tp
         fp = len(unique_intervals)
-        # By definition, should be the number of unpredicted intervals overlapping with the reference interval
+        # By definition, FN should be the number of unpredicted intervals overlapping with the reference interval
         # Here, for convenience, it is the number of unpredicted reference intervals
         fn = len(ref_intervals) - tp
         real = len(ref_intervals)
 
         predicted = len(set(query_intervals))
         '''
-        if using real, recall may be larger than 1, as many predicted intervals may overlap with the same GI
-        so use tp+fn instead
+        When using real, recall may be larger than 1, as many predicted intervals may overlap with the same GI.
+        So we use tp+fn instead
         '''
         recall = tp / (tp + fn)
         precision = tp / (tp + fp)
@@ -520,7 +521,7 @@ def getMetric_base(ref_intervals, query_intervals, genelist, options):
 
         ############################## PR in #overlap bases ###############################################
         '''
-        this is in term of overlap bases.
+        This is in term of overlapping bases.
         '''
         tp = overlap_totalSize
         real = getIntervalLen(ref_intervals)
@@ -542,15 +543,11 @@ def getMetric_base(ref_intervals, query_intervals, genelist, options):
 
         ############################## PR in #overlap genes ###############################################
         '''
-        this is in term of overlap genes.
+        This is in term of overlapping genes.
         '''
         if options.pttfile:
             tp = len(set(overlap_total_genes))
             g_real = len(set(ref_total_genes))
-            # print 'num_total_refgenes: %d; g_real: %d'% (num_total_refgenes,g_real)
-            # two alternative ways to get the number of genes in reference intervals
-            # assert g_real == num_total_refgenes
-            # merge before counting as query_intervals may be overlapping?
             query_total_genes = set()
             for query_interval in query_intervals:
                 query_genes = getGenesInInterval(query_interval, genelist, options.cutoff_gene)
@@ -606,8 +603,7 @@ if __name__ == '__main__':
         parser.add_option("-q", "--qinterval", dest="qinterval", help="input query interval file of gene locus")
         parser.add_option("-o", "--output", dest="output", help="output file of FP intervals")
         parser.add_option("-l", "--overlap", dest="overlap", help="output file of overlap intervals")
-        # to get the size of genome for calculation of fraction of predicted bases
-        parser.add_option("-g", "--genomefile", dest="genomefile", help="input genome file")
+        parser.add_option("-g", "--genomefile", dest="genomefile", help="input genome file (to get the size of genome for calculation of fraction of predicted bases)")
         parser.add_option("-c", "", dest="cutoff_gene", type="float", default="0", help="the fraction of genes covered")
         parser.add_option("-b", "", dest="cutoff_base", type="float", default="0.4", help="the fraction of bases covered in a GI")
         parser.add_option("-p", "--pttfile", dest="pttfile", help="input ptt file")

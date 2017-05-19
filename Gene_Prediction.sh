@@ -78,7 +78,7 @@ if [ ! -f $output_dir/$pred_prog/genome/$organism.gene_id ]
 then
   # File $organism.gene_id is used later when extracting features
   less $output_dir/$pred_prog/genome/"$organism".faa | grep '^>'  | cut -d' ' -f1 > $output_dir/$pred_prog/genome/$organism.gene_id
-  # for each gene, a record in a row
+  # $output_dir/$pred_prog/genome/$organism.glist -- ID, start, end, strand. This file is mainly used for the feature table of genes
   if [ "$pred_prog" == "prodigal" ]
   then
     less $output_dir/$pred_prog/genome/"$organism".ffn | grep '^>'  | cut -d'#' -f2-4  > $output_dir/$pred_prog/genome/$organism.gene_locus

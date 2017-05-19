@@ -174,6 +174,10 @@ fi
 # Novel gene
 echo "##########################################"
 echo "Identifying novel genes"
+if [ "$pred_prog" == "prodigal" ] # Replace the ID for each protein
+then
+  awk '/^>/{print ">" ++i; next}{print}' < $output_dir/$pred_prog/genome/$organism.faa > $output_dir/$pred_prog/genome/"$organism"_rename.faa
+fi
 if [ ! -f $prog_dir/db/COG/COGs.pin ]
 then
   makeblastdb -in $prog_dir/db/COG/prot2003-2014.fa -dbtype prot -out $prog_dir/db/COG/COGs
@@ -188,7 +192,7 @@ fi
 
 if [ ! -f $output_dir/$pred_prog/genome/"$organism"_db.pin ]
 then
-  makeblastdb -in $output_dir/$pred_prog/genome/$organism.faa -dbtype prot -out $output_dir/$pred_prog/genome/"$organism"_db
+  makeblastdb -in $output_dir/$pred_prog/genome/"$organism"_rename.faa -dbtype prot -out $output_dir/$pred_prog/genome/"$organism"_db
 fi
 
 if [ ! -f $output_dir/$pred_prog/feature/"$organism".feature.ngene ]
@@ -203,17 +207,17 @@ then
   # it may take a long time
   if [ ! -f $output_dir/$pred_prog/BLASTss/QuerySelf.tab ]
   then
-    psiblast -query $output_dir/$pred_prog/genome/$organism.faa -db $output_dir/$pred_prog/genome/"$organism"_db -show_gis -outfmt 7 -num_alignments 10 -dbsize 100000000 -comp_based_stats F -seg no -out $output_dir/$pred_prog/BLASTss/QuerySelf.tab -num_threads $num_threads
+    psiblast -query $output_dir/$pred_prog/genome/"$organism"_rename.faa -db $output_dir/$pred_prog/genome/"$organism"_db -show_gis -outfmt 7 -num_alignments 10 -dbsize 100000000 -comp_based_stats F -seg no -out $output_dir/$pred_prog/BLASTss/QuerySelf.tab -num_threads $num_threads
   fi
 
   if [ ! -f $output_dir/$pred_prog/BLASTno/QueryCOGs.tab ]
   then
-    psiblast -query $output_dir/$pred_prog/genome/$organism.faa -db $prog_dir/db/COG/COGs -show_gis -outfmt 7 -num_alignments 1000 -dbsize 100000000 -comp_based_stats F -seg no -out $output_dir/$pred_prog/BLASTno/QueryCOGs.tab -num_threads $num_threads
+    psiblast -query $output_dir/$pred_prog/genome/"$organism"_rename.faa -db $prog_dir/db/COG/COGs -show_gis -outfmt 7 -num_alignments 1000 -dbsize 100000000 -comp_based_stats F -seg no -out $output_dir/$pred_prog/BLASTno/QueryCOGs.tab -num_threads $num_threads
   fi
 
   if [ ! -f $output_dir/$pred_prog/BLASTff/QueryCOGs.tab ]
   then
-    psiblast -query $output_dir/$pred_prog/genome/$organism.faa -db $prog_dir/db/COG/COGs -show_gis -outfmt 7 -num_alignments 1000 -dbsize 100000000 -comp_based_stats T -seg yes -out $output_dir/$pred_prog/BLASTff/QueryCOGs.tab -num_threads $num_threads
+    psiblast -query $output_dir/$pred_prog/genome/"$organism"_rename.faa -db $prog_dir/db/COG/COGs -show_gis -outfmt 7 -num_alignments 1000 -dbsize 100000000 -comp_based_stats T -seg yes -out $output_dir/$pred_prog/BLASTff/QueryCOGs.tab -num_threads $num_threads
   fi
 
   echo "$organism" > "$output_dir/$pred_prog/genome/$organism".genomeid
@@ -226,8 +230,12 @@ then
     less $output_dir/$pred_prog/genome/$organism.gene_id | cut -d'|' -f2 > $output_dir/$pred_prog/genome/$organism.protid
     paste -d',' $output_dir/$pred_prog/genome/$organism.protid $output_dir/$pred_prog/genome/$organism.gid > $output_dir/$pred_prog/genome/$organism.p2o.csv
   else # For genes predicted by Prodigal
-    paste -d',' $output_dir/$pred_prog/genome/$organism.gene_id $output_dir/$pred_prog/genome/$organism.gid > $output_dir/$pred_prog/genome/$organism.p2o.csv
-    sed -i 's/>//g' $output_dir/$pred_prog/genome/$organism.p2o.csv
+    less $output_dir/$pred_prog/genome/"$organism"_rename.faa | grep '^>'  | cut -d' ' -f1 > $output_dir/$pred_prog/genome/$organism.protid
+    sed -i 's/^>//g' $output_dir/$pred_prog/genome/$organism.protid
+    # less $output_dir/$pred_prog/genome/$organism.gene_id | cut -d'|' -f5 > $output_dir/$pred_prog/genome/$organism.protid
+    paste -d',' $output_dir/$pred_prog/genome/$organism.protid $output_dir/$pred_prog/genome/$organism.gid > $output_dir/$pred_prog/genome/$organism.p2o.csv
+    # paste -d',' $output_dir/$pred_prog/genome/$organism.gene_id $output_dir/$pred_prog/genome/$organism.gid > $output_dir/$pred_prog/genome/$organism.p2o.csv
+    # sed -i 's/>//g' $output_dir/$pred_prog/genome/$organism.p2o.csv
   fi
 
   cat $output_dir/$pred_prog/genome/"$organism".p2o.csv $prog_dir/db/COG/COG.p2o.csv > $output_dir/$pred_prog/genome/tmp.p2o.csv
@@ -238,12 +246,8 @@ then
 
   $prog_dir/bin/COGSoft/COGcognitor/COGcognitor -i=$output_dir/$pred_prog/BLASTcogn -t=$prog_dir/db/COG/cog2003-2014.csv -q=$output_dir/$pred_prog/genome/"$organism".p2o.csv -o=$output_dir/$pred_prog/genome/"$organism".COG.csv
 
-  if [ "$pred_prog" == "ncbi" ]
-  then
-    python $prog_dir/feature/parse_COG.py -g $output_dir/$pred_prog/genome/"$organism".protid  -c $output_dir/$pred_prog/genome/"$organism".COG.csv  -o  $output_dir/$pred_prog/feature/"$organism".feature.ngene
-  else # For genes predicted by Prodigal
-    python $prog_dir/feature/parse_COG.py -g $output_dir/$pred_prog/genome/"$organism".gene_id  -c $output_dir/$pred_prog/genome/"$organism".COG.csv  -o  $output_dir/$pred_prog/feature/"$organism".feature.ngene
-  fi
+  python $prog_dir/feature/parse_COG.py -g $output_dir/$pred_prog/genome/"$organism".protid  -c $output_dir/$pred_prog/genome/"$organism".COG.csv  -o  $output_dir/$pred_prog/feature/"$organism".feature.ngene
+
 fi
 
 

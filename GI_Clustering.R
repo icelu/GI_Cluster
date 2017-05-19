@@ -237,6 +237,12 @@ if(gene_prediction==1){
 else{
 # gc, kmer2, kmer3, kmer4, kmer5, kmer6, kmer7, kmer8
 features=ft[,7:14]
+
+fv = ft[,7]*100
+mu = mean(fv)
+# cat("mu ", paste0("V",start+i), ": ", mu, "\n")
+features[, "V7"] = ((fv-mu)^2)/mu
+
 if (feature=="gc") {data=features[1]}
 else if (feature=="kmer"){
   data=features[2:8]
@@ -245,7 +251,6 @@ else  # gc_kmer
 {
   data=features
 }
-
 }
 }
 
@@ -501,10 +506,11 @@ else {
     gi = rbind(gir, gic)
     ngi2 = subset(ngi1, ! V1 %in% as.vector(gi2$V1))
     ngi = rbind(ngi2, ngic, fte)
+
+    cat("Number of Intervals with no genes or many tRNAs(rRNAs): ",dim(fte), fill = TRUE)
   } # for else
 }
 cat("Number of Intervals: ",dim(ft0), fill = TRUE)
-cat("Number of Intervals with no genes or many tRNAs(rRNAs): ",dim(fte), fill = TRUE)
 cat("Number of GIs: ",dim(gi), fill = TRUE)
 cat("Number of non-GIs: ",dim(ngi), fill = TRUE)
 }

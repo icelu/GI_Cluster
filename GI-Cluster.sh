@@ -31,12 +31,11 @@ OPTIONS	Default	DESCIPTION
 -d	4	: number of threads used by blast.
 -u	16	: number of CPUs used by cmsearch.
 
--g	2500	: gaps allowed when merging adjacent segments.
+-g	5000	: gaps allowed when merging adjacent segments.
 
 -f 	1	: show the visualization of features related to genomic islands
 -q 	0	: show the visualizations of genomic islands from different methods
 -h ---- : print this help
--v ---- : Version 1.0
   "
   exit -1
 }
@@ -126,10 +125,19 @@ fi
 #################################### summarize features of each genomic region ##############################
 echo "##########################################"
 echo "Getting features of each genome segement"
-if [ ! -f $output_dir/$pred_prog/$seg_prog/$organism.feature.multi.percentage ]
+if [ $gene_prediction == 0 ] # Not dependant on gene predictions
 then
-  sh $prog_dir/Segment_Feature.sh -s $prog_dir -o $output_dir -n $organism -m $seg_prog -p $pred_prog -b $mode
-  wait
+  if [ ! -f $output_dir/$seg_prog/feature/$organism.feature.multi.percentage ]
+  then
+    sh $prog_dir/Segment_Feature.sh -s $prog_dir -o $output_dir -n $organism -m $seg_prog -p $pred_prog -b $mode -t 0
+    wait
+  fi
+else
+  if [ ! -f $output_dir/$pred_prog/$seg_prog/$organism.feature.multi.percentage ]
+  then
+    sh $prog_dir/Segment_Feature.sh -s $prog_dir -o $output_dir -n $organism -m $seg_prog -p $pred_prog -b $mode
+    wait
+  fi
 fi
 
 ###################### Run Rscript for consensus clustering ##############################
@@ -138,23 +146,35 @@ echo "Running consensus clustering on the feature matrix"
 # TODO: add parameters to input
 # remember to put the separator at the end of output_dir
 pFeature=1
-feature=comp_content
 method=average
 rep=1
-postprocess=true
 if [ $gene_prediction == 0 ] # Not dependant on gene predictions
 then
-  if [ ! -f $output_dir/unannotated/$seg_prog/$feature/$method/$pFeature/$rep/"$organism"_GI ]
+  echo "Using features related to GC and k-mer"
+  feature=gc_kmer
+  postprocess=false
+  if [ ! -d $output_dir/unannotated/$seg_prog/$feature/$method/$pFeature/$rep/ ]
   then
     mkdir -p $output_dir/unannotated/$seg_prog/$feature/$method/$pFeature/$rep/
+  fi
+  if [ ! -f $output_dir/unannotated/$seg_prog/$feature/$method/$pFeature/$rep/"$organism"_GI ]
+  then
     ffile=$output_dir/$seg_prog/feature/$organism.feature.multi.percentage
-    nohup Rscript $prog_dir/GI_Clustering.R -f $ffile -o $output_dir/unannotated/$seg_prog/$feature/$method/$pFeature/$rep/ -a "$organism" -l $prog_dir/clustering -k 2 -K 3 -r $rep -e $pFeature -s $seg_prog -v true -C hclust -P method=$method -m true -d $feature -S false -g 0 2>&1 > $output_dir/unannotated/$seg_prog/$feature/$method/$pFeature/$rep/rscript_std
+    # Not use preprocessing
+    nohup Rscript $prog_dir/GI_Clustering.R -f $ffile -o $output_dir/unannotated/$seg_prog/$feature/$method/$pFeature/$rep/ -a "$organism" -l $prog_dir/clustering -k 2 -K 3 -r $rep -e $pFeature -s $seg_prog -v true -C hclust -P method=$method -m true -d $feature -S $postprocess -E false -g 0 2>&1 > $output_dir/unannotated/$seg_prog/$feature/$method/$pFeature/$rep/rscript_std
   fi
 else  # Dependant on gene predictions
-  if [ ! -f $output_dir/$pred_prog/$seg_prog/$feature/$method/$pFeature/$rep/"$organism"_GI ]
+  echo "Using features related to sequence compostion and gene functions"
+  feature=comp_content
+  postprocess=true
+  if [ ! -d $output_dir/$pred_prog/$seg_prog/$feature/$method/$pFeature/$rep/ ]
   then
     mkdir -p $output_dir/$pred_prog/$seg_prog/$feature/$method/$pFeature/$rep/
+  fi
+  if [ ! -f $output_dir/$pred_prog/$seg_prog/$feature/$method/$pFeature/$rep/"$organism"_GI ]
+  then
     ffile=$output_dir/$pred_prog/$seg_prog/$organism.feature.multi.percentage
+    # Use preprocessing by default
     nohup Rscript $prog_dir/GI_Clustering.R -f $ffile -o $output_dir/$pred_prog/$seg_prog/$feature/$method/$pFeature/$rep/ -a "$organism" -l $prog_dir/clustering -k 2 -K 3 -r $rep -e $pFeature -s $seg_prog -v true -C hclust -P method=$method -m true -d $feature -S $postprocess 2>&1 > $output_dir/$pred_prog/$seg_prog/$feature/$method/$pFeature/$rep/rscript_std
   fi
 fi
@@ -165,7 +185,15 @@ echo "Refining the boundary of predicted GIs"
 # TODO: add parameters to input
 dist=1000
 # No need to distinguish the mode.
-python $prog_dir/boundary/refine_boundary.py -i $output_dir/$pred_prog/$seg_prog/$feature/$method/$pFeature/$rep/"$organism"_GI -r $output_dir/$seg_prog/feature/$organism.boundary.repeat -t $output_dir/$seg_prog/feature/$organism.boundary.trna -o  $output_dir/$pred_prog/$seg_prog/$feature/$method/$pFeature/$rep/"$organism"_refined_GI -c $dist
+if [ $gene_prediction == 1 ] # Dependant on gene predictions
+then
+  orig_gifile=$output_dir/$pred_prog/$seg_prog/$feature/$method/$pFeature/$rep/"$organism"_GI
+  refined_gifile=$output_dir/$pred_prog/$seg_prog/$feature/$method/$pFeature/$rep/"$organism"_refined_GI
+else
+  orig_gifile=$output_dir/unannotated/$seg_prog/$feature/$method/$pFeature/$rep/"$organism"_GI
+  refined_gifile=$output_dir/unannotated/$seg_prog/$feature/$method/$pFeature/$rep/"$organism"_refined_GI
+fi
+python $prog_dir/postprocess/refine_boundary.py -i $orig_gifile -r $output_dir/$seg_prog/feature/$organism.boundary.repeat -t $output_dir/$seg_prog/feature/$organism.boundary.trna -o $refined_gifile -c $dist
 
 
 # post process GI candidates
@@ -173,20 +201,23 @@ if [ $mode == 0 ] # For complete genomes
 then
   if [ $gene_prediction == 1 ] # With gene predictions
   then
-    python $prog_dir/boundary/postprocess_segments.py -l $gap -i $output_dir/$pred_prog/$seg_prog/$feature/$method/$pFeature/$rep/"$organism"_refined_GI -a -g $output_dir/$pred_prog/genome/$organism.glist
+    python $prog_dir/postprocess/postprocess_segments.py -l $gap -i $output_dir/$pred_prog/$seg_prog/$feature/$method/$pFeature/$rep/"$organism"_refined_GI -a -g $output_dir/$pred_prog/genome/$organism.glist
   else
-    python $prog_dir/boundary/postprocess_segments.py -l $gap -i $output_dir/$pred_prog/$seg_prog/$feature/$method/$pFeature/$rep/"$organism"_refined_GI
+    python $prog_dir/postprocess/postprocess_segments.py -l $gap -i $output_dir/unannotated/$seg_prog/$feature/$method/$pFeature/$rep/"$organism"_refined_GI
   fi
-else  # TODO: utilize gene predictions
+else
   if [ $gene_prediction == 1 ] # With gene predictions
   then
-    python $prog_dir/boundary/postprocess_segments.py -c -l $gap -i $output_dir/$pred_prog/$seg_prog/$feature/$method/$pFeature/$rep/"$organism"_refined_GI -g $output_dir/$pred_prog/genome/$organism.glist
+    final_dir=$output_dir/$pred_prog/$seg_prog/$feature/$method/$pFeature/$rep
+    python $prog_dir/postprocess/postprocess_segments.py -c -l $gap -i $final_dir/"$organism"_refined_GI -g $output_dir/$pred_prog/genome/$organism.glist -a  -m $output_dir/$organism.fna -d $output_dir/$pred_prog/genome/$organism.gene_id
+    python $prog_dir/postprocess/convert_contig_GIs.py -i $final_dir/merged_"$organism"_refined_GI -o $final_dir/reformated_merged_"$organism"_refined_GI -g $output_dir/$organism.fna
   else
-    python $prog_dir/boundary/postprocess_segments.py -c -l $gap -i $output_dir/$pred_prog/$seg_prog/$feature/$method/$pFeature/$rep/"$organism"_refined_GI -g $output_dir/$pred_prog/genome/$organism.glist
+    final_dir=$output_dir/unannotated/$seg_prog/$feature/$method/$pFeature/$rep
+    python $prog_dir/postprocess/postprocess_segments.py -c -l $gap -i $final_dir/"$organism"_refined_GI -g $output_dir/$pred_prog/genome/$organism.glist
+    python $prog_dir/postprocess/convert_contig_GIs.py -i $final_dir/merged_"$organism"_refined_GI -o $final_dir/reformated_merged_"$organism"_refined_GI -g $output_dir/$organism.fna
   fi
 fi
 
-# python $prog_dir/boundary/convert_contig_GIs.py -i $output_dir/$pred_prog/$seg_prog/$feature/$method/$pFeature/$rep/merged_"$organism"_refined_GI -o $output_dir/$pred_prog/$seg_prog/$feature/$method/$pFeature/$rep/reformated_merged_"$organism"_refined_GI
 
 ##################### Get the features of predicted GIs #####################
 echo "##########################################"
@@ -195,7 +226,7 @@ gifile1=$output_dir/$pred_prog/$seg_prog/$feature/$method/$pFeature/$rep/merged_
 gifile2=$output_dir/unannotated/$seg_prog/$feature/$method/$pFeature/$rep/merged_"$organism"_refined_GI
 seg_feature1=$output_dir/$pred_prog/$seg_prog/$feature/$method/$pFeature/$rep/$organism.gi.feature
 seg_feature1_percentage=$output_dir/$pred_prog/$seg_prog/$feature/$method/$pFeature/$rep/$organism.gi.feature.percentage
-seg_feature2==$output_dir/unannotated/$seg_prog/$feature/$method/$pFeature/$rep/$organism.gi.feature.percentage
+seg_feature2=$output_dir/unannotated/$seg_prog/$feature/$method/$pFeature/$rep/$organism.gi.feature.percentage
 if [ $gene_prediction == 1 ] # With gene predictions
 then
   segs=$gifile1

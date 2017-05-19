@@ -116,9 +116,9 @@ if __name__ == '__main__':
     if options.is_contig:
         # Search on different contigs separately
         intervals = get_intervals_contigs(options.input)
-        print intervals
+        # print intervals
         id_mapping = get_contig_IDs(options.genome_file)
-        print id_mapping
+        # print id_mapping
         trna_dict = parse_trnas_contigs(
             options.trnas, id_mapping, intervals, options.offset)
         print trna_dict

@@ -2,6 +2,8 @@
 
 import itertools
 import os
+import random
+
 
 # Switch non-standard character to 'AGCT'
 def switch_to_AGCT(Nuc):
@@ -50,10 +52,27 @@ def get_contig_IDs(infile):
     return id_mapping
 
 
+def get_contig_IDs_rev(infile):
+    '''
+    infile -- Input file containing the sequence of contigs or multiple sequences
+    '''
+    id_mapping = {}
+    i = 0
+    with open(infile, 'rb') as fin:
+        for header, group in itertools.groupby(fin, isheader):
+            if header:
+                i += 1
+                name = ''.join(line.strip() for line in group)
+                name = name.split()[0][1:]  # Ignore the begining '>'
+                id_mapping[i] = name
+
+    return id_mapping
+
+
 
 def get_contig_gene_IDs(infile):
     '''
-    infile -- Input file containing the sequence of contigs or multiple sequences
+    infile -- Input file containing the IDs of predicted genes
     '''
     id_mapping = {}
     i = 0

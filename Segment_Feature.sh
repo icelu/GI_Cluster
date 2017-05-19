@@ -27,7 +27,7 @@ OPTIONS	Default	DESCIPTION
 mode=0
 gene_prediction=1
 
-while getopts "b:s:o:n:m:p:h" OPT; do
+while getopts "b:t:s:o:n:m:p:h" OPT; do
   case $OPT in
     b) mode=$OPTARG || exit 1;;
     t) gene_prediction=$OPTARG || exit 1;;
@@ -97,7 +97,7 @@ then
     fi
   fi
 fi
-fi
+
 
 echo "##########################################"
 echo "Analyzing k-mer frequency for each segment"
