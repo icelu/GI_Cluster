@@ -45,10 +45,11 @@ def getIntervalSize(interval_list):
         size += i[1] - i[0] + 1
     return size
 
-'''
-return a list of interval tuples
-'''
+
 def getIntervals(intervalfile):
+    '''
+    return a list of interval tuples
+    '''
     intervals = []
     with open(intervalfile, 'rb') as fin:
         for line in fin:
@@ -74,26 +75,23 @@ def fmeasure(recall, precision):
 
 
 if __name__ == '__main__':
-        parser = optparse.OptionParser()
+    parser = optparse.OptionParser()
+    parser.add_option("-q", "--query", dest="query", help="query file")
+    parser.add_option("-p", "--positive", dest="positive", help="positive file")
+    options, args = parser.parse_args()
 
-        parser.add_option("-q", "--query", dest="query", help="query file")
-        parser.add_option("-p", "--positive", dest="positive", help="positive file")
+    query_interval = getIntervals(options.query)
+    positive_interval = getIntervals(options.positive)
 
+    tp = getOverlap(positive_interval, query_interval)
 
-        options, args = parser.parse_args()
+    real = getIntervalSize(positive_interval)
+    predicted = getIntervalSize(query_interval)
 
-        query_interval = getIntervals(options.query)
-        positive_interval = getIntervals(options.positive)
+    # same result as IntervalOverlap.py, seems a bit slower
+    recall = tp / real
+    precision = tp / predicted
+    fmeasure = fmeasure(recall, precision)
 
-        tp = getOverlap(positive_interval, query_interval)
-
-        real = getIntervalSize(positive_interval)
-        predicted = getIntervalSize(query_interval)
-
-        # same result as IntervalOverlap.py, seems a bit slower
-        recall = tp / real
-        precision = tp / predicted
-        fmeasure = fmeasure(recall, precision)
-
-        print 'tp: %s\tpredicted: %s\treal: %s\n' % (tp, predicted, real)
-        print 'recall: %s\tprecision: %s\tfmeasure: %s\n' % (recall, precision, fmeasure)
+    print 'tp: %s\tpredicted: %s\treal: %s\n' % (tp, predicted, real)
+    print 'recall: %s\tprecision: %s\tfmeasure: %s\n' % (recall, precision, fmeasure)

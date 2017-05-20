@@ -37,7 +37,7 @@ import math
 import sys, os
 parentdir = os.path.dirname(os.path.dirname(sys.argv[0]))
 sys.path.insert(0, parentdir)
-from util.interval_operations import find, get_window_tree, get_overlap
+from util.interval_operations import find, get_window_tree, get_overlap, get_overlap_interval, get_interval_length, merge, merge_ref, merge_score
 
 
 ################################ parse input ############################################
@@ -99,17 +99,6 @@ def getIntervals_0based(intervalfile):
 
 
 ############################## interval operation ########################################
-
-def getOverlapInterval(a, b):
-    '''
-    Get the union of (overlap) intervals
-    '''
-    start = max(a[0], b[0])
-    end = min(a[1], b[1])
-    if end >= start:
-        return (start, end)
-
-
 def getOverlapIntervalSize(interval_list):
     '''
     The interval_list may contain overlapping regions
@@ -124,89 +113,6 @@ def getOverlapIntervalSize(interval_list):
     for i in intervals:
         size += i[1] - i[0] + 1
     return size
-
-
-def getIntervalLen(intervals):
-    '''
-    Assume intervals are not overlapping,
-    Add up the bases of all the intervals
-    '''
-    length = 0
-    for interval in intervals:
-        length += interval[1] - interval[0] + 1
-    return length
-
-
-
-def getIntervalAvg(intervals):
-    '''
-    Get the average size of all the intervals
-    '''
-    length = 0
-
-    for interval in intervals:
-        length += interval[1] - interval[0] + 1
-    return length / len(intervals)
-
-
-def merge(intervals):
-    '''
-    Given a list of intervals, merge overlapping ones and return results by generator
-    '''
-    if len(intervals) < 0: return
-    intervals = sorted(intervals, key=lambda x : (int(x[0]), int(x[1])))
-    saved = list(intervals[0])
-    for st, en in intervals:
-        if st - 1 <= saved[1]:
-            saved[1] = max(saved[1], en)
-        else:
-            yield tuple(saved)
-            saved[0] = st
-            saved[1] = en
-    yield tuple(saved)
-
-
-def merge_ref(intervals):
-    '''
-    Given a list of intervals, merge overlapping ones and return a list of non-overlapping intervals
-    '''
-    if len(intervals) < 0: return
-    intervals = sorted(intervals, key=lambda x : (int(x[0]), int(x[1])))
-    saved = list(intervals[0])
-    merged_intervals = []
-    for st, en in intervals:
-        if st - 1 <= saved[1]:
-            saved[1] = max(saved[1], en)
-        else:
-            merged_intervals.append(tuple(saved))
-            saved[0] = st
-            saved[1] = en
-    merged_intervals.append(tuple(saved))
-
-    return merged_intervals
-
-
-
-def merge_score(intervals):
-    '''
-    Merge regions with score
-    '''
-    intervals = sorted(intervals, key=lambda x : (int(x[0]), int(x[1])))
-    merged_intervals = []
-    saved = list(intervals[0])
-    for st, en, score in intervals:
-        if st - 1 <= saved[1]:
-            saved[1] = max(saved[1], en)
-            # average the score, watch out data format
-            saved[2] = (saved[2] + score) / 2
-        else:
-            # only add the interval to the result when not overlapping with adjacent regions
-            yield tuple(saved)
-            saved[0] = st
-            saved[1] = en
-            saved[2] = float(score)
-    yield tuple(saved)
-
 
 
 #################################### output formating ####################################################
@@ -232,8 +138,6 @@ def writeListOfTupleToFile(filename, list):
         outfile.write(line)
 
     outfile.close()
-
-
 
 
 #################################### GI prediction metrics #####################################################
@@ -309,320 +213,310 @@ def getAvgBoundaryError(extentions):
     # # There may be some errors due to float precision
     # if not avg_offset == avg_offset2:
     #     print 'avg_offset:%s\tavg_offset2:%s' % (avg_offset, avg_offset2)
-'
+
     return (avg_left, avg_right, avg_offset)
 
 
 
-'''
-For evaluation based on nucleotides or genes,
-A given percentage is used to determine whether a GI or gene is detected.
-If only a base of a GI or gene is detected, it is meaningless to classify the GI or gene as predicted.
-If less than a given fraction of sequence is detected as transferred, this predicted GI is discarded.
-'''
+
 def getMetric_base(ref_intervals, query_intervals, genelist, options):
-        print '(start, end, size)\tleft_offset\tright_offset\toverlap_regions\toverlap_percentage\tnum_reference_genes\tnum_predicted_genes\tnum_overlap_genes\toverlap_gene_percentage\tgaps'
-        tree = get_window_tree(query_intervals)
-        avg_query_len = getIntervalLen(query_intervals) / len(query_intervals)
-        # list of query intervals overlapping with the reference, use set in case some intervals overlapping with multiple reference intervals
-        # use list for convenience in inserting, convert to set later, same effect as use set update()
-        overlap_intervals = []
-        # The number of reference intervals with no overlapping query intervals
-        num_nooverlap = 0
+    '''
+    For evaluation of the predictions of intervals based on nucleotides or genes.
+    A given percentage is used to determine whether a reference interval (genomic island or gene) is detected.
+    If only a base of an interval is detected, it is meaningless to classify this interval as predicted.
+    '''
+    print '(start, end, size)\tleft_offset\tright_offset\toverlap_regions\toverlap_percentage\tnum_reference_genes\tnum_predicted_genes\tnum_overlap_genes\toverlap_gene_percentage\tgaps'
+    tree = get_window_tree(query_intervals)
+    avg_query_len = get_interval_length(query_intervals) / len(query_intervals)
+    # The list of query intervals overlapping with the reference
+    # Use list for convenience in inserting, convert to set later in case some intervals overlapping with multiple reference intervals
+    overlap_intervals = []
+    # The number of reference intervals with no overlapping query intervals
+    num_nooverlap = 0
 
-        # for base statistics
-        # The total size of all the reference intervals
-        ref_totalSize = 0
-        overlap_totalSize = 0
+    # For evaluation based on bases
+    # The total size of all the reference intervals
+    ref_totalSize = 0
+    overlap_totalSize = 0
+    # To record the boundary offset for each reference interval
+    extentions = []
+    foffset = ''
+    if options.output:
+        offsetfile = options.output + '_offset'
+        foffset = open(offsetfile, 'w')
 
-        # to record the boundary offset for each reference interval
-        extentions = []
-        foffset = ''
-        if options.output:
-            offsetfile = options.output + '_offset'
-            foffset = open(offsetfile, 'w')
+    # For evaluation based on genes
+    if options.pttfile:
+        overlap_total_genes = set()
+        ref_total_genes = set()
+    tp_interval = 0
 
-        # for gene statistics
+    for start, end in ref_intervals:
+        # Find all query intervals overlapping with the reference (even 1 bp overlap is counted here)
+        overlap = find(start, end, tree)
+        if len(overlap) == 0:  # No query intervals overlapping with the reference interval
+           num_nooverlap += 1
+        # Update overlap_intervals for all reference intervals
+        overlap_intervals.extend(overlap)
+
+        ################################## boundary offset ######################################################
+        offset_line_str = ''
+        offset_line = []
+        '''
+        The predicted interval may be much larger than the reference interval.
+        Compute the extended region for FPs to check boundary accuracy.
+        There maybe several predicted intervals, only the boundary intervals need to be checked
+        '''
+        sorted_overlap = sorted(overlap, key=lambda x : (int(x[0]), int(x[1])))
+        left_ext = 0
+        right_ext = 0
+        if(len(sorted_overlap) > 0):
+            # negative number represents predicted interval crossing the reference region
+            left_ext = sorted_overlap[0][0] - start
+            right_ext = end - sorted_overlap[-1][1]
+            # If we only count boundary error when the overlap is large enough, comment out this statement
+            extentions.append((abs(left_ext), abs(right_ext)))
+            offset_line_str += '%s\t%s\t%s\t%s'
+            offset_line.extend([start, end, left_ext, right_ext])
+
+
+        ##################################### gene metrics ####################################################
         if options.pttfile:
-            # num_total_refgenes = 0
-            overlap_total_genes = set()
-            ref_total_genes = set()
-        tp_interval = 0
+            ref_genes = getGenesInInterval((start, end), genelist, options.cutoff_gene)
+            num_refgenes = len(ref_genes)
+            ref_total_genes.update(ref_genes)
+            # There may be overlap if some genes are counted in both intervals
+            overlap_genes = set()
+            # The number of genes in the predicted intervals, to get an idea of over/under estimation
+            predicted_genes = set()
 
-        for start, end in ref_intervals:
-            # find all query intervals overlapping with the reference
-            overlap = find(start, end, tree)
-            if len(overlap) == 0:  # no query intervals overlapping with the reference interval
-               num_nooverlap += 1
-            # update overlap_intervals for all reference intervals
-            overlap_intervals.extend(overlap)
-
-            ################################## boundary offset ######################################################
-            offset_line_str = ''
-            offset_line = []
-            '''
-            The predicted interval may be much larger than the reference interval.
-            Compute the extended region for FPs to check boundary accuracy.
-            There maybe several predicted intervals, only the boundary intervals need to be checked
-            '''
-            sorted_overlap = sorted(overlap, key=lambda x : (int(x[0]), int(x[1])))
-            left_ext = 0
-            right_ext = 0
-            if(len(sorted_overlap) > 0):
-                # negative number represents crossing the reference region
-                left_ext = sorted_overlap[0][0] - start
-                right_ext = end - sorted_overlap[-1][1]
-                # if only count boundary error when the overlap is large enough, comment out this statement
-                extentions.append((abs(left_ext), abs(right_ext)))
-                offset_line_str += '%s\t%s\t%s\t%s'
-                offset_line.extend([start, end, left_ext, right_ext])
-
-
-            ##################################### gene metrics ####################################################
-            if options.pttfile:
-                ref_genes = getGenesInInterval((start, end), genelist, options.cutoff_gene)
-                num_refgenes = len(ref_genes)
-                ref_total_genes.update(ref_genes)
-                # there may be overlap if some genes are counted in both intervals
-                # num_total_refgenes += num_refgenes
-                overlap_genes = set()
-                # the number of genes in the predicted, to get an idea of over/under estimation
-                predicted_genes = set()
-
-                for interval in overlap:
-                    genes = getGenesInInterval(interval, genelist, options.cutoff_gene)
-                    # output genes across the boundary of all predicted interval
-                    if len(genes) > 0:
-                        sorted_genes = sorted(genes, key=lambda x : (int(x[0]), int(x[1])))
-                        offset_line.extend([sorted_genes[0], sorted_genes[-1]])
-                        offset_line_str += '\t%s\t%s'
-
-                    overlap_gene = set(ref_genes).intersection(genes)
-                    # for this ref interval
-                    predicted_genes.update(genes)
-                    overlap_genes.update(overlap_gene)
-                    # for all the ref intervals
-                    overlap_total_genes.update(overlap_genes)
-
-                num_overlapgenes = len(overlap_genes)
-                # num_predictedgenes > num_overlapgenes, genes in the predicted region may not overlap with reference GI
-                num_predictedgenes = len(predicted_genes)
-
-                if num_refgenes > 0:
-                    overlap_gene_percentage = round(num_overlapgenes * 100 / num_refgenes, 3)
-                else:
-                    overlap_gene_percentage = 0
-
-             ##################################### base metrics ####################################################
-            # check the coverage of the overlap, as intervals in overlap may be overlapping
-            overlap_bases = 0
-
-            '''
-            Record the intervals of ref and query to get the union of overlapping bases
-            '''
-            overlap_interval_list = []
             for interval in overlap:
-                # overlap_interval is a tuple
-                overlap_interval = getOverlapInterval(interval, (start, end))
-                if overlap_interval is not None:
-                    overlap_interval_list.append(overlap_interval)
+                genes = getGenesInInterval(interval, genelist, options.cutoff_gene)
+                # Output genes across the boundary of all predicted intervals
+                if len(genes) > 0:
+                    sorted_genes = sorted(genes, key=lambda x : (int(x[0]), int(x[1])))
+                    offset_line.extend([sorted_genes[0], sorted_genes[-1]])
+                    offset_line_str += '\t%s\t%s'
+                overlap_gene = set(ref_genes).intersection(genes)
+                # For this ref interval
+                predicted_genes.update(genes)
+                overlap_genes.update(overlap_gene)
+                # For all the ref intervals
+                overlap_total_genes.update(overlap_genes)
 
-            if foffset != '':
-                offset_line_str += '\n'
-                foffset.write(offset_line_str % tuple(offset_line))
+            num_overlapgenes = len(overlap_genes)
+            # num_predictedgenes > num_overlapgenes, since genes in the predicted interval may not overlap with reference intervals
+            num_predictedgenes = len(predicted_genes)
 
-            # overlap_interval_list may be none
-            if len(overlap_interval_list) > 0:
-                overlap_bases = getOverlapIntervalSize(overlap_interval_list)
-
-            refsize = int(end) - int(start) + 1
-            ref_totalSize += refsize
-            # only count overlap if the reference interval are counted as found
-            if overlap_bases > options.cutoff_base * refsize:
-                overlap_totalSize += overlap_bases
-                tp_interval += 1
-            # not enough overlap
+            if num_refgenes > 0:
+                overlap_gene_percentage = round(num_overlapgenes * 100 / num_refgenes, 3)
             else:
-                for interval in overlap:
-                    overlap_intervals.remove(interval)
+                overlap_gene_percentage = 0
 
-            # The fraction of a reference interval covered by all the query interval overlapping with it
-            overlap_percentage = round(overlap_bases * 100 / refsize, 3)
-
-            # print out the results
-            suffix_str = '\t%s'
-            line = [start, end, (end - start + 1), left_ext, right_ext]
-            overlap_len = len(sorted_overlap)
-            line_str = '(%s, %s, %s)\t%d\t%d'
-
-            # compute the gap between intervals when there are more than two intervals
-            for overlap in sorted_overlap:
-                line_str += suffix_str
-                line.append(overlap)
-
-            gaps = []
-            if overlap_len > 1:
-                p1 = sorted_overlap[0][1]
-                for overlap in sorted_overlap[1:]:
-                    p2 = overlap[0]
-                    # 2-1 =1, but they are adjacent
-                    gap = p2 - p1 - 1
-                    gaps.append(gap)
-                    p1 = overlap[1]
-            # find all genes in a reference interval
-            if options.pttfile:
-                # 6 fields
-                line_str += '\t%s\t%s\t%s\t%s\t%s\t%s'
-                line.extend([overlap_percentage, num_refgenes, num_predictedgenes, num_overlapgenes, overlap_gene_percentage, gaps])
-            else:
-                line_str += '\t%s\t%s'
-                line.extend([overlap_percentage, gaps])
-            print line_str % tuple(line)
-
-        # number of all the predicted intervals overlapping with the reference, use set to remove redundancy
-        num_overlap = len(set(overlap_intervals))
-        print '\nThe number of predicted intervals: %s' % len(query_intervals)
-        print 'The number of reference intervals: %s' % len(ref_intervals)
-        print 'The number of predicted reference intervals (TPs): %s' % tp_interval
-        print 'The number of unpredicted reference intervals (FNs): %s' % (len(ref_intervals) - tp_interval)
-        print 'The number of reference intervals not overlapping with predictions: %s' % num_nooverlap
-        # some intervals may be overlapped with different reference intervals, so this number may be overestimated
-        print 'The number of predicted intervals overlapping with the reference: %s' % num_overlap
-        # The query intervals not overlap with the reference
-        unique_intervals = set(query_intervals) - set(overlap_intervals)
-        print 'The number of predicted intervals not overlapping with the reference (FPs): %s' % len(unique_intervals)
-
-        ############################## PR in #intervals ###############################################
-        '''
-        This is in term of #intervals. not meaningful
-        '''
-        # recall: TP/(TP+FN), precision= TP/(TP+FP)
-        tp = tp_interval
-        # The number of predicted intervals not overlapping with the reference, hard to be mapped to reference intervals
-        # fp = len(query_intervals) - tp
-        fp = len(unique_intervals)
-        # By definition, FN should be the number of unpredicted intervals overlapping with the reference interval
-        # Here, for convenience, it is the number of unpredicted reference intervals
-        fn = len(ref_intervals) - tp
-        real = len(ref_intervals)
-
-        predicted = len(set(query_intervals))
-        '''
-        When using real, recall may be larger than 1, as many predicted intervals may overlap with the same GI.
-        So we use tp+fn instead
-        '''
-        recall = tp / (tp + fn)
-        precision = tp / (tp + fp)
-        if recall != 0 and precision != 0:
-            fmeasure = 2 * recall * precision / (recall + precision)
-        else:
-            fmeasure = 0
-        print 'Interval Recall: %.3f\tPrecision: %.3f\tF-measure: %.3f\tPredicted intervals: %s\tTotal intervals: %s\t' % (recall, precision, fmeasure, predicted, real)
-
-        ############################## PR in #overlap bases ###############################################
-        '''
-        This is in term of overlapping bases.
-        '''
-        tp = overlap_totalSize
-        real = getIntervalLen(ref_intervals)
-        # two alternative ways to get the number of bases in reference intervals
-        assert real == ref_totalSize
-        # merge before counting as query_intervals may be overlapping?
-        predicted = getOverlapIntervalSize(query_intervals)
-
-        recall = tp / real
-        precision = tp / predicted
-        if recall != 0 and precision != 0:
-            fmeasure = 2 * recall * precision / (recall + precision)
-        else:
-            fmeasure = 0
-        # append offset error at the end of last line
-        (avg_left, avg_right, avg_offset) = getAvgBoundaryError(extentions)
-
-        print 'The number of reference bases: %d' % real
-
-        ############################## PR in #overlap genes ###############################################
-        '''
-        This is in term of overlapping genes.
-        '''
-        if options.pttfile:
-            tp = len(set(overlap_total_genes))
-            g_real = len(set(ref_total_genes))
-            query_total_genes = set()
-            for query_interval in query_intervals:
-                query_genes = getGenesInInterval(query_interval, genelist, options.cutoff_gene)
-                query_total_genes.update(query_genes)
-            g_predicted = len(query_total_genes)
-
-            g_recall = tp / g_real
-            g_precision = tp / g_predicted
-            if g_recall != 0 and g_precision != 0:
-                g_fmeasure = 2 * g_recall * g_precision / (g_recall + g_precision)
-            else:
-                g_fmeasure = 0
-            diff_fmeasure = g_fmeasure - fmeasure
-            print 'The number of reference genes: %d' % g_real
-
-            # other measures
-            fn = g_real - tp
-            fp = g_predicted - tp
-            neg = len(genelist) - g_real
-            tn = neg - fp
-            tnr = (tn)/(tn+fp)
-            oacc = (tp+tn)/(tp+tn+fn+fp)
-            acc = (g_recall+tnr)/2
-            mcc = (tp*tn - fp*fn)/math.sqrt((tp+fp)*(tp+fn)*(tn+fp)*(tn+fn))
-
-        if options.pttfile:
-            format_str = 'Bases Recall: %.3f\tPrecision: %.3f\tF-measure: %.3f\tF-measure Difference: %.3f\tLeft offset: %d\tRight: %d\tPredicted bases: %d\tOverlap bases: %d\tAverage interval size: %d\tOverlap genes: %d\tPredicted genes: %d\tPredicted intervals: %d\tGene Recall: %.3f\tPrecision: %.3f\tF-measure: %.3f\tAvg offset: %d\tTNR: %.3f\tOACC: %.3f\tACC: %.3f\tMCC: %.3f'
-            print format_str % (recall, precision, fmeasure, diff_fmeasure, avg_left, avg_right, predicted, overlap_totalSize, avg_query_len, len(overlap_total_genes), g_predicted, len(query_intervals), g_recall, g_precision, g_fmeasure, avg_offset, tnr, oacc, acc, mcc)
-        else:
-            format_str = 'Bases Recall: %.3f\tPrecision: %.3f\tF-measure: %.3f\tLeft offset: %d\tRight: %d\tPredicted bases: %d\tOverlap bases: %d\tPredicted intervals: %d\tAverage interval size: %d\tAvg offset: %d'
-            print format_str % (recall, precision, fmeasure, avg_left, avg_right, predicted, overlap_totalSize, len(query_intervals), avg_query_len, avg_offset)
-
-        # output FP predictions
-        if options.overlap:
-            # sort intervals
-            overlap_intervals = sorted(set(overlap_intervals), key=lambda x : (int(x[0]), int(x[1])))
-            writeListOfTupleToFile(options.overlap, overlap_intervals)
-        if options.output:
-            unique_intervals = sorted(unique_intervals, key=lambda x : (int(x[0]), int(x[1])))
-            writeListOfTupleToFile(options.output, unique_intervals)
+         ##################################### base metrics ####################################################
+        # Check the coverage of the overlap
+        overlap_bases = 0
+        # Record the intervals of reference and query to get the union of overlapping bases
+        overlap_interval_list = []
+        for interval in overlap:
+            # overlap_interval is a tuple
+            overlap_interval = get_overlap_interval(interval, (start, end))
+            if overlap_interval is not None:
+                overlap_interval_list.append(overlap_interval)
 
         if foffset != '':
-            foffset.close()
+            offset_line_str += '\n'
+            foffset.write(offset_line_str % tuple(offset_line))
 
-        return (recall, precision, fmeasure, options.output)
+        if len(overlap_interval_list) > 0:
+            overlap_bases = getOverlapIntervalSize(overlap_interval_list)
+
+        refsize = int(end) - int(start) + 1
+        ref_totalSize += refsize
+        # only count overlap if the reference interval are counted as found
+        if overlap_bases > options.cutoff_base * refsize:
+            overlap_totalSize += overlap_bases
+            tp_interval += 1
+        # not enough overlap
+        else:
+            for interval in overlap:
+                overlap_intervals.remove(interval)
+
+        # The fraction of a reference interval covered by all the query interval overlapping with it
+        overlap_percentage = round(overlap_bases * 100 / refsize, 3)
+
+        suffix_str = '\t%s'
+        line = [start, end, (end - start + 1), left_ext, right_ext]
+        overlap_len = len(sorted_overlap)
+        line_str = '(%s, %s, %s)\t%d\t%d'
+
+        # Compute the gap between intervals when there are more than two intervals
+        for overlap in sorted_overlap:
+            line_str += suffix_str
+            line.append(overlap)
+
+        gaps = []
+        if overlap_len > 1:
+            p1 = sorted_overlap[0][1]
+            for overlap in sorted_overlap[1:]:
+                p2 = overlap[0]
+                # 2-1 = 1, but they are adjacent
+                gap = p2 - p1 - 1
+                gaps.append(gap)
+                p1 = overlap[1]
+        # Find all genes in a reference interval
+        if options.pttfile:
+            # 6 fields
+            line_str += '\t%s\t%s\t%s\t%s\t%s\t%s'
+            line.extend([overlap_percentage, num_refgenes, num_predictedgenes, num_overlapgenes, overlap_gene_percentage, gaps])
+        else:
+            line_str += '\t%s\t%s'
+            line.extend([overlap_percentage, gaps])
+        print line_str % tuple(line)
+
+    # The number of all the predicted intervals overlapping with the reference
+    num_overlap = len(set(overlap_intervals))
+    print '\nThe number of predicted intervals: %s' % len(query_intervals)
+    print 'The number of reference intervals: %s' % len(ref_intervals)
+    print 'The number of predicted reference intervals (TPs): %s' % tp_interval
+    print 'The number of unpredicted reference intervals (FNs): %s' % (len(ref_intervals) - tp_interval)
+    print 'The number of reference intervals not overlapping with predictions: %s' % num_nooverlap
+    # Some intervals may be overlapped with different reference intervals, so this number may be overestimated
+    print 'The number of predicted intervals overlapping with the reference: %s' % num_overlap
+    # The query intervals not overlapping with the reference
+    unique_intervals = set(query_intervals) - set(overlap_intervals)
+    print 'The number of predicted intervals not overlapping with the reference (FPs): %s' % len(unique_intervals)
+
+    ############################## PR in #intervals ###############################################
+    '''
+    This is in term of #intervals. Not meaningful. For reference.
+    '''
+    # recall: TP/(TP+FN), precision= TP/(TP+FP)
+    tp = tp_interval
+    # The number of predicted intervals not overlapping with the reference, hard to be mapped to reference intervals
+    # fp = len(query_intervals) - tp
+    fp = len(unique_intervals)
+    # By definition, FN should be the number of unpredicted intervals overlapping with the reference interval
+    # Here, for convenience, it is the number of unpredicted reference intervals
+    fn = len(ref_intervals) - tp
+    real = len(ref_intervals)
+
+    predicted = len(set(query_intervals))
+    '''
+    When using real, recall may be larger than 1, as many predicted intervals may overlap with the same GI.
+    So we use tp+fn instead.
+    '''
+    recall = tp / (tp + fn)
+    precision = tp / (tp + fp)
+    if recall != 0 and precision != 0:
+        fmeasure = 2 * recall * precision / (recall + precision)
+    else:
+        fmeasure = 0
+    print 'Interval Recall: %.3f\tPrecision: %.3f\tF-measure: %.3f\tPredicted intervals: %s\tTotal intervals: %s\t' % (recall, precision, fmeasure, predicted, real)
+
+    ############################## PR in #overlap bases ###############################################
+    '''
+    This is in term of overlapping bases.
+    '''
+    tp = overlap_totalSize
+    real = get_interval_length(ref_intervals)
+    # Two alternative ways to get the number of bases in reference intervals
+    assert real == ref_totalSize
+    # Merge before counting as query_intervals may be overlapping
+    predicted = getOverlapIntervalSize(query_intervals)
+
+    recall = tp / real
+    precision = tp / predicted
+    if recall != 0 and precision != 0:
+        fmeasure = 2 * recall * precision / (recall + precision)
+    else:
+        fmeasure = 0
+    # Append offset error at the end of last line
+    (avg_left, avg_right, avg_offset) = getAvgBoundaryError(extentions)
+
+    print 'The number of reference bases: %d' % real
+
+    ############################## PR in #overlap genes ###############################################
+    '''
+    This is in term of overlapping genes.
+    '''
+    if options.pttfile:
+        tp = len(set(overlap_total_genes))
+        g_real = len(set(ref_total_genes))
+        query_total_genes = set()
+        for query_interval in query_intervals:
+            query_genes = getGenesInInterval(query_interval, genelist, options.cutoff_gene)
+            query_total_genes.update(query_genes)
+        g_predicted = len(query_total_genes)
+
+        g_recall = tp / g_real
+        g_precision = tp / g_predicted
+        if g_recall != 0 and g_precision != 0:
+            g_fmeasure = 2 * g_recall * g_precision / (g_recall + g_precision)
+        else:
+            g_fmeasure = 0
+        diff_fmeasure = g_fmeasure - fmeasure
+        print 'The number of reference genes: %d' % g_real
+
+        # Other measures
+        fn = g_real - tp
+        fp = g_predicted - tp
+        neg = len(genelist) - g_real
+        tn = neg - fp
+        tnr = (tn)/(tn+fp)
+        oacc = (tp+tn)/(tp+tn+fn+fp)
+        acc = (g_recall+tnr)/2
+        mcc = (tp*tn - fp*fn)/math.sqrt((tp+fp)*(tp+fn)*(tn+fp)*(tn+fn))
+
+    if options.pttfile:
+        format_str = 'Bases Recall: %.3f\tPrecision: %.3f\tF-measure: %.3f\tF-measure Difference: %.3f\tLeft offset: %d\tRight: %d\tPredicted bases: %d\tOverlap bases: %d\tAverage interval size: %d\tOverlap genes: %d\tPredicted genes: %d\tPredicted intervals: %d\tGene Recall: %.3f\tPrecision: %.3f\tF-measure: %.3f\tAvg offset: %d\tTNR: %.3f\tOACC: %.3f\tACC: %.3f\tMCC: %.3f'
+        print format_str % (recall, precision, fmeasure, diff_fmeasure, avg_left, avg_right, predicted, overlap_totalSize, avg_query_len, len(overlap_total_genes), g_predicted, len(query_intervals), g_recall, g_precision, g_fmeasure, avg_offset, tnr, oacc, acc, mcc)
+    else:
+        format_str = 'Bases Recall: %.3f\tPrecision: %.3f\tF-measure: %.3f\tLeft offset: %d\tRight: %d\tPredicted bases: %d\tOverlap bases: %d\tPredicted intervals: %d\tAverage interval size: %d\tAvg offset: %d'
+        print format_str % (recall, precision, fmeasure, avg_left, avg_right, predicted, overlap_totalSize, len(query_intervals), avg_query_len, avg_offset)
+
+    # Output FP predictions
+    if options.overlap:
+        # Sort intervals
+        overlap_intervals = sorted(set(overlap_intervals), key=lambda x : (int(x[0]), int(x[1])))
+        writeListOfTupleToFile(options.overlap, overlap_intervals)
+    if options.output:
+        unique_intervals = sorted(unique_intervals, key=lambda x : (int(x[0]), int(x[1])))
+        writeListOfTupleToFile(options.output, unique_intervals)
+
+    if foffset != '':
+        foffset.close()
+
+    return (recall, precision, fmeasure, options.output)
 
 
 
 if __name__ == '__main__':
-        parser = optparse.OptionParser()
+    parser = optparse.OptionParser()
 
-        parser.add_option("-i", "--interval", dest="interval", help="input interval file of gene locus")
-        parser.add_option("-q", "--qinterval", dest="qinterval", help="input query interval file of gene locus")
-        parser.add_option("-o", "--output", dest="output", help="output file of FP intervals")
-        parser.add_option("-l", "--overlap", dest="overlap", help="output file of overlap intervals")
-        parser.add_option("-g", "--genomefile", dest="genomefile", help="input genome file (to get the size of genome for calculation of fraction of predicted bases)")
-        parser.add_option("-c", "", dest="cutoff_gene", type="float", default="0", help="the fraction of genes covered")
-        parser.add_option("-b", "", dest="cutoff_base", type="float", default="0.4", help="the fraction of bases covered in a GI")
-        parser.add_option("-p", "--pttfile", dest="pttfile", help="input ptt file")
-        parser.add_option("-z", dest="zero", default=False, action="store_true", \
-              help="the query interval is 0-based (default=false)")
+    parser.add_option("-i", "--interval", dest="interval", help="input interval file of gene locus")
+    parser.add_option("-q", "--qinterval", dest="qinterval", help="input query interval file of gene locus")
+    parser.add_option("-o", "--output", dest="output", help="output file of FP intervals")
+    parser.add_option("-l", "--overlap", dest="overlap", help="output file of overlapping intervals")
+    parser.add_option("-c", "", dest="cutoff_gene", type="float", default="0", help="the fraction of genes covered")
+    parser.add_option("-b", "", dest="cutoff_base", type="float", default="0.4", help="the fraction of bases covered in a GI")
+    parser.add_option("-p", "--pttfile", dest="pttfile", help="input ptt file")
+    parser.add_option("-z", dest="zero", default=False, action="store_true", \
+          help="the query interval is 0-based (default=false)")
 
-        options, args = parser.parse_args()
+    options, args = parser.parse_args()
 
-        ref_intervals = getGeneCoords(options.interval)
-        nonoverlap_ref_intervals = merge_ref(ref_intervals)
+    ref_intervals = getGeneCoords(options.interval)
+    nonoverlap_ref_intervals = merge_ref(ref_intervals)
 
-        if options.zero:
-            query_intervals = getIntervals_0based(options.qinterval)
-        else:
-            query_intervals = getIntervals(options.qinterval)
+    if options.zero:
+        query_intervals = getIntervals_0based(options.qinterval)
+    else:
+        query_intervals = getIntervals(options.qinterval)
 
-        if options.pttfile:
-            genelist = (getGenelocList(options.pttfile))
-        else:
-            genelist = []
+    if options.pttfile:
+        genelist = (getGenelocList(options.pttfile))
+    else:
+        genelist = []
 
-        getMetric_base(nonoverlap_ref_intervals, query_intervals, genelist, options)
+    getMetric_base(nonoverlap_ref_intervals, query_intervals, genelist, options)

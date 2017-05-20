@@ -9,18 +9,15 @@ def getMetricsFromEvalFile(folder, linenum, outfile, tag='eval_std_'):
     Parse eval_std_ to get metrics
     Only read the last line --> change to any line specified by linenum.
     '''
-    # find all files with name as eval_std_*
+    # Find all files with name as eval_std_*
     file_list = [ join(folder, f) for f in listdir(folder) if isfile(join(folder, f)) and f.startswith(tag) ]
     base_metric_list = []
     for file in file_list:
-        # get the suffix of file name
         # start = file.index(tag[-1]) + 1
         # suffix = file[start:]
         base_res = getMetrics(file, linenum)
-        # some file may return no results due to interrupted run
         if base_res:
-            # base_metric_list.append((suffix, base_res))
-            # use abosolute path to faciliate merging multiple files
+            # Use abosolute path to faciliate merging multiple files
             base_metric_list.append((file, base_res))
 
     final_metric = join(folder, outfile)

@@ -96,3 +96,84 @@ def get_overlap(a, b):
     Add by 1 for 1-based interval
     '''
     return max(0, min(a[1], b[1]) - max(a[0], b[0]) + 1)
+
+
+def get_overlap_interval(a, b):
+    '''
+    Get the overlap interval of two invervals
+    '''
+    start = max(a[0], b[0])
+    end = min(a[1], b[1])
+    if end >= start:
+        return (start, end)
+    else:
+        return None
+
+
+def get_interval_length(intervals):
+    '''
+    Assume intervals are not overlapping.
+    Add up the bases of all the intervals.
+    '''
+    length = 0
+    for interval in intervals:
+        length += interval[1] - interval[0] + 1
+    return length
+
+
+def merge(intervals):
+    '''
+    Given a list of intervals, merge overlapping ones and return results by generator
+    '''
+    if len(intervals) < 0: return
+    intervals = sorted(intervals, key=lambda x : (int(x[0]), int(x[1])))
+    saved = list(intervals[0])
+    for st, en in intervals:
+        if st - 1 <= saved[1]:
+            saved[1] = max(saved[1], en)
+        else:
+            yield tuple(saved)
+            saved[0] = st
+            saved[1] = en
+    yield tuple(saved)
+
+
+def merge_ref(intervals):
+    '''
+    Given a list of intervals, merge overlapping ones and return a list of non-overlapping intervals
+    '''
+    if len(intervals) < 0: return
+    intervals = sorted(intervals, key=lambda x : (int(x[0]), int(x[1])))
+    saved = list(intervals[0])
+    merged_intervals = []
+    for st, en in intervals:
+        if st - 1 <= saved[1]:
+            saved[1] = max(saved[1], en)
+        else:
+            merged_intervals.append(tuple(saved))
+            saved[0] = st
+            saved[1] = en
+    merged_intervals.append(tuple(saved))
+
+    return merged_intervals
+
+
+def merge_score(intervals):
+    '''
+    Merge regions with score
+    '''
+    intervals = sorted(intervals, key=lambda x : (int(x[0]), int(x[1])))
+    merged_intervals = []
+    saved = list(intervals[0])
+    for st, en, score in intervals:
+        if st - 1 <= saved[1]:
+            saved[1] = max(saved[1], en)
+            # average the score, watch out data format
+            saved[2] = (saved[2] + score) / 2
+        else:
+            # only add the interval to the result when not overlapping with adjacent regions
+            yield tuple(saved)
+            saved[0] = st
+            saved[1] = en
+            saved[2] = float(score)
+    yield tuple(saved)

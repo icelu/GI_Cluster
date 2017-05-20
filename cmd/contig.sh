@@ -33,3 +33,26 @@ tRNAscan-SE -B --frag $organism.trna_frag -o $organism.trna_pred -m $organism.tr
 prog_dir=/home/b/bingxin/GI-Cluster
 output_dir=/home/b/bingxin/genome/draft/$gnome
 $prog_dir/GI_Feature.sh -s $prog_dir -o $output_dir -n $organism -m $seg_prog -p $pred_prog
+
+
+
+python $prog_dir/evaluation/eval4contigs.py -q gicluster.gilist -r NZ_ACHX00000000.refgi
+
+
+python $prog_dir/evaluation/eval4contigs.py -q gicluster_unannotated.gilist -r NZ_ACHX00000000.refgi
+
+
+python $prog_dir/evaluation/eval4contigs.py -q islandviewer4.gilist -r NZ_ACHX00000000.refgi
+
+
+
+# Find genes on each contig
+for i in {1..9..1}
+do
+  less NZ_ACHX0100000"$i".gbk | grep locus_tag | sort | uniq > gene_c"$i"
+done
+
+for i in {10..10..1}
+do
+  less NZ_ACHX010000"$i".gbk | grep locus_tag | sort | uniq > gene_c"$i"
+done
