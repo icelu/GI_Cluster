@@ -1,19 +1,6 @@
-###############################################################################
-# Alogrithm specification file for consensus clustering on genomic segments
-#
-# Author: Dr. T. Ian Simpson
-# Affiliation : University of Edinburgh
-# E-mail : ian.simpson@ed.ac.uk
-# Version : 1.0
-###############################################################################
-#The following clustering algorithms from cluster are specified here :-
-#		agnes  - agglomerative hierarchical clustering
-#		pam    - partitioning around medoids, a more robust version of k-means
-#		kmeans - k-means clustering
-#		hclust - hierarchical cluster analysis on a set of dissimilarities
-#		diana  - divisive hierarchical clustering
-#		apcluster - affinity propagation clustering
-###############################################################################
+# This script provides interfaces to call different clustering algorithms in R
+# This is based on implementations of clusterCons (https://github.com/cran/clusterCons)
+
 # To include kmeans, pam, clara
 library(cluster);
 # load the apcluster package

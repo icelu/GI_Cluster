@@ -146,16 +146,9 @@ ft0 <- read.table(file)
 # Remove regions with 0 genes or with too many ncRNAs
 {
 if(pre_process=="true"){
-  # # 5 kb window, for larger window the threshold has to be changed to get better predictions
-  # if(seg_prog == "window"){
-  # fte = ft0[ft0$V7==0|ft0$V8>=3,]
-  # ft = ft0[ft0$V7!=0&ft0$V8<3,]
-  # }
-  # else{
     # V7 -- Number of genes, V8 -- Number of ncRNAs
-    fte = ft0[ft0$V7==0|ft0$V7!=0&ft0$V8/ft0$V7>0.5,]
-    ft = ft0[ft0$V7!=0&ft0$V8/ft0$V7<=0.5,]
-  # }
+    fte = ft0[ft0$V7==0|ft0$V7!=0&(ft0$V8/(ft0$V7+ft0$V8))>0.5,]
+    ft = ft0[ft0$V7!=0&(ft0$V8/(ft0$V7+ft0$V8))<=0.5,]
 }
 else{
   ft = ft0;
@@ -410,21 +403,21 @@ if (post_process=="false")  # For mode 2, post_process should be "false"
 else {
   if(seg_prog=="window"){
     # find GIs from ngi by other evidence
-    # regions with a tRNA at the boundary, not too many ncRNAs, mobility evidence
-    gi1 = subset(ngi0,(V5==1)&V8<3&(V25>0))
-    ngi1 = subset(ngi0,  ! V1 %in% as.vector(gi1$V1))
+    # regions with a tRNA at the boundary, mobility evidence
+    gi1 = subset(ngi0,(V5==1)&(V25>0))
+    ngi1 = subset(ngi0,! V1 %in% as.vector(gi1$V1))
     # check gene content information
-    # regions with mostly phage-related genes (prophage clusters)
-    gi2 = subset(ngi1, ((V26>0&V26+V29>=0.8)&V7>=5))
-    # exclude FP regions: cluster of ncRNAs, no evidence of mobility and other genes
+    # regions with mostly phage-related genes or novel genes (prophage clusters)
+    gi2 = subset(ngi1, ((V26>0&V26+V29>0.8)&V7>3))
+    # exclude FP regions: no evidence of mobility and other genes enriched in islands
     m_density=median(ft$V30)
     m_distance=median(ft$V31)
     m_phage=median(ft$V26)
     m_vf=median(ft$V27)
     m_ar=median(ft$V28)
     m_ng=median(ft$V29)
-    # exlude regions with almost all features are 0
-    content_normal = subset(gi0, (V5==0&V8>=5&V25==0)|(V5==0&V25==0&V26<=m_phage&V27<=m_vf&V28<=m_ar&V29<=m_ng&V30>=m_density&V31<=m_distance))
+    # exlude ncRNA clusters, or regions with almost all features are 0
+    content_normal = subset(gi0, (V5==0&V8>5&V25==0)|(V5==0&V25==0&V26<=m_phage&V27<=m_vf&V28<=m_ar&V29<=m_ng&V30>m_density&V31<=m_distance))
     gir=subset(gi0, ! V1 %in% as.vector(content_normal$V1))
     ngic=rbind(content_normal)
     if(verbose=="true"){
@@ -464,11 +457,11 @@ else {
     ngi2 = subset(ngi1, ! V1 %in% as.vector(gi2$V1))
     ngi = rbind(ngi2, ngic, fte)
   } else {
-    gi1 = subset(ngi0,(V5==1|V6==1)&V8<3&(V25>0))
+    gi1 = subset(ngi0,(V5==1|V6==1)&(V25>0))
     ngi1 = subset(ngi0,  ! V1 %in% as.vector(gi1$V1))
     # check gene content information
     # regions with mostly phage-related genes, or virulence factors, or antibiotic resistance genes, or novel genes
-    gi2 = subset(ngi1, (V26>=0.8|V27>=0.8|V28>=0.8|V29>=0.8|(V26>0&V26+V29>=0.8)))
+    gi2 = subset(ngi1, (V26>0.8|V27>0.8|V28>0.8|V29>0.8|(V26>0&V26+V29>0.8)))
     gic=rbind(gi1,gi2)
     if(verbose=="true"){
       cat("new GI: ", dim(gic), "\n")
@@ -484,7 +477,7 @@ else {
       }
     }
     # since not all genomic segments are included, not meaningful to use median as cutoff
-    content_normal = subset(gi0, (V5==0&V8>=5&V25==0)|(V5==0&V25==0&V26<=0.2&V27<=0.2&V28<=0.2&V29<=0.2))
+    content_normal = subset(gi0, (V5==0&V8>5&V25==0)|(V5==0&V25==0&V26<0.2&V27<0.2&V28<0.2&V29<0.2))
     gir = subset(gi0, ! V1 %in% as.vector(content_normal$V1))
     ngic = rbind(content_normal)
     if(verbose=="true"){

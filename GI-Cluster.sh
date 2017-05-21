@@ -265,7 +265,7 @@ if [ $mode == 0 ] # Only support complete genomes and gene predictions
       # Copy template files
       cp $prog_dir/visualization/etc/* $output_dir/$seg_prog/feature/visualization/etc
 
-      python $prog_dir/visualization/prepare_intervals.py -g $output_dir/$organism.fna -i $gifile -o $output_dir/$seg_prog/feature/visualization/data/$organism.gi -c $output_dir/$seg_prog/feature/visualization/data/$organism.chr -f $output_dir/$seg_prog/feature/visualization/data/$organism.highlight
+      python $prog_dir/visualization/prepare_intervals.py -g $output_dir/$organism.fna -i $gifile1 -o $output_dir/$seg_prog/feature/visualization/data/$organism.gi -c $output_dir/$seg_prog/feature/visualization/data/$organism.chr -f $output_dir/$seg_prog/feature/visualization/data/$organism.highlight
       # Use features of all the input segments
       python $prog_dir/visualization/prepare_features.py -a -i $output_dir/$pred_prog/$seg_prog/$organism.feature.multi.percentage -o $output_dir/$seg_prog/feature/visualization/data
 

@@ -1,6 +1,3 @@
-#!/usr/bin/python
-# Lu Bingxin
-
 import optparse
 import os
 
@@ -50,12 +47,12 @@ if __name__ == '__main__':
 
     directory = os.path.dirname(os.path.realpath(options.interval))
     base = os.path.basename(options.interval)
-    i = base.find('_')
-    suffix = base[i + 1:]
+    # i = base.find('_')
+    # suffix = base[i + 1:]
 
     selectRes = getIntervals(options.interval)
     print 'intevals length before merge: %s' % str(len(selectRes))
 
     mergedRes = list(merge(selectRes))
     print 'intevals length after merge: %s' % str(len(mergedRes))
-    writeListOfTupleToFile(os.sep.join([directory, 'merged_']) + suffix, mergedRes)
+    writeListOfTupleToFile(os.sep.join([directory, 'merged_']) + base, mergedRes)
