@@ -121,7 +121,7 @@ if __name__ == '__main__':
         # print id_mapping
         trna_dict = parse_trnas_contigs(
             options.trnas, id_mapping, intervals, options.offset)
-        print trna_dict
+        # print trna_dict
         write_trnas(options.output, trna_dict)
     else:
         intervals = get_intervals(options.input)

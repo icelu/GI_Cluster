@@ -4,6 +4,16 @@
 # Affiliation : National University of Singapore
 # E-mail : bingxin@comp.nus.edu.sg
 #
+# Input: (Output of mergeFeature.py)
+# Group the ORFs by segments
+#     format:
+#     region position
+#     genes inside this region along with their features
+#
+# Output:
+# Features for each region in a row
+#
+
 
 from __future__ import division
 import optparse

@@ -1,22 +1,17 @@
-#!/usr/bin/python
-# Lu Bingxin, 2017.2.23
 
-'''
-For genomes with a large set of known GIs, assign labels to predicted regions overlapping with reference GIs for evaluation.
+# For genomes with a large set of known GIs, assign labels to predicted regions overlapping with reference GIs for evaluation.
+#
+# Input:
+# 1. predicted GIs with all features
+# 2. predicted GIs that are overlapping with reference GIs
+#
+# Output:
+# predicted GIs with additional labels
 
-Input:
-1. predicted GIs with all features
-2. predicted GIs that are overlapping with reference GIs
-
-Output:
-predicted GIs with additional labels
-
-'''
 
 from __future__ import division
 import os
 import optparse
-from quicksect import IntervalNode
 
 
 ################################ parse input ############################################

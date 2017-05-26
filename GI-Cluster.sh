@@ -7,9 +7,6 @@
 # The genome sequence of a newly sequenced bacterium: fasta file format (NCBI file: $organism.fna)
 # OPTIONAL INPUT: $organism.ffn, $organism.faa
 
-########## usage ##########
-# ./GI-Cluster.sh $prog_dir $output_dir $organism -b 0
-# e.g. ./GI-Cluster.sh ./GIFilter ./research/data/species/cft73 NC_004431
 
 ####################################################
 software=$(basename $0)
@@ -58,7 +55,7 @@ gene_prediction=1
 show_figure=1
 comparison=0
 
-while getopts "b:t:s:o:n:m:p:g:c:e:r:a:d:u:f:q:h" OPT; do
+while getopts "b:t:s:o:n:m:p:g:e:r:a:d:u:f:q:h" OPT; do
   case $OPT in
     b) mode=$OPTARG || exit 1;;
     t) gene_prediction=$OPTARG || exit 1;;
@@ -147,6 +144,8 @@ echo "Running consensus clustering on the feature matrix"
 # remember to put the separator at the end of output_dir
 pFeature=1
 method=average
+# method=single
+# method=ward.D2
 rep=1
 if [ $gene_prediction == 0 ] # Not dependant on gene predictions
 then
@@ -166,14 +165,16 @@ then
 else  # Dependant on gene predictions
   echo "Using features related to sequence compostion and gene functions"
   feature=comp_content
+  # feature=comp
   postprocess=true
+  # postprocess=false
   if [ ! -d $output_dir/$pred_prog/$seg_prog/$feature/$method/$pFeature/$rep/ ]
   then
     mkdir -p $output_dir/$pred_prog/$seg_prog/$feature/$method/$pFeature/$rep/
   fi
   if [ ! -f $output_dir/$pred_prog/$seg_prog/$feature/$method/$pFeature/$rep/"$organism"_GI ]
   then
-    ffile=$output_dir/$pred_prog/$seg_prog/$organism.feature.multi.percentage
+    ffile=$output_dir/$pred_prog/$seg_prog/$organism.feature.multi.percentage.labeled2
     # Use preprocessing by default
     nohup Rscript $prog_dir/GI_Clustering.R -f $ffile -o $output_dir/$pred_prog/$seg_prog/$feature/$method/$pFeature/$rep/ -a "$organism" -l $prog_dir/clustering -k 2 -K 3 -r $rep -e $pFeature -s $seg_prog -v true -C hclust -P method=$method -m true -d $feature -S $postprocess 2>&1 > $output_dir/$pred_prog/$seg_prog/$feature/$method/$pFeature/$rep/rscript_std
   fi
@@ -182,7 +183,7 @@ fi
 ###################### Boundary refinement ##############################
 echo "##########################################"
 echo "Refining the boundary of predicted GIs"
-# TODO: add parameters to input
+# TODO: add parameters to input -- too many parameters
 dist=1000
 # No need to distinguish the mode.
 if [ $gene_prediction == 1 ] # Dependant on gene predictions
@@ -201,15 +202,16 @@ if [ $mode == 0 ] # For complete genomes
 then
   if [ $gene_prediction == 1 ] # With gene predictions
   then
-    python $prog_dir/postprocess/postprocess_segments.py -l $gap -i $output_dir/$pred_prog/$seg_prog/$feature/$method/$pFeature/$rep/"$organism"_refined_GI -a -g $output_dir/$pred_prog/genome/$organism.glist
+    echo "Merging intervals with less than $gap bp"
+    python $prog_dir/postprocess/postprocess_segments.py -p -l $gap -i $output_dir/$pred_prog/$seg_prog/$feature/$method/$pFeature/$rep/"$organism"_refined_GI -a -g $output_dir/$pred_prog/genome/$organism.glist
   else
-    python $prog_dir/postprocess/postprocess_segments.py -l $gap -i $output_dir/unannotated/$seg_prog/$feature/$method/$pFeature/$rep/"$organism"_refined_GI
+    python $prog_dir/postprocess/postprocess_segments.py -p -l $gap -i $output_dir/unannotated/$seg_prog/$feature/$method/$pFeature/$rep/"$organism"_refined_GI
   fi
 else
   if [ $gene_prediction == 1 ] # With gene predictions
   then
     final_dir=$output_dir/$pred_prog/$seg_prog/$feature/$method/$pFeature/$rep
-    python $prog_dir/postprocess/postprocess_segments.py -c -l $gap -i $final_dir/"$organism"_refined_GI -g $output_dir/$pred_prog/genome/$organism.glist -a  -m $output_dir/$organism.fna -d $output_dir/$pred_prog/genome/$organism.gene_id
+    python $prog_dir/postprocess/postprocess_segments.py -c -p -l $gap -i $final_dir/"$organism"_refined_GI -g $output_dir/$pred_prog/genome/$organism.glist -a -m $output_dir/$organism.fna -d $output_dir/$pred_prog/genome/$organism.gene_id
     python $prog_dir/postprocess/convert_contig_GIs.py -i $final_dir/merged_"$organism"_refined_GI -o $final_dir/reformated_merged_"$organism"_refined_GI -g $output_dir/$organism.fna
   else
     final_dir=$output_dir/unannotated/$seg_prog/$feature/$method/$pFeature/$rep

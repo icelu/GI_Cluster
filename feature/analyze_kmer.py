@@ -11,6 +11,8 @@
 # Measures of k-mer:
 # for each gene, the differences between its k-mer spectrum and the k-mer
 # spectrum of whole genome
+#
+#  Some code is from kMer (http://kmer.readthedocs.io/en/stable/intro.html)
 
 
 from __future__ import division

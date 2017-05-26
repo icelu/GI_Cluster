@@ -5,9 +5,10 @@ chromosomes_units           = 100000
 chromosomes_display_default = yes
 
 <plots>
+# start prog 0
 <plot>
 type = histogram
-file = data/$organism.refgi
+file = data/$prog0.gilist
 min = 0
 max = 1
 r0 = 0.9r
@@ -15,13 +16,15 @@ r1 = 0.95r
 color = black
 thickness = 2p
 fill_under = yes
-fill_color = 153,153,153
+fill_color = $color0
 </plot>
+# end prog 0
 
-# prog1
+
+# start prog 1
 <plot>
 type = histogram
-file   = data/$prog_1.gilist
+file   = data/$prog1.gilist
 min = 0
 max = 1
 r0 = 0.8r
@@ -29,13 +32,14 @@ r1 = 0.85r
 color = black
 thickness = 2p
 fill_under = yes
-fill_color = 247,129,191
+fill_color = $color1
 </plot>
+# end prog 1
 
-# prog2
+# start prog 2
 <plot>
 type = histogram
-file   = data/$prog_2.gilist
+file   = data/$prog2.gilist
 min = 0
 max = 1
 r0 = 0.7r
@@ -43,13 +47,15 @@ r1 = 0.75r
 color = black
 thickness = 2p
 fill_under = yes
-fill_color = 166,86,40
+fill_color = $color2
 </plot>
+# end prog 2
 
-# prog3
+
+# start prog 3
 <plot>
 type = histogram
-file   = data/$prog_3.gilist
+file   = data/$prog3.gilist
 min = 0
 max = 1
 r0 = 0.6r
@@ -57,13 +63,15 @@ r1 = 0.65r
 color = black
 thickness = 2p
 fill_under = yes
-fill_color = 255,255,51
+fill_color = $color3
 </plot>
+# end prog 3
 
-# prog4
+
+# start prog 4
 <plot>
 type = histogram
-file   = data/$prog_4.gilist
+file   = data/$prog4.gilist
 min = 0
 max = 1
 r0 = 0.5r
@@ -71,13 +79,15 @@ r1 = 0.55r
 color = black
 thickness = 2p
 fill_under = yes
-fill_color = 255,127,0
+fill_color = $color4
 </plot>
+# end prog 4
 
-# prog5
+
+# start prog 5
 <plot>
 type = histogram
-file   = data/$prog_5.gilist
+file   = data/$prog5.gilist
 min = 0
 max = 1
 r0 = 0.4r
@@ -85,14 +95,15 @@ r1 = 0.45r
 color = black
 thickness = 2p
 fill_under = yes
-fill_color = 152,78,163
+fill_color = $color5
 </plot>
 </plots>
+# end prog 5
 
-# prog6
+# start prog 6
 <plot>
 type = histogram
-file   = data/$prog_6.gilist
+file   = data/$prog6.gilist
 min = 0
 max = 1
 r0 = 0.3r
@@ -100,14 +111,15 @@ r1 = 0.35r
 color = black
 thickness = 2p
 fill_under = yes
-fill_color = 77,175,74
+fill_color = $color6
 </plot>
 </plots>
+# end prog 6
 
-# prog7
+# start prog 7
 <plot>
 type = histogram
-file   = data/$prog_7.gilist
+file   = data/$prog7.gilist
 min = 0
 max = 1
 r0 = 0.2r
@@ -115,14 +127,15 @@ r1 = 0.25r
 color = black
 thickness = 2p
 fill_under = yes
-fill_color = 55,126,184
+fill_color = $color7
 </plot>
 </plots>
+# end prog 7
 
-# prog8
+# start prog 8
 <plot>
 type = histogram
-file   = data/$prog_8.gilist
+file   = data/$prog8.gilist
 min = 0
 max = 1
 r0 = 0.1r
@@ -130,10 +143,10 @@ r1 = 0.15r
 color = black
 thickness = 2p
 fill_under = yes
-fill_color = 228,26,28
+fill_color = $color8
 </plot>
 </plots>
-
+# end prog 8
 
 <highlights>
 z = 0

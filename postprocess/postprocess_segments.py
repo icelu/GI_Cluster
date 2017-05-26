@@ -164,6 +164,10 @@ def extend_boundary_contig(intervals, genes_dict):
         overlap = find(start, end, tree)
         if len(overlap) > 0:
             # find the boundary coordinates of the intervals
+            print 'intervals with overlapping:'
+            print p1
+            print p2
+            print overlap
             sorted_overlap = sorted(
                 overlap, key=lambda x: (int(x[0]), int(x[1])))
             ostart = sorted_overlap[0][0]
@@ -172,7 +176,7 @@ def extend_boundary_contig(intervals, genes_dict):
             hang_size = start - ostart + 1
             intv_size1 = sorted_overlap[-1][1] - sorted_overlap[-1][0] + 1
             hang_size1 = oend - end + 1
-            if ostart < start and hang_size < intv_size / 2:
+            if ostart < start and hang_size < intv_size / 2:    # More than half of the gene is outside this region
                 nstart = ostart
             else:
                 nstart = start
@@ -242,6 +246,7 @@ if __name__ == '__main__':
             # Merge intervals again to avoid overlapping regions and combine close intervals
             merged_new_intervals = merge_intervals_contigs(
                 new_intervals_dict, options.allow_gap, options.gap_len)
+            print 'The number of intevals after merging close ones with gap %d bp: %d' % (options.gap_len, len(merged_new_intervals))
             write2file(os.sep.join([directory, 'merged_']
                                    ) + suffix, merged_new_intervals)
         else:
@@ -256,8 +261,9 @@ if __name__ == '__main__':
         if options.has_gene:
             genes = get_genes(options.genefile)
             new_intervals = extend_boundary(merged_intervals, genes)
-            merged_new_intervals = merge_intervals_offset(
-                new_intervals, options.allow_gap, options.gap_len)
+            merged_new_intervals = list(merge_intervals_offset(
+                new_intervals, options.allow_gap, options.gap_len))
+            print 'The number of intevals after merging close ones with gap %d bp: %d' % (options.gap_len, len(merged_new_intervals))
             write2file(os.sep.join([directory, 'merged_']
                                    ) + suffix, merged_new_intervals)
         else:

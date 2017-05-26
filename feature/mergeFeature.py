@@ -5,17 +5,17 @@
 # E-mail : bingxin@comp.nus.edu.sg
 #
 # Input:
-# A list of clusters (segments)
-# A list of features for each ORF
+# A list of segments
+# A list of features for each gene/ORF
 #
 # Output:
-# Group the ORFs by clusters
+# Group the genes by segments
 #     format:
 #     region position
 #     genes inside this region along with their features
 #
 # Procedure:
-# Store the features for each ORF in a dicionary, and then write out the values in a file
+# Store the features for each gene/ORF in a dicionary, and then write out the values in a file
 
 
 import os

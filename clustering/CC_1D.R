@@ -1,6 +1,7 @@
 # Perform 1D clustering on each feature;
 # Generate a consensus matrix (CM) on all these clusterings;
 # Run clustering on CM to get final groups
+#
 # Author: Bingxin Lu
 # Affiliation : National University of Singapore
 # E-mail : bingxin@comp.nus.edu.sg

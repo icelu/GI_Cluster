@@ -3,7 +3,7 @@
 # Affiliation : National University of Singapore
 # E-mail : bingxin@comp.nus.edu.sg
 
-########## usage ##########
+########## Usage ##########
 # ./Segment_Feature.sh -s  $prog_dir -o $output_dir -n $organism -m $seg_prog -b $mode
 # e.g. ./Segment_Feature.sh -s ./GIFilter -o ./research/data/species/cft73 -n NC_004431  -m ./research/software/HGT/mjsd -b 0
 

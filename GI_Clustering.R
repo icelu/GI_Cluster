@@ -160,8 +160,8 @@ else{
 if(gene_prediction==1){
   features=ft[,9:24]
 
-  # transform features related to GC content into distance values
-  # for each value, compute its chisquare value (x-mean)^2/mean
+  # Transform features related to GC content into distance values
+  # For each value, compute its chisquare value (x-mean)^2/mean
   start=9;
   for(i in 1:4){
     if(i==3) next;
@@ -172,7 +172,7 @@ if(gene_prediction==1){
     # cat("feature ", paste0("V",start+i), ": ", str(features[, paste0("V",start+i)]), "\n")
   }
 
-  # features related to gene content (phage, vf, ar, ng)
+  # Features related to gene content (phage, vf, ar, ng)
   for(i in 1:4){
     features[, paste0("V",25+i)] = ft[,25+i]
     # cat("feature ", paste0("V",25+i), ": ", str(features[, paste0("V",25+i)]), "\n")
@@ -199,7 +199,7 @@ if(gene_prediction==1){
     data2=features[10:16]
     data=cbind(data1, data2)
   }
-  # only use compositional features for clustering
+  # Only use compositional features for clustering
   else if (feature=="comp")
   {
     data1=features[1:3]
@@ -248,13 +248,12 @@ else  # gc_kmer
 }
 
 cat("Number of selected features:", floor(pFeature*ncol(data)), "\n")
-# clusterAlg=list('Ckmeans.1d.dp','densityMclust')
-# set 3 clusters as default to divide each feature into 3 groups: native, alien, ambiguous
+# Set 3 clusters as default to divide each feature into 3 groups: native, alien, ambiguous
 outdir_sep=paste0(outdir, "sepcluster/")
 ifelse(!dir.exists(outdir_sep), dir.create(outdir_sep), FALSE)
 res_list=clustering.1D(data, clnum=internalK, pCol=pFeature, algorithms=clusterAlg,alparams=alParams, rep=reps, verbose=verbose, outdir=outdir_sep, ft=ft)
 
-# compute the average concensus matrix
+# Compute the average concensus matrix
 avg_cm=matrix(0,nrow=dim(data)[1],ncol=dim(data)[1],dimnames=list(row.names(data),row.names(data)));
 for(i in 1:length(res_list)){
   avg_cm = avg_cm+res_list[[i]]
@@ -300,15 +299,15 @@ for(j in 1:length(mergeAlg)){
 
   if( heatmap == "true")
   {
-    figfile=paste(outdir, organism, "_CM_", clnum, ".pdf",  sep="")
+    figfile=paste(outdir, organism, "_Ccutoff_", clnum, ".pdf",  sep="")
     pdf(figfile, width=11, height=11*0.618);
     hc=cls_res$clust_obj;
     ct = cutree(hc,clnum);
     names(ct) = row.names(clmem);
     pc = avg_cm;
-    pc=pc[hc$order,] #pc is matrix for plotting, same as c but is row-ordered and has names and extra row of zeros.
+    pc=pc[hc$order,] # pc is matrix for plotting. It is similar to c but it is row-ordered and has names and extra row of zeros.
 
-    # set colors for heatmap
+    # Set colors for heatmap
     colBreaks=10;
     tmyPal = myPal(colBreaks);
     newColors = thisPal[ct];
@@ -330,14 +329,14 @@ for(j in 1:length(mergeAlg)){
     if(length(c1)>length(c2)){ # suppose less regions are GI for output from genome segmentation
       gi = c2
       ngi = c1
-      # assign gi to be 1, ngi to 0 for comparison
+      # Assign gi to be 1, ngi to 0 for comparison
       Clab2 = replace(Clab2, Clab2==1, 0)
       Clab2 = replace(Clab2, Clab2==2, 1)
     } else
     {
       gi = c1
       ngi = c2
-      # assign gi to be 1, ngi to 0 for comparison
+      # Assign gi to be 1, ngi to 0 for comparison
       Clab2 = replace(Clab2, Clab2==2, 0)
     }
   }
@@ -348,14 +347,14 @@ for(j in 1:length(mergeAlg)){
     if(length(c1)<length(c2)){ # suppose more regions are GIs for output from GI prediction tools
       gi = c2
       ngi = c1
-      # assign gi to be 1, ngi to 0 for comparison
+      # Assign gi to be 1, ngi to 0 for comparison
       Clab2 = replace(Clab2, Clab2==1, 0)
       Clab2 = replace(Clab2, Clab2==2, 1)
     } else
     {
       gi = c1
       ngi = c2
-      # assign gi to be 1, ngi to 0 for comparison
+      # Assign gi to be 1, ngi to 0 for comparison
       Clab2 = replace(Clab2, Clab2==2, 0)
     }
   }
@@ -406,18 +405,22 @@ else {
     # regions with a tRNA at the boundary, mobility evidence
     gi1 = subset(ngi0,(V5==1)&(V25>0))
     ngi1 = subset(ngi0,! V1 %in% as.vector(gi1$V1))
-    # check gene content information
-    # regions with mostly phage-related genes or novel genes (prophage clusters)
-    gi2 = subset(ngi1, ((V26>0&V26+V29>0.8)&V7>3))
-    # exclude FP regions: no evidence of mobility and other genes enriched in islands
-    m_density=median(ft$V30)
-    m_distance=median(ft$V31)
-    m_phage=median(ft$V26)
-    m_vf=median(ft$V27)
-    m_ar=median(ft$V28)
-    m_ng=median(ft$V29)
-    # exlude ncRNA clusters, or regions with almost all features are 0
-    content_normal = subset(gi0, (V5==0&V8>5&V25==0)|(V5==0&V25==0&V26<=m_phage&V27<=m_vf&V28<=m_ar&V29<=m_ng&V30>m_density&V31<=m_distance))
+    # Check gene content information
+    # Regions with mostly phage-related genes or novel genes (prophage clusters)
+    gi2 = subset(ngi1, ((V26>0&V26+V29>=0.8)&V7>=5))
+    # gi2 = subset(ngi1, ((V26>0&V26+V29>=0.8))|(V27==1)|(V28==1)|(V29==1)|(V25>0&V26+V29>=0.6))  # Relaxed rule
+    # Exclude FP regions: no evidence of mobility and other genes enriched in islands
+    cutoff_density=quantile(ft$V30,c(0.5))[1]
+    cutoff_distance=quantile(ft$V31,c(0.5))[1]
+    cutoff = 0.1
+    cutoff_phage=max(quantile(ft$V26,c(0.5))[1], cutoff)
+    cutoff_vf=max(quantile(ft$V27,c(0.5))[1], cutoff)
+    cutoff_ar=max(quantile(ft$V28,c(0.5))[1], cutoff)
+    cutoff_ng=max(quantile(ft$V29,c(0.5))[1], cutoff)
+    cat("Cutoffs to determine normal regions: ", cutoff_phage, cutoff_vf, cutoff_ar, cutoff_ng, cutoff_density, cutoff_distance, fill = TRUE)
+    # Exlude ncRNA clusters, or regions with almost all features are 0
+    content_normal = subset(gi0, (V5==0&V8>5&V25==0)|(V5==0&V25==0&V26<=cutoff_phage&V27<=cutoff_vf&V28<=cutoff_ar&V29<=cutoff_ng&V30>cutoff_density&V31<=cutoff_distance))
+    # content_normal = subset(gi0, (V5==0&V8>5&V25==0)|(V5==0&V25==0&V26<=cutoff_phage&V27<=cutoff_vf&V28<=cutoff_ar&V29<=cutoff_ng))
     gir=subset(gi0, ! V1 %in% as.vector(content_normal$V1))
     ngic=rbind(content_normal)
     if(verbose=="true"){
@@ -450,18 +453,14 @@ else {
         cat("new TPs in L-dataset and C-dataset: ",dim(gic_tp), fill = TRUE)
       }
     }
-    # gi = rbind(gi0, gic)
-    # ngi2 = subset(ngi1, ! V1 %in% as.vector(gi2$V1))
-    # ngi = ngi2
     gi = rbind(gir, gic)
     ngi2 = subset(ngi1, ! V1 %in% as.vector(gi2$V1))
     ngi = rbind(ngi2, ngic, fte)
   } else {
     gi1 = subset(ngi0,(V5==1|V6==1)&(V25>0))
     ngi1 = subset(ngi0,  ! V1 %in% as.vector(gi1$V1))
-    # check gene content information
-    # regions with mostly phage-related genes, or virulence factors, or antibiotic resistance genes, or novel genes
-    gi2 = subset(ngi1, (V26>0.8|V27>0.8|V28>0.8|V29>0.8|(V26>0&V26+V29>0.8)))
+    # Regions with mostly phage-related genes, or virulence factors, or antibiotic resistance genes, or novel genes
+    gi2 = subset(ngi1, (V26>=0.6|V27>=0.6|V28>=0.6|V29>=0.6|(V26>0&V26+V29>=0.6)))
     gic=rbind(gi1,gi2)
     if(verbose=="true"){
       cat("new GI: ", dim(gic), "\n")
@@ -476,8 +475,8 @@ else {
         cat("new TPs in L-dataset and C-dataset: ",dim(gic_tp), fill = TRUE)
       }
     }
-    # since not all genomic segments are included, not meaningful to use median as cutoff
-    content_normal = subset(gi0, (V5==0&V8>5&V25==0)|(V5==0&V25==0&V26<0.2&V27<0.2&V28<0.2&V29<0.2))
+    # Since not all genomic segments are included, it is not meaningful to use median as cutoff here
+    content_normal = subset(gi0, (V5==0&V8>5&V25==0)|(V5==0&V25==0&V26<=0.2&V27<=0.2&V28<=0.2&V29<=0.2))
     gir = subset(gi0, ! V1 %in% as.vector(content_normal$V1))
     ngic = rbind(content_normal)
     if(verbose=="true"){
@@ -507,15 +506,14 @@ cat("Number of Intervals: ",dim(ft0), fill = TRUE)
 cat("Number of GIs: ",dim(gi), fill = TRUE)
 cat("Number of non-GIs: ",dim(ngi), fill = TRUE)
 }
+
+
 ############################### write the coordinates to file ########################
-# find the coordinates for the selected intervals
-# write the coordinates to file
 fout1=paste(outdir, organism, "_GI",  sep="")
 fout2=paste(outdir, organism, "_NonGI",  sep="")
 
 i1=format(gi[c(-1)], digits=3)
 i2=format(ngi[c(-1)], digits=3)
-#print(i1)
-#print(i2)
+
 write.table(i1, fout1, sep="\t", col.names = FALSE, row.names = FALSE, quote = FALSE)
 write.table(i2, fout2, sep="\t", col.names = FALSE, row.names = FALSE, quote = FALSE)

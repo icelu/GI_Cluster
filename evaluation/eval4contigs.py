@@ -7,7 +7,7 @@
 # Overlap between predictions and references
 #
 
-
+from __future__ import division
 import optparse
 import sys, os
 parentdir = os.path.dirname(os.path.dirname(sys.argv[0]))
@@ -26,12 +26,45 @@ def get_intervals_dict(intervalfile):
             id = int(fields[0])
             start = int(fields[1])
             end = int(fields[2])
-            coord = (start, end)
+            size = end - start + 1
+            coord = (start, end, size)
             if id not in intervals.keys():
                 intervals[id] = [coord]
             else:
                 intervals.setdefault(id, []).append(coord)
     return intervals
+
+def getAvgBoundaryError(extentions):
+    '''
+    Input: a list of offset tuple (abs(left_ext), abs(right_ext))
+    '''
+    if len(extentions) <= 0:
+        return (0, 0, 0)
+    sum_left = 0
+    sum_right = 0
+
+    for (left, right) in extentions:
+        sum_left += left
+        sum_right += right
+
+    total = len(extentions)
+    avg_left = sum_left / total
+    avg_right = sum_right / total
+    avg_offset = (avg_left + avg_right) / 2
+
+    # avg_offset2 = (sum_left + sum_right) / (total * 2)
+    # # There may be some errors due to float precision
+    # if not avg_offset == avg_offset2:
+    #     print 'avg_offset:%s\tavg_offset2:%s' % (avg_offset, avg_offset2)
+
+    return (avg_left, avg_right, avg_offset)
+
+# Suppose intervals are not overlapping
+def getOverlapIntervalSize(interval_list):
+    size = 0
+    for i in interval_list:
+        size += i[1] - i[0] + 1
+    return size
 
 
 
@@ -40,6 +73,8 @@ def get_overlap_statistics(ref_intervals, query_intervals, genelist, options):
     For each reference interval, check the query intervals that overlap with it
     '''
     overlap_intervals = {}
+    unique_intervals = {}
+    extentions_dict = {}
     # The number of reference intervals with no overlapping query intervals
     num_nooverlap = 0
 
@@ -54,9 +89,9 @@ def get_overlap_statistics(ref_intervals, query_intervals, genelist, options):
         q_intervals = query_intervals[id]
         tree = get_window_tree(q_intervals)
         overlap_intervals[id] = []
-
-        for start, end in r_intervals:
-            extentions = []
+        unique_intervals[id] = []
+        extentions = []
+        for start, end, size in r_intervals:
             # Find all query intervals overlapping with the reference
             overlap = find(start, end, tree)
             if len(overlap) == 0:  # There is no query intervals overlapping with a reference interval
@@ -128,43 +163,67 @@ def get_overlap_statistics(ref_intervals, query_intervals, genelist, options):
                 line.extend([overlap_percentage, gaps])
             print line_str % tuple(line)
 
-    # # For all the contigs
-    # # The number of all the predicted intervals overlapping with the reference
-    # num_overlap = len(set(overlap_intervals))
-    # print '\nThe number of predicted intervals: %s' % len(query_intervals)
-    # print 'The number of reference intervals: %s' % len(ref_intervals)
-    # print 'The number of predicted reference intervals (TPs): %s' % tp_interval
-    # print 'The number of unpredicted reference intervals (FNs): %s' % (len(ref_intervals) - tp_interval)
-    # print 'The number of reference intervals not overlapping with predictions: %s' % num_nooverlap
-    # # Some intervals may be overlapped with different reference intervals, so this number may be overestimated
-    # print 'The number of predicted intervals overlapping with the reference: %s' % num_overlap
-    # # The query intervals not overlapping with the reference
-    # unique_intervals = set(query_intervals) - set(overlap_intervals)
-    # print 'The number of predicted intervals not overlapping with the reference (FPs): %s' % len(unique_intervals)
+        unique_intervals[id] = list(set(query_intervals[id]) - set(overlap_intervals[id]))
+        extentions_dict[id] = extentions
+
+    # For all the contigs
+    # The number of all the predicted intervals overlapping with the reference
+    # Note: all the intervals are dictionaries
+    num_overlap = sum(len(v) for v in overlap_intervals.itervalues())
+    num_ref = sum(len(v) for v in ref_intervals.itervalues())
+    num_pred = sum(len(v) for v in query_intervals.itervalues())
+    for id in query_intervals.keys():
+        if id not in unique_intervals.keys():
+            unique_intervals[id] = query_intervals[id]
+    num_uniq = sum(len(v) for v in unique_intervals.itervalues())
+    print '\nThe number of predicted intervals: %s' % num_pred
+    print 'The number of reference intervals: %s' % num_ref
+    print 'The number of predicted reference intervals (TPs): %s' % tp_interval
+    print 'The number of unpredicted reference intervals (FNs): %s' % (num_ref - tp_interval)
+    print 'The number of reference intervals not overlapping with predictions: %s' % num_nooverlap
+    # Some intervals may be overlapped with different reference intervals, so this number may be overestimated
+    print 'The number of predicted intervals overlapping with the reference: %s' % num_overlap
+    print 'The number of predicted intervals not overlapping with the reference (FPs): %s' % num_uniq
     #
     # ############################## PR in #overlap bases ###############################################
-    # '''
-    # This is in term of overlapping bases.
-    # '''
-    # tp = overlap_totalSize
-    # real = get_interval_length(ref_intervals)
-    # # Two alternative ways to get the number of bases in reference intervals
-    # assert real == ref_totalSize
-    # # Merge before counting as query_intervals may be overlapping
-    # predicted = getOverlapIntervalSize(query_intervals)
-    #
-    # recall = tp / real
-    # precision = tp / predicted
-    # if recall != 0 and precision != 0:
-    #     fmeasure = 2 * recall * precision / (recall + precision)
-    # else:
-    #     fmeasure = 0
-    # # Append offset error at the end of last line
-    # (avg_left, avg_right, avg_offset) = getAvgBoundaryError(extentions)
-    # print 'The number of reference bases: %d' % real
-    # format_str = 'Bases Recall: %.3f\tPrecision: %.3f\tF-measure: %.3f\tLeft offset: %d\tRight: %d\tPredicted bases: %d\tOverlap bases: %d\tPredicted intervals: %d\tAverage interval size: %d\tAvg offset: %d'
-    # print format_str % (recall, precision, fmeasure, avg_left, avg_right, predicted, overlap_totalSize, len(query_intervals), avg_query_len, avg_offset)
-    #
+
+    tp = overlap_totalSize
+    real = 0
+    for id in ref_intervals.keys():
+        real += get_interval_length(ref_intervals[id])
+
+    # Two alternative ways to get the number of bases in reference intervals
+    assert real == ref_totalSize
+    # Merge before counting as query_intervals may be overlapping
+    predicted = 0
+    for id in query_intervals.keys():
+        predicted += getOverlapIntervalSize(query_intervals[id])
+
+    recall = tp / real
+    precision = tp / predicted
+    if recall != 0 and precision != 0:
+        fmeasure = 2 * recall * precision / (recall + precision)
+    else:
+        fmeasure = 0
+    # Append offset error at the end of last line
+    lavg = 0
+    ravg = 0
+    oavg = 0
+    count_ext = 0
+    for id, extentions in extentions_dict.items():
+        (avg_left, avg_right, avg_offset) = getAvgBoundaryError(extentions)
+        lavg += avg_left
+        ravg += avg_right
+        oavg += avg_offset
+        count_ext += 1
+    avg_offset_all = oavg/count_ext
+    avg_left_all = lavg/count_ext
+    avg_right_all = ravg/count_ext
+    avg_size = predicted/num_pred
+    print 'The number of reference bases: %d' % real
+    format_str = 'Bases Recall: %.3f\tPrecision: %.3f\tF-measure: %.3f\tLeft offset: %d\tRight: %d\tPredicted bases: %d\tOverlap bases: %d\tPredicted intervals: %d\tAverage interval size: %d\tAvg offset: %d'
+    print format_str % (recall, precision, fmeasure, avg_left_all, avg_right_all, predicted, overlap_totalSize, num_pred,  avg_size, avg_offset_all)
+
     # # Output FP predictions
     # if options.overlap:
     #      # Sort intervals
