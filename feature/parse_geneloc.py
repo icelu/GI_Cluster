@@ -122,7 +122,7 @@ if __name__ == '__main__':
         options, args = parser.parse_args()
 
         if options.is_NCBI:
-            loc_dict = read_loc_ncbi(options.locfile, format=0)
+            loc_dict = read_loc_ncbi(options.locfile)
         else:
             loc_dict = read_loc_pred(options.locfile, format=1)
         if options.funcfile:

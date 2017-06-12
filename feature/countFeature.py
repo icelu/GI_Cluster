@@ -222,6 +222,7 @@ def get_feature_dict_gene(infile, rna_dict={}, repeat_dict={}, gc_value={}, kmer
                 nc_list = []
 
                 gene_list = []
+                inter_gene_dist = 0
                 while line and (not line.startswith('>')):
                     if (not line.startswith('r')):
                         cdst += 1

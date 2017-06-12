@@ -174,7 +174,7 @@ else  # Dependant on gene predictions
   fi
   if [ ! -f $output_dir/$pred_prog/$seg_prog/$feature/$method/$pFeature/$rep/"$organism"_GI ]
   then
-    ffile=$output_dir/$pred_prog/$seg_prog/$organism.feature.multi.percentage.labeled2
+    ffile=$output_dir/$pred_prog/$seg_prog/$organism.feature.multi.percentage
     # Use preprocessing by default
     nohup Rscript $prog_dir/GI_Clustering.R -f $ffile -o $output_dir/$pred_prog/$seg_prog/$feature/$method/$pFeature/$rep/ -a "$organism" -l $prog_dir/clustering -k 2 -K 3 -r $rep -e $pFeature -s $seg_prog -v true -C hclust -P method=$method -m true -d $feature -S $postprocess 2>&1 > $output_dir/$pred_prog/$seg_prog/$feature/$method/$pFeature/$rep/rscript_std
   fi

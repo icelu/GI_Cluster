@@ -286,7 +286,7 @@ apcluster_clmem <- function(x,clnum,params=list()){
 #}
 
 
-#generic new function
+#dbscan
 dbscan_clmem <- function(x,clnum,params=list()){
 #perform parameter checks to ensure that the call is consitent with the algorithm function
 #assign the paramters to the data frame

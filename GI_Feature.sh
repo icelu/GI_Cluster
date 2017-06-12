@@ -178,6 +178,10 @@ if [ "$pred_prog" == "prodigal" ] # Replace the ID for each protein
 then
   awk '/^>/{print ">" ++i; next}{print}' < $output_dir/$pred_prog/genome/$organism.faa > $output_dir/$pred_prog/genome/"$organism"_rename.faa
 fi
+if [ "$pred_prog" == "ncbi" ] # Replace the ID for each protein
+then
+  cp $output_dir/$pred_prog/genome/$organism.faa $output_dir/$pred_prog/genome/"$organism"_rename.faa
+fi
 if [ ! -f $prog_dir/db/COG/COGs.pin ]
 then
   makeblastdb -in $prog_dir/db/COG/prot2003-2014.fa -dbtype prot -out $prog_dir/db/COG/COGs

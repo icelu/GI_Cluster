@@ -5,3 +5,6 @@ This dataset includes GIs predicted by comparative genomics
 
 L-dataset:
 This dataset includes GIs collected from literature
+
+draft_genome:
+This dataset includes GIs collected from literature for draft genomes.

@@ -225,7 +225,7 @@ def getMetric_base(ref_intervals, query_intervals, genelist, options):
     A given percentage is used to determine whether a reference interval (genomic island or gene) is detected.
     If only a base of an interval is detected, it is meaningless to classify this interval as predicted.
     '''
-    print '(start, end, size)\tleft_offset\tright_offset\toverlap_regions\toverlap_percentage\tnum_reference_genes\tnum_predicted_genes\tnum_overlap_genes\toverlap_gene_percentage\tgaps'
+    print '(start, end, size)\tleft_offset\tright_offset\toverlap_regions\tpredicted_size\toverlap_percentage\toverlap_percentage_pred\tnum_reference_genes\tnum_predicted_genes\tnum_overlap_genes\toverlap_gene_percentage\toverlap_gene_percentage_pred\tgaps'
     tree = get_window_tree(query_intervals)
     avg_query_len = get_interval_length(query_intervals) / len(query_intervals)
     # The list of query intervals overlapping with the reference
@@ -313,6 +313,11 @@ def getMetric_base(ref_intervals, query_intervals, genelist, options):
             else:
                 overlap_gene_percentage = 0
 
+            if num_predictedgenes > 0:
+                overlap_gene_percentage_pred = round(num_overlapgenes * 100 / num_predictedgenes, 3)
+            else:
+                overlap_gene_percentage_pred = 0
+
          ##################################### base metrics ####################################################
         # Check the coverage of the overlap
         overlap_bases = 0
@@ -345,15 +350,28 @@ def getMetric_base(ref_intervals, query_intervals, genelist, options):
         # The fraction of a reference interval covered by all the query interval overlapping with it
         overlap_percentage = round(overlap_bases * 100 / refsize, 3)
 
-        suffix_str = '\t%s'
         line = [start, end, (end - start + 1), left_ext, right_ext]
         overlap_len = len(sorted_overlap)
         line_str = '(%s, %s, %s)\t%d\t%d'
 
         # Compute the gap between intervals when there are more than two intervals
-        for overlap in sorted_overlap:
-            line_str += suffix_str
+        suffix_str = ';%s'
+        query_size = 0
+        for i, overlap in enumerate(sorted_overlap):
+            if i==0:
+                line_str += '\t%s'
+            else:
+                line_str += suffix_str
             line.append(overlap)
+            query_size += overlap[1]-overlap[0]+1
+
+        line_str += '\t%s'
+        line.append(query_size)
+        # The fraction of a reference interval covered by all the query interval overlapping with it
+        if query_size > 0:
+            overlap_percentage_pred = round(overlap_bases * 100 / query_size, 3)
+        else:
+            overlap_percentage_pred = 0
 
         gaps = []
         if overlap_len > 1:
@@ -366,19 +384,19 @@ def getMetric_base(ref_intervals, query_intervals, genelist, options):
                 p1 = overlap[1]
         # Find all genes in a reference interval
         if options.pttfile:
-            # 6 fields
-            line_str += '\t%s\t%s\t%s\t%s\t%s\t%s'
-            line.extend([overlap_percentage, num_refgenes, num_predictedgenes, num_overlapgenes, overlap_gene_percentage, gaps])
+            # 8 fields
+            line_str += '\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s'
+            line.extend([overlap_percentage, overlap_percentage_pred, num_refgenes, num_predictedgenes, num_overlapgenes, overlap_gene_percentage, overlap_gene_percentage_pred, gaps])
         else:
-            line_str += '\t%s\t%s'
-            line.extend([overlap_percentage, gaps])
+            line_str += '\t%s\t%s\t%s'
+            line.extend([overlap_percentage, overlap_percentage_pred, gaps])
         print line_str % tuple(line)
 
     # The number of all the predicted intervals overlapping with the reference
     num_overlap = len(set(overlap_intervals))
     print '\nThe number of predicted intervals: %s' % len(query_intervals)
     print 'The number of reference intervals: %s' % len(ref_intervals)
-    print 'The number of predicted reference intervals (TPs): %s' % tp_interval
+    print 'The number of predicted reference intervals (TPs, at least certain fraction (0.4 by default) of the reference interval is predicted): %s' % tp_interval
     print 'The number of unpredicted reference intervals (FNs): %s' % (len(ref_intervals) - tp_interval)
     print 'The number of reference intervals not overlapping with predictions: %s' % num_nooverlap
     # Some intervals may be overlapped with different reference intervals, so this number may be overestimated
