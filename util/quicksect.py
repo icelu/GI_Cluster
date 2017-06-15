@@ -1,10 +1,8 @@
-"""
-Intersects ... faster.  Suports GenomicInterval datatype and multiple
-chromosomes.
+# Scripts for finding overlapping intervals
+#
+# from bx-python (https://github.com/bxlab/bx-python)
+# This script does not find the size of overlap
 
-from bx-python
-This script does not find the size of overlap
-"""
 import math
 import time
 import sys

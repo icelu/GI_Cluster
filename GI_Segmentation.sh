@@ -1,12 +1,14 @@
 # Script for segmenting a complete genome or a set of contigs
+#
 # Author: Bingxin Lu
 # Affiliation : National University of Singapore
 # E-mail : bingxin@comp.nus.edu.sg
+#
 
 
-########## usage ##########
-# ./GI_Segmentation.sh -s  $prog_dir -o $output_dir -n $organism -m $seg_prog
-# e.g. ./GI_Segmentation.sh -s ./GIFilter -o ./research/data/species/cft73 -n NC_004431  -m ./research/software/HGT/mjsd
+########## Usage ##########
+# ./GI_Segmentation.sh -s  $prog_dir -o $output_dir -n $organism -m $seg_prog -p prodigal
+# e.g. ./GI_Segmentation.sh -s ./GIFilter -o ./research/data/species/cft73 -n NC_004431  -m ./research/software/HGT/mjsd -p prodigal
 
 
 software=$(basename $0)
@@ -18,7 +20,7 @@ Usage: $software [options] -s [the directory containing all the scripts] -o [the
 -n [the name of the organism (NCBI Accession, e.g. NC_003198)] -m [programs for genome segmation (e.g. mjsd, gcprofile, gisvm, alienhunter)] -p [programs for gene prediction (e.g. prodigal, ncbi)]
 
 OPTIONS	Default	DESCIPTION
--b	0	: mode of running: 0 for complete genome, 1 for draft genome (contigs).
+-b	0	: mode of running: 0 for complete genome, 1 for incomplete genome (contigs).
 -h 	----	: print this help
   "
   exit -1

@@ -1,8 +1,16 @@
-# This code is part of the Biopython distribution and governed by its
-# license.  Please see the LICENSE file that should have been included
-# as part of this package.
+# Given DNA sequence of a genome or a gene or a genomic region,  analyze its codon usage
 #
-
+# Author: Bingxin Lu
+# Affiliation : National University of Singapore
+# E-mail : bingxin@comp.nus.edu.sg
+#
+# Input:
+# The fasta file of gene sequence
+#
+# Output:
+# Measures of codon usage:
+# CUB, AAB, CHI, CAI, CBI, Fop
+#
 
 import optparse
 import itertools

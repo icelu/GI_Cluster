@@ -1,4 +1,9 @@
 # This script is used to find the intersection between two interval files
+#
+# Author: Bingxin Lu
+# Affiliation : National University of Singapore
+# E-mail : bingxin@comp.nus.edu.sg
+#
 
 from __future__ import division
 import optparse
@@ -9,8 +14,6 @@ from util.interval_operations import find, get_window_tree, get_overlap
 
 
 ################################ parse input ############################################
-
-
 def getIntervals(intervalfile):
     '''
     return a list of interval tuples with additional information (score)

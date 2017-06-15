@@ -1,12 +1,20 @@
 # The adjacent candidate segments were joined and the boundary is relocated by the outmost ORF if an ORF intersects with a segment.
 # Note: the segment will only be extended
-# For features: sum the numbers, recompute the percentages
+# For features: sum the numbers; recompute the percentages
 #
 # Author: Bingxin Lu
 # Affiliation : National University of Singapore
 # E-mail : bingxin@comp.nus.edu.sg
 #
-
+# Input:
+# A set of intervals
+# A list of gene positions (optional)
+# The genome sequence file (required when the intervals are predicted from contigs)
+#
+# Output:
+# Invervals with new start and end position
+#
+#
 import os
 import optparse
 

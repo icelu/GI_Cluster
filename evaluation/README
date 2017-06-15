@@ -1,10 +1,153 @@
-Datasets used for comparing tools for predicting genomic islands (GIs)
+Datasets and scripts used for comparing tools for predicting genomic islands (GIs)
 
+--------------------------------
 C-dataset:
 This dataset includes GIs predicted by comparative genomics
 
 L-dataset:
 This dataset includes GIs collected from literature
 
-draft_genome:
-This dataset includes GIs collected from literature for draft genomes.
+incomplete_dataset:
+This dataset includes GIs collected from literature for incomplete genomes.
+
+Python scripts for evaluating the predictions of genome islands by different methods.
+
+--------------------------------
+GIs in C-dataset and L-dataset are based on the evaluation datasets used in paper [1].
+Among the 11 genomes, we excluded two genomes with fewer than six GIs in L-data set.
+For L-data set, we added additional GIs predicted by Islander and in literature or refined island boundaries according to known annotations.
+We also included GIs predicted in the genome of Pseudomonas aeruginosa LESB58 in L-data set, which has been well studied in terms of GIs.
+
+As a result, 10 genomes from six orders were used, including
+Burkholderiales (Burkholderia cenocepacia J2315; Bordetella petrii DSM 12804),
+Corynebacteriales (Corynebacterium diphtheriae NCTC 13129),
+Enterobacteriales (Cronobacter sakazakii ATCC BAA-894; Escherichia coli CFT073; Proteus mirabilis HI4320; Salmonella typhi CT18),
+Rhizobiales (Bartonella tribocorum CIP 105476), and Lactobacillales (Streptococcus equi 4047),
+and Pseudomonadales (Pseudomonas aeruginosa LESB58).
+
+In addition, for eight known integrative and conjugative elements (ICEs) are (ICEPmiUSA1, ICEPm1, ICESe2, ICE-GI1, ICE-GI2, ICE-GI3, ICE-GI6 and SPI-7), we used boundaries from ICEberg database (http://db-mml.sjtu.edu.cn/ICEberg/), expect for ICE-GI2 and ICE-GI3.
+Since ICE-GI2 (from 1350129 to 1493558) and ICE-GI3 (from 1493541 to 1595651) are overlapping, we combine them into one, denoted as ICE-GI2(3).
+
+For C-data set, there are positive datasets (GIs) and negative datasets (non-GIs) for nine of these genomes (except P. aeruginosa LESB58).
+
+
+--------------
+Short name for each complete genome and corresponding Accession
+
+Genome	Accession
+J2315	NC_011000
+DSM12804	NC_010170
+NCTC13129	NC_002935
+BAA894	NC_009778
+CFT073	NC_004431
+HI4320	NC_010554
+CT18	NC_003198
+CIP105476	NC_010161
+Sequi4047	NC_012471
+LESB58	NC_011770
+
+--------------
+For CT18, LESB58, and NCTC13129, we used GIs collected in paper [2] as reference.
+
+# Revised GIs based on boundaries from ICEberg (Both left endpoints and right endpoints are changed)
+SPI-7 4409574	4543073
+
+
+--------------
+For LESB58, we also included the newly predicted GIs in paper [3].
+
+--------------
+For HI4320, we refined GI boundaries according to annotations from NCBI and added two GIs predicted by Islander (http://bioinformatics.sandia.gov/islander/about.html) and in paper [4], respectively.
+
+The new GIs here:
+# Right endpoints are changed
+984338	1024785
+1029338	1040901
+# Both left endpoints and right endpoints are changed
+3797911	3824574
+
+# New GI from Islander
+2793725	2886311
+# New GI from paper [4]
+2933022	2954836
+
+# Revised GIs based on boundaries from ICEberg (The left endpoint is changed)
+ICEPmiUSA1 2649499	2730130
+# Revised GIs based on boundaries from ICEberg (Both left endpoints and right endpoints are changed)
+ICEPm1 2793762	2886224
+
+
+--------------
+For CFT073, BAA894 and DSM12804,  we also added one additional GI predicted by Islander, respectively.
+
+CFT073
+# New GI from Islander
+2194347	2216841
+
+BAA894
+# Combing a new GI (2927371..2976134) from Islander, another GI (2976134..3025395) from Islander, and an original GI (2974743..3022134)
+2927371	3025395
+
+DSM12804
+# New GI from Islander
+1033559	1083703
+
+# Revised GIs based on boundaries from ICEberg (Both left endpoints and right endpoints are changed)
+ICE-GI1 1083989	1339502
+ICE-GI2 1350129	1493539
+ICE-GI3 1493557	1595651
+ICE-GI6 4417743	4576839
+
+
+--------------
+For Sequi4047, we added two GIs and refined the boundaries according to annotations from NCBI.
+# New GIs from NCBI annotations
+58987	64976
+722286	757746
+
+# Revised GIs based on NCBI annotations (Both left endpoints and right endpoints are changed)
+142425	182256
+783521	825277
+1991656	2006723
+
+# Revised GIs based on NCBI annotations (The left endpoints are changed)
+1742021	1772823
+2064760	2105533
+
+# Revised GIs based on boundaries from ICEberg (Both left endpoints and right endpoints are changed)
+ICESe2 1206317	1269371
+
+--------------------------------
+GIs in incomplete_dataset are collected in paper [5].
+
+There are very few known GIs from incomplete genomes in literature.
+We collected 17 known GIs (312,686 bp) from Vibrio cholerae RC9, which were predicted as five or more consecutive ORFs sporadically distributed among related strains (see paper [5]).
+The incomplete genome of V. cholerae RC9  (Accession: ACHX00000000) contains 11 contigs and 4,211,011 bp.
+V. cholerae RC9 has two chromosomes, with
+11 GIs locating at the large chromosome and 6 GIs at the small chromosome.
+But it is unknown which contigs are from which chromosomes.
+According to the reference GIs, contig 7 and 9 are on the small chromosome, whereas contig 6, 10 and 11 are on the large chromosome.
+
+
+--------------------------------
+References:
+[1] Wei, W., Gao, F., Du, M.-Z., Hua, H.-L., Wang, J., and Guo, F.-B. (2016). Zisland
+explorer: detect genomic islands by combining homogeneity and heterogeneity
+properties. Briefings in bioinformatics, 18(3), 357-366.
+
+[2] Lu, B. and Leong, H. W. (2016b). GI-SVM: A sensitive method for predicting
+genomic islands based on unannotated sequence of a single genome. Journal of
+bioinformatics and computational biology, 14(01), 1640003.
+
+[3] Jani, M., Mathee, K., and Azad, R. K. (2016). Identification of novel genomic islands
+in liverpool epidemic strain of pseudomonas aeruginosa using segmentation and
+clustering. Frontiers in Microbiology, 7, 1210.
+
+[4] Pearson, M. M. and Mobley, H. L. (2007). The type iii secretion system of proteus mirabilis hi4320 does not contribute to virulence in the
+mouse model of ascending urinary tract infection. Journal of medical microbiology, 56(10), 1277-1283.
+
+[5] Chun, J., Grim, C. J., Hasan, N. A., Lee, J. H., Choi, S. Y., Haley, B. J., Taviani, E.,
+Jeon, Y.-S., Kim, D. W., Lee, J.-H., et al. (2009). Comparative genomics reveals
+mechanism for short-term and long-term clonal transitions in pandemic vibrio
+cholerae. Proceedings of the National Academy of Sciences, 106(36), 15442–
+15447.

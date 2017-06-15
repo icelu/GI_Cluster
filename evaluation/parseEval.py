@@ -1,3 +1,11 @@
+# Extract metric values obtained by IntervalOverlap.py
+#
+# Author: Bingxin Lu
+# Affiliation : National University of Singapore
+# E-mail : bingxin@comp.nus.edu.sg
+#
+
+ 
 from os import listdir
 from os.path import isfile, join
 from optparse import OptionParser

@@ -1,4 +1,9 @@
 # Fill template file for comparing different predictions of genomic islands in Circos
+#
+# Author: Bingxin Lu
+# Affiliation : National University of Singapore
+# E-mail : bingxin@comp.nus.edu.sg
+#
 
 import os
 import optparse

@@ -1,3 +1,10 @@
+# Merge adjacent or overlapping intervals
+#
+# Author: Bingxin Lu
+# Affiliation : National University of Singapore
+# E-mail : bingxin@comp.nus.edu.sg
+#
+
 import optparse
 import os
 

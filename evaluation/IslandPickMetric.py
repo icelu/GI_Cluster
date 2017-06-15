@@ -1,42 +1,31 @@
-# For comparison of GI tools:
-# Given the benchmark dataset B+, B-, the predicted dataset P,
-# TP: nuleotides in both B+ and P
-# FP: nuleotides in both B- and P
+# For comparison of tools for predicting genomic islands on reference datasets obtained from comparative genomics:
 #
-# following rules from IslandPick
-#
-# created by lbx, 2015/4/17
-#
-# input: 3 sets of intervals
-# B+, B-, P
-#
-# output:
-# compare B+ and P --> TP;
-# compare B- and P --> FP;
-# get the size of all intervals in B+ --> TP+FN
+# Author: Bingxin Lu
+# Affiliation : National University of Singapore
+# E-mail : bingxin@comp.nus.edu.sg
 #
 #
-# calculation of TP and FP are similar:
-# do interval intersections of 2 sets of intervals, find the number of overlapped bases.
-# a straightforward method is 2-level iteration
-# another way:
-# 1. find overlapped intervals
-# 2. compute overlapping bases
-
+# Input:
+# The benchmark dataset for reference positives,
+# The benchmark dataset for reference negatives,
+# The predicted intervals
+#
+# Output:
+# Recall, Precision, Fmeasure:
+#
 
 
 from __future__ import division
 import os
 import optparse
-# from pyroc import *
 import copy
 
 
 
 def getOverlap(interval_list1, interval_list2):
     num_overlap = 0
-    # sort the list to facilitate searching
-    # suppose the intervals are not overlapping
+    # Sort the list to facilitate searching
+    # Suppose the intervals are not overlapping
     interval_list1 = sorted(interval_list1, key=lambda x : (int(x[0]), int(x[1])))
     interval_list2 = sorted(interval_list2, key=lambda x : (int(x[0]), int(x[1])))
     for i1 in interval_list1:
@@ -54,10 +43,11 @@ def getIntervalSize(interval_list):
         size += i[1] - i[0] + 1
     return size
 
-'''
-return a list of interval tuples
-'''
+
 def getIntervals(intervalfile):
+    '''
+    return a list of interval tuples
+    '''
     intervals = []
     with open(intervalfile, 'rb') as fin:
         for line in fin:
@@ -80,63 +70,6 @@ def fmeasure(recall, precision):
     return fmeasure
 
 
-
-# def usePyroc(label_list):
-#     roc = ROCData(label_list)
-#     # roc.auc()
-#     # roc.plot(title='ROC Curve')  # Create a plot of the ROC curve
-#     # roc.confusion_matrix(0.5, True)
-#     matrix = roc.confusion_matrix(1, True)
-#     print matrix
-#     roc.evaluateMetrics(matrix, do_print=True)
-
-
-'''
-def useSklearnRoc(label_list):
-    y_true = []
-    y_score = []
-    for label in label_list:
-       y_true.append(label[0])
-       y_score.append(label[1])
-
-    fpr, tpr, thresholds = roc_curve(y_true, y_score)
-    roc_auc = auc(fpr, tpr)
-    # print fpr
-    # print tpr
-    # print thresholds
-    # Plot of a ROC curve for a specific class
-    plt.figure()
-    plt.plot(fpr, tpr, label='ROC curve (area = %0.2f)' % roc_auc)
-    plt.plot([0, 1], [0, 1], 'k--')
-    plt.xlim([0.0, 1.0])
-    plt.ylim([0.0, 1.05])
-    plt.xlabel('False Positive Rate')
-    plt.ylabel('True Positive Rate')
-    plt.title('Receiver operating characteristic curve')
-    plt.legend(loc="lower right")
-    plt.show()
-'''
-
-
-'''
-input: genome coordinates of predictions and reference
-There are two benchmark datasets, one positive, one negative.
-output: label file for counting
-                data: The data is a list l of tuples t (l = [t_0,t_1,...t_n]) where:
-                      t[0] = 1 for positive class and 0 for negative class
-                      t[1] = a score
-                      t[2] = any label (optional)
-
-pos_points = [x for x in self.data if x[1] >= threshold]
-neg_points = [x for x in self.data if x[1] < threshold]
-
-""" Calculates the number of false positives, true positives, false negatives and true negatives """
-tp_count = len([x for x in pos_data if x[0] == 1])
-fp_count = len([x for x in pos_data if x[0] == 0])
-fn_count = len([x for x in neg_data if x[0] == 1])
-tn_count = len([x for x in neg_data if x[0] == 0])
-
-'''
 if __name__ == '__main__':
         parser = optparse.OptionParser()
 

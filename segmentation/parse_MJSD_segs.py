@@ -1,7 +1,20 @@
+# Get the segments after the first step of MJSD
+#
+# Author: Bingxin Lu
+# Affiliation : National University of Singapore
+# E-mail : bingxin@comp.nus.edu.sg
+#
+# Input:
+# The output for the first step of MJSD
+#
+# Output:
+# The positions for a set of intervals
+#
+
 import os
 import optparse
 
-# get the segments from MJSD
+
 
 # get segment boundaries
 def parse_segs(fname, genome, minsize=5000):

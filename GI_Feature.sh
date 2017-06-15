@@ -1,12 +1,14 @@
 # Script for extracting features related to genomic islands in the unit of genes
+#
 # Author: Bingxin Lu
 # Affiliation : National University of Singapore
 # E-mail : bingxin@comp.nus.edu.sg
+# 
 
 
-########## usage ##########
-# ./GI_Feature.sh -s  $prog_dir -o $output_dir -n $organism -m $seg_prog -b $mode
-# e.g. ./GI_Feature.sh -s ./GIFilter -o ./research/data/species/cft73 -n NC_004431  -m ./research/software/HGT/mjsd -b 0
+########## Usage ##########
+# ./GI_Feature.sh -s  $prog_dir -o $output_dir -n $organism -m $seg_prog -p prodigal -b $mode
+# e.g. ./GI_Feature.sh -s ./GIFilter -o ./research/data/species/cft73 -n NC_004431  -m ./research/software/HGT/mjsd -p prodigal -b 0
 
 
 software=$(basename $0)
@@ -18,7 +20,7 @@ Usage: $software [options] -s [the directory containing all the scripts] -o [the
 -n [the name of the organism (e.g. NC_003198)] -m [programs for genome segmation (e.g. mjsd, gcprofile, gisvm, alienhunter)] -p [programs for gene prediction (e.g. prodigal, ncbi)]
 
 OPTIONS	Default	DESCIPTION
--b	0	: mode of running: 0 for complete genome, 1 for draft genome (contigs).
+-b	0	: mode of running: 0 for complete genome, 1 for incomplete genome (contigs).
 
 -e	1e-5	: e-value used during identification of phage-related genes, i.e., blastp against PHAST.
 -r	1e-5	: e-value used during identification of virulence factors, i.e., blastp against VFDB.

@@ -5,9 +5,19 @@
 # Author: Bingxin Lu
 # Affiliation : National University of Singapore
 # E-mail : bingxin@comp.nus.edu.sg
+#
 
-library(Ckmeans.1d.dp)
-library(mclust)
+# for 1D kmeans
+if(!require(Ckmeans.1d.dp)){
+    install.packages("Ckmeans.1d.dp")
+    library(Ckmeans.1d.dp)
+}
+
+# for density estimation
+if(!require(mclust)){
+    install.packages("mclust")
+    library(mclust)
+}
 
 # x -- input data matrix, clmem -- cluster assignment
 getConn<-function(x, clmem){

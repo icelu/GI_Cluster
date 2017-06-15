@@ -1,23 +1,25 @@
-# Script for predicting genes from (complete/draft) genome sequence
+# Script for predicting genes from (complete/incomplete) genome sequence
+#
 # Author: Bingxin Lu
 # Affiliation : National University of Singapore
 # E-mail : bingxin@comp.nus.edu.sg
+#
 
-########## usage ##########
-# ./Gene_Prediction.sh -s  $prog_dir -o $output_dir -n $organism -m $seg_prog -b $mode
-# e.g. ./Gene_Prediction.sh -s ./GIFilter -o ./research/data/species/cft73 -n NC_004431  -m ./research/software/HGT/mjsd -b 0
+########## Usage ##########
+# ./Gene_Prediction.sh -s  $prog_dir -o $output_dir -n $organism -m $seg_prog  -p prodigal -b $mode
+# e.g. ./Gene_Prediction.sh -s ./GIFilter -o ./research/data/species/cft73 -n NC_004431  -m ./research/software/HGT/mjsd -p prodigal -b 0
 
 
 software=$(basename $0)
 
 function usage() {
-  echo -e "Gene_Prediction: predicting genes from (complete/draft) genome sequence"
+  echo -e "Gene_Prediction: predicting genes from (complete/incomplete) genome sequence"
   echo "Version 1.0
 Usage: $software [options] -s [the directory containing all the scripts] -o [the output directory]
 -n [the name of the organism (e.g. NC_003198)] -m [programs for genome segmation (e.g. mjsd, gcprofile, gisvm, alienhunter)] -p [programs for gene prediction (e.g. prodigal, ncbi)]
 
 OPTIONS	Default	DESCIPTION
--b	0	: mode of running: 0 for complete genome, 1 for draft genome (contigs).
+-b	0	: mode of running: 0 for complete genome, 1 for incomplete genome (contigs).
 
 -h 	----	: print this help
   "

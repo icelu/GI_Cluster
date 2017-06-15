@@ -2,15 +2,36 @@
 # This is based on implementations of clusterCons (https://github.com/cran/clusterCons)
 
 # To include kmeans, pam, clara
-library(cluster);
-# load the apcluster package
-library(apcluster);
-library(mclust);
+if(!require(cluster)){
+    install.packages("cluster")
+    library(cluster)
+}
+# Affinity Propagation Clustering
+if(!require(apcluster)){
+    install.packages("apcluster")
+    library(apcluster)
+}
+# For model-based clustering
+if(!require(mclust)){
+    install.packages("mclust")
+    library(mclust)
+}
 # To include kmeanspp, or kmeans++
-library(LICORS);
+if(!require(LICORS)){
+    install.packages("LICORS")
+    library(LICORS)
+}
 # To include Kernel Clustering
-library(kernlab);
-library(clues);
+if(!require(kernlab)){
+    install.packages("kernlab")
+    library(kernlab)
+}
+
+# For CLUster Ensembles
+if(!require(clues)){
+    install.packages("clues")
+    library(clues)
+}
 
 #agnes
 agnes_clmem <- function(x,clnum,params=list()){

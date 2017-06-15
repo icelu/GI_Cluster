@@ -1,7 +1,21 @@
+# Use a sliding window to generate segments along the genome
+#
+# Author: Bingxin Lu
+# Affiliation : National University of Singapore
+# E-mail : bingxin@comp.nus.edu.sg
+#
+# Input:
+# The genome sequence in FASTA format
+#
+# Output:
+# The positions for a set of intervals
+#
+
+
 import optparse
 import itertools
 
-# Use a sliding window to generate segments along the genome
+
 
 
 def isheader(line):
@@ -17,12 +31,9 @@ def get_genome_len(genome_file):
 
 
 def sliding_window(outfile, seqlen, width=5000, step=5000):
-    # For the last window if its size does not equal to winsize (mostly true),
-        # take different start point to the end of the genome, but again with
-        # size=winsize
     with open(outfile, 'w') as fout:
         for i in range(0, seqlen, step):
-                # last window
+            # last window
             if i + width > seqlen:
                 j = seqlen
                 i = seqlen - width

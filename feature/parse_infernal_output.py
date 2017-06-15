@@ -1,15 +1,19 @@
+# Find the infernal hits for a genome
+#
+# Author: Bingxin Lu
+# Affiliation : National University of Singapore
+# E-mail : bingxin@comp.nus.edu.sg
+#
+# Input:
+# infernal output, format --tblout
+#
+# Output:
+# id start end name rfam_accession score E-value
+# 
+
 
 
 import optparse
-
-
-'''
-Find the infernal hits for a genome
-Input:
-infernal output, format --tblout
-Output:
-id start end name rfam_accession score E-value
-'''
 
 
 def parse_cmscan(infile):
@@ -35,19 +39,18 @@ def write_hit(outfile, hits):
     # print gene_list
     for hit in hits:
         line = '\t'.join(hit)
-        fout.write(line)    
+        fout.write(line)
     fout.close()
-    
-    
 
-if __name__ == '__main__':    
+
+
+if __name__ == '__main__':
     parser = optparse.OptionParser()
-                 
-    parser.add_option("-b", "--infernaloutput", dest="infernaloutput", help="input file of infernal hits") 
-    parser.add_option("-g", "--genefile", dest="genefile", help="input file of gene lists") 
-    parser.add_option("-o", "--outfile", dest="outfile", help="output file") 
-    options, args = parser.parse_args() 
-        
+
+    parser.add_option("-b", "--infernaloutput", dest="infernaloutput", help="input file of infernal hits")
+    parser.add_option("-g", "--genefile", dest="genefile", help="input file of gene lists")
+    parser.add_option("-o", "--outfile", dest="outfile", help="output file")
+    options, args = parser.parse_args()
+
     hit_dict = parse_infernal(options.infernaloutput)
     write_hit(options.outfile, gene_list, hit_dict)
-        

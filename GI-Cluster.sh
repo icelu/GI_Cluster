@@ -1,10 +1,12 @@
-# Script for GI-Cluster: detecting genomic islands in newly sequenced microbial genomes by consensus clustering on multiple features
+# Script for GI-Cluster: detecting genomic islands by consensus clustering on multiple features
+#
 # Author: Bingxin Lu
 # Affiliation : National University of Singapore
 # E-mail : bingxin@comp.nus.edu.sg
+#
 
 ########## Input ##########
-# The genome sequence of a newly sequenced bacterium: fasta file format (NCBI file: $organism.fna)
+# The genome sequence: fasta file format (organism=NC_010161, $organism.fna)
 # OPTIONAL INPUT: $organism.ffn, $organism.faa
 
 
@@ -12,13 +14,13 @@
 software=$(basename $0)
 
 function usage() {
-  echo -e "GI-Cluster: detecting genomic islands in newly sequenced microbial genomes by consensus clustering on multiple features"
+  echo -e "GI-Cluster: detecting genomic islands by consensus clustering on multiple features"
   echo "Version 1.0
 Usage: $software [options] -s [the directory containing all the scripts] -o [the output directory]
 -n [the name of the organism (NCBI Accession, e.g. NC_003198)] -m [programs for genome segmation (e.g. window, mjsd, gcprofile, gisvm, alienhunter)] -p [programs for gene prediction (e.g. prodigal, ncbi, none)]
 
 OPTIONS	Default	DESCIPTION
--b	0	: mode of running: 0 for complete genome, 1 for draft genome (contigs).
+-b	0	: mode of running: 0 for complete genome, 1 for incomplete genome (contigs).
 -t  1 : availablity of gene predictions: 1: with gene predictions, 0: without gene predictions.
 
 -e	1e-5	: e-value used during identification of phage-related genes, i.e., blastp against PHAST.
@@ -91,7 +93,7 @@ echo "Running GI-Cluster for a complete genome"
 fi
 if [ $mode == 1 ]
 then
-echo "Running GI-Cluster for a draft genome"
+echo "Running GI-Cluster for a incomplete genome"
 fi
 
 if [ $gene_prediction == 1 ] # With gene predictions

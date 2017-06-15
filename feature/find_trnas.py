@@ -1,17 +1,16 @@
 # For finding tRNAs around a genomic interval
+#
+# Author: Bingxin Lu
+# Affiliation : National University of Singapore
+# E-mail : bingxin@comp.nus.edu.sg
+#
 # Input:
 # 1. predicted GIs (genomic intervals)
 # 2. predicted trnas
 #
-# Sample command to predict tRNA by tRNAscan-SE
-# output_dir=/home/b/bingxin/genome/StypiCT18
-# organism=NC_010161
-# tRNAscan-SE -B --frag $output_dir/boundary/$organism.trna_frag -o $output_dir/boundary/$organism.trna_pred -m $output_dir/boundary/$organism.trna_stat --brief $output_dir/$organism.fna
-# less $output_dir/boundary/$organism.trna_pred | cut -f3-4 > $output_dir/boundary/$organism.pred_trna
-#
 # Output:
 # predicted GIs annotated with nearby trnas
-
+#
 
 import optparse
 import sys, os

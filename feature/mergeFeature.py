@@ -16,7 +16,7 @@
 #
 # Procedure:
 # Store the features for each gene/ORF in a dicionary, and then write out the values in a file
-
+# 
 
 import os
 import optparse

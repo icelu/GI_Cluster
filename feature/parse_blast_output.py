@@ -1,14 +1,19 @@
+# Find the blast hits for a predicted gene
+#
+# Author: Bingxin Lu
+# Affiliation : National University of Singapore
+# E-mail : bingxin@comp.nus.edu.sg
+#
+# Input:
+# blast output, format 6
+# gene locus for each gene
+#
+# Output:
+# '*No hits*' or specific hit
+#
 
 
 import optparse
-
-
-'''
-find the blast hits for a predicted gene
-Input:
-blast output, format 6
-gene locus for each gene
-'''
 
 def get_gene_id(infile):
     gene_list = []
@@ -39,20 +44,19 @@ def write_hit(outfile, gene_list, hit_dict):
             line = '%s\n' % hit_dict[gene]
         else:
             line = '*No hits*\n'
-        fout.write(line)    
+        fout.write(line)
     fout.close()
-    
-    
 
-if __name__ == '__main__':    
+
+
+if __name__ == '__main__':
     parser = optparse.OptionParser()
-                 
-    parser.add_option("-b", "--blastoutput", dest="blastoutput", help="input file of blast hits") 
-    parser.add_option("-g", "--genefile", dest="genefile", help="input file of gene lists") 
-    parser.add_option("-o", "--outfile", dest="outfile", help="output file") 
-    options, args = parser.parse_args() 
-        
-    gene_list = get_gene_id(options.genefile) 
+
+    parser.add_option("-b", "--blastoutput", dest="blastoutput", help="input file of blast hits")
+    parser.add_option("-g", "--genefile", dest="genefile", help="input file of gene lists")
+    parser.add_option("-o", "--outfile", dest="outfile", help="output file")
+    options, args = parser.parse_args()
+
+    gene_list = get_gene_id(options.genefile)
     hit_dict = parse_blast(options.blastoutput)
     write_hit(options.outfile, gene_list, hit_dict)
-        

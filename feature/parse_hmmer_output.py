@@ -1,3 +1,16 @@
+# Find the hmmsearch hits for a predicted gene
+#
+# Author: Bingxin Lu
+# Affiliation : National University of Singapore
+# E-mail : bingxin@comp.nus.edu.sg
+#
+# Input:
+# hmmsearch output, default format
+# gene locus for each gene
+#
+# Output:
+# '*No hits*' or specific hit
+#
 
 
 import optparse
@@ -22,15 +35,15 @@ def parse_hmmer(infile):
                 fields = line.strip().split(':')
                 hit_product = fields[-1].strip()
                 #print hit_product
-            elif line.strip():                
+            elif line.strip():
                 if line.strip().startswith('E-value'):
                     #print 'evalue line'
                     for line in fin:
                         if line.strip() and line.strip()[0].isdigit():
                             #print line.strip()
-                            values = line.strip().split() 
+                            values = line.strip().split()
                             #print values
-                            gid = values[8] 
+                            gid = values[8]
                             #evalue = values[3]
                             evalue = float(values[3])
                             #print 'gid', gid
@@ -47,7 +60,7 @@ def parse_hmmer(infile):
                             hit_product = ''
                             break
     #print hit_dict
-    return hit_dict                       
+    return hit_dict
 
 
 def write_hit(outfile, gene_list, hit_dict):
@@ -57,21 +70,19 @@ def write_hit(outfile, gene_list, hit_dict):
             line = '%s\n' % hit_dict[gene]
         else:
             line = '*No hits*\n'
-        fout.write(line)    
+        fout.write(line)
     fout.close()
-    
-    
 
-if __name__ == '__main__':    
+
+
+if __name__ == '__main__':
     parser = optparse.OptionParser()
-                 
-    parser.add_option("-d", "--dboutput", dest="dboutput", help="input file of database search hits") 
-    parser.add_option("-g", "--genefile", dest="genefile", help="input file of gene lists") 
-    parser.add_option("-o", "--outfile", dest="outfile", help="output file") 
-    options, args = parser.parse_args() 
-        
-    gene_list = get_gene_id(options.genefile) 
+
+    parser.add_option("-d", "--dboutput", dest="dboutput", help="input file of database search hits")
+    parser.add_option("-g", "--genefile", dest="genefile", help="input file of gene lists")
+    parser.add_option("-o", "--outfile", dest="outfile", help="output file")
+    options, args = parser.parse_args()
+
+    gene_list = get_gene_id(options.genefile)
     hit_dict = parse_hmmer(options.dboutput)
-    write_hit(options.outfile, gene_list, hit_dict)    
-        
-        
+    write_hit(options.outfile, gene_list, hit_dict)

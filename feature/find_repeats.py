@@ -1,15 +1,15 @@
 # For finding repeats around each genomic interval
+# Author: Bingxin Lu
+# Affiliation : National University of Singapore
+# E-mail : bingxin@comp.nus.edu.sg
+#
 # Input:
 # 1. predicted GIs (genomic intervals)
 # 2. repseek output
 #
-# Sample command to run repseek:
-# output_dir=/home/b/bingxin/genome/StypiCT18
-# organism=NC_010161
-# repseek -l 15 -O 0 -r $output_dir/boundary/$organism.repseek $output_dir/$organism.fna
-#
 # Output:
 # genomic interval annotated with nearby repeats
+#
 
 
 import optparse

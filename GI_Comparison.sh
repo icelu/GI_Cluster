@@ -1,8 +1,10 @@
 # Script for GI_Comparison: Visualizing predicted GIs by different methods for a microbial genome in a Circos plot
+#
 # Author: Bingxin Lu
 # Affiliation : National University of Singapore
 # E-mail : bingxin@comp.nus.edu.sg
-########## usage ##########
+#
+########## Usage ##########
 # ./GI_Comparison.sh -s $prog_dir -o $output_dir -n $organism
 # e.g. sh /home/b/bingxin/GI-Cluster/GI_Comparison.sh  -s /home/b/bingxin/GI-Cluster -o /home/b/bingxin/genome/StypiCT18 -n NC_003198
 

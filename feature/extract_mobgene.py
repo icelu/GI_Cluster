@@ -1,11 +1,11 @@
-import os
-import optparse
-import re
-
-# input file: Pfam-A.hmm, downloaded from ftp site of Pfam
-# ftp://ftp.ebi.ac.uk/pub/databases/Pfam/current_release/Pfam-A.hmm.gz
-#
 # Extract Pfam HMMs representing mobility genes or transposable elements.
+# Author: Bingxin Lu
+# Affiliation : National University of Singapore
+# E-mail : bingxin@comp.nus.edu.sg
+#
+# Input file:
+# Pfam-A.hmm, downloaded from ftp site of Pfam
+# ftp://ftp.ebi.ac.uk/pub/databases/Pfam/current_release/Pfam-A.hmm.gz
 #
 # PATTERN:
 # less Pfam-A.hmm.dat | grep -E '[Tt]ransposase|[Ii]ntegrase|[Tt]ransposon|[Rr]esolvase|[Rr]elaxase|[Ii]nsertion element|[Rr]ecombinase|Bacterial mobilisation|[Tt]ransposable|Mu\b|[Tt]ransposition'
@@ -13,6 +13,12 @@ import re
 # Sample command:
 # python extract_mobgene.py -i Pfam-A.hmm.dat -o mobgene.list
 # hmmfetch -f Pfam-A.hmm mobgene.list > Pfam_mobgene.hmm
+
+
+
+import os
+import optparse
+import re
 
 
 def extract_mob_domain(infile, outfile):

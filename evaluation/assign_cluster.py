@@ -1,5 +1,8 @@
-
 # For genomes with a large set of known GIs, assign labels to predicted regions overlapping with reference GIs for evaluation.
+#
+# Author: Bingxin Lu
+# Affiliation : National University of Singapore
+# E-mail : bingxin@comp.nus.edu.sg
 #
 # Input:
 # 1. predicted GIs with all features

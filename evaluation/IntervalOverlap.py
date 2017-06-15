@@ -2,6 +2,10 @@
 # Given a set of reference intervals (all reported GIs with high reliability), and a set of query intervals (predicted GIs from programs),
 # find the overlap intervals (TPs) and unique regions in the query (FPs)
 #
+# Author: Bingxin Lu
+# Affiliation : National University of Singapore
+# E-mail : bingxin@comp.nus.edu.sg
+#
 # Steps:
 # 1. Find the overlap regions for each reference interval
 # 2. The regions in query intervals with no overlap with reference intervals are FPs
@@ -22,8 +26,16 @@
 # If reference intervals are 0-based (14,20), the overlap of 1bp can be found, namely (12,15) will be reported.
 # Since 1bp overlap is minimal compared with the size of a genomic island, we use 1-based query for consistency.
 #
-# Output file:
+# Input:
+#  Predicted genomic islands
+#  Reference genomic islands
+#  Gene positions
+#
+# Output:
+# false postives
+# multiple metrics (output to the screen, which can be redirected to a file)
 # *_offset: the predicted regions overlapping with each reference region
+# Predicted intervals that overlap with reference intervals (optional)
 #
 # Command sample:
 # python IntervalOverlap.py -c 0.5 -q predicted_GI -i reference_GI -p reference.ptt -o  eval_FPs_GI > eval_std_GI

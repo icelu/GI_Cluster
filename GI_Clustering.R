@@ -1,23 +1,52 @@
 ##=========================================================
 # Script for running Consensus Clustering on genomic regions with extracted GI-related features
+#
 # Author: Bingxin Lu
 # Affiliation : National University of Singapore
 # E-mail : bingxin@comp.nus.edu.sg
+# 
 
-##=========================================================
-# sample usage:
-# Rscript ConsensusClustering.R -f NC_011770.feature.percentage -o ./research/data/species/lesb58/GIFilter/mjsd/
 ##=============================================================
 
+# Utility functions
+if(!require(R.utils)){
+    install.packages("R.utils")
+    library(R.utils)
+}
 
-library(optparse) # for parsing parameters
-library(methods) # for existsFunction
-library(stats) # for hclust
+#   for parsing parameters
+if(!require(optparse)){
+    install.packages("optparse")
+    library(optparse)
+}
+# for existsFunction
+if(!require(methods)){
+    install.packages("methods")
+    library(methods)
+}
+# for hclust
+if(!require(stats)){
+    install.packages("stats")
+    library(stats)
+}
 
-library(Ckmeans.1d.dp) # for 1D kmeans
-library(mclust) # for density estimation
-library(fpc) # for cluster statistics
+# for 1D kmeans
+if(!require(Ckmeans.1d.dp)){
+    install.packages("Ckmeans.1d.dp")
+    library(Ckmeans.1d.dp)
+}
 
+# for density estimation
+if(!require(mclust)){
+    install.packages("mclust")
+    library(mclust)
+}
+
+# for cluster statistics
+if(!require(fpc)){
+    install.packages("fpc")
+    library(fpc)
+}
 
 ##=============================================
 # Read the arguments

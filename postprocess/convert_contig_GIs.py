@@ -1,7 +1,12 @@
 # This script is used to convert the GIs predicted from contigs
 #
+# Author: Bingxin Lu
+# Affiliation : National University of Singapore
+# E-mail : bingxin@comp.nus.edu.sg
+#
 # Input:
 # id_start id_end
+#
 # Output:
 # id start end size
 #

@@ -1,4 +1,10 @@
 # This script is used to visualize several sets of intervals in a range
+#
+# Author: Bingxin Lu
+# Affiliation : National University of Singapore
+# E-mail : bingxin@comp.nus.edu.sg
+#
+
 
 from optparse import OptionParser
 import os

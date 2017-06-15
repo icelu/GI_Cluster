@@ -1,3 +1,10 @@
+# Commonly used functions for analyzing genomic intervals
+#
+# Author: Bingxin Lu
+# Affiliation : National University of Singapore
+# E-mail : bingxin@comp.nus.edu.sg
+#
+
 ############################## interval operation ########################
 import sys, os
 parentdir = os.path.dirname(os.path.dirname(sys.argv[0]))

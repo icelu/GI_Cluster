@@ -1,8 +1,9 @@
 # Given DNA sequence of a genome or a gene or a genomic region, analyze its k-mer spectrum
+# 
 # Author: Bingxin Lu
 # Affiliation : National University of Singapore
 # E-mail : bingxin@comp.nus.edu.sg
-
+#
 # Input:
 # 1. gene sequence file, fasta format
 # 2. genome sequence file, fasta format

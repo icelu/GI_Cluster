@@ -1,5 +1,9 @@
-# Functions to read and standardize fasta files
-
+# Commonly used functions to read and standardize fasta files
+#
+# Author: Bingxin Lu
+# Affiliation : National University of Singapore
+# E-mail : bingxin@comp.nus.edu.sg
+#
 import itertools
 import os
 import random

@@ -2,12 +2,18 @@
 # Create a file for visualization in Circos:
 # where the intervals not shown in the input has an additional column 0
 # and the intervals shown in the input has an additional column 1.
-# e.g.
+#
+ #
+# Author: Bingxin Lu
+# Affiliation : National University of Singapore
+# E-mail : bingxin@comp.nus.edu.sg
+#
 # Input:
+# A tab-delimited files with multiple columns:
 # 1       1       5000    5000    0       0       6       0       0.403   0.101   4.968   0.068   0.034   21.513  0.225   -0.075  0.376   0.697   0.701   0.712   0.707   0.709   0.705   0.696   0.167   0.333   0.000   0.000   0.000   1.200   68.400
-# for each column starting from 5 in the input
+#
 # Output:
-# For each feature 4 columns
+# For each feature, there are 4 columns:
 # hs1 1 14708 0.0
 
 

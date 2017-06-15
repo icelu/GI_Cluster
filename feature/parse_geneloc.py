@@ -1,4 +1,15 @@
-#!/usr/bin/env python
+# Get the location of predicted genes
+#
+# Author: Bingxin Lu
+# Affiliation : National University of Singapore
+# E-mail : bingxin@comp.nus.edu.sg
+#
+# Input:
+# The header of fasta file which contains the predicted genes
+#
+# Output:
+#  ID start end strand
+#
 
 import os
 import optparse
@@ -88,7 +99,7 @@ def read_loc_pred(locfile, format=1):
     return loc_dict
 
 
-
+# Add a column of IDs to each line which descibes the function of a gene
 def read_func(funcfile, loc_dict):
     i = 1
     with open(funcfile, 'r') as fin:

@@ -1,3 +1,17 @@
+# Get the segments by calling GCProfile
+#
+# Author: Bingxin Lu
+# Affiliation : National University of Singapore
+# E-mail : bingxin@comp.nus.edu.sg
+#
+# Input:
+# The genome sequence in FASTA format
+#
+# Output:
+# The positions for a set of intervals
+#
+
+
 import os
 import optparse
 import subprocess

@@ -1,14 +1,18 @@
 INTRODUCTION
 -------------
-GI-Cluster is a program for detecting genomic islands (GIs) in newly sequenced microbial genomes by consensus clustering on multiple features.
-It includes a sets of scripts for extracting GI-related features from a newly sequenced microbial genome,
+GI-Cluster is a program for detecting genomic islands (GIs) in a genome by consensus clustering on multiple features.
+It includes a sets of scripts for extracting GI-related features from a genome sequence,
 performing consensus clustering on the obtained feature matrix to get potential GIs,
 and visualizing the predictions.
 
 Author: Bingxin Lu
 Affiliation : National University of Singapore
 E-mail : bingxin@comp.nus.edu.sg
-Last modified: 4-Jun-2017
+
+
+CITATION
+--------------------------------
+Lu, B. and Leong, H. W. (2017). GI-Cluster: detecting genomic islands via consensus clustering on multiple features. In preparation.
 
 
 Content of GI-Cluster program
@@ -20,20 +24,23 @@ Content of GI-Cluster program
  segmentation -- scripts to segment large genome sequences into short intervals
  util -- scripts of general usage
  visualization -- scripts for visualizing predictions
- Gene_Prediction.sh
- GI_Clustering.R
- GI_Comparison.sh
- GI_Feature.sh
- GI_Segmentation.sh
- GI-Cluster.sh
- Segment_Feature.sh
+
+ Gene_Prediction.sh -- scripts for predicting genes from genome sequences
+ GI_Clustering.R -- scripts for running Consensus Clustering on genomic regions with extracted GI-related features
+ GI_Comparison.sh -- scripts for visualizing predictions from different methods
+ GI_Feature.sh -- scripts for extracting features related to genomic islands in the unit of genes
+ GI_Segmentation.sh -- scripts for splitting a genome sequence into a set of segments
+ GI-Cluster.sh  -- the main program
+ Segment_Feature.sh -- scripts for extracting features related to genomic islands in a genomic region
+
  README -- this file.
 
 
 SYSTEM REQUIREMENTS
 ------------------
-GI-Cluster uses bash scripts to connect each step.
-So it is not convenient to run on Windows system.
+Unix-based systems
+
+Since GI-Cluster uses bash scripts to connect each step, it is not convenient to run the program on Windows system.
 
 
 SOFTWARE REQUIREMENTS
@@ -41,45 +48,29 @@ SOFTWARE REQUIREMENTS
 There are several external tools and packages that GI-Cluster depends on.
 
 ########## Prebuilt database ##########
-# PFAM (ftp://ftp.ebi.ac.uk/pub/databases/Pfam/current_release/Pfam-A.hmm.gz)
-# RFAM (ftp://ftp.ebi.ac.uk/pub/databases/Rfam/CURRENT/Rfam.tar.gz)
-# PHAST (http://phast.wishartlab.com/phage_finder/DB/prophage_virus.db)
-# VFDB (http://www.mgc.ac.cn/VFs/download.htm)
-# CARD (https://card.mcmaster.ca/download)
-# COG (https://www.ncbi.nlm.nih.gov/COG/)
+PFAM (ftp://ftp.ebi.ac.uk/pub/databases/Pfam/current_release/Pfam-A.hmm.gz)
+RFAM (ftp://ftp.ebi.ac.uk/pub/databases/Rfam/CURRENT/Rfam.tar.gz)
+PHAST (http://phast.wishartlab.com/phage_finder/DB/prophage_virus.db)
+VFDB (http://www.mgc.ac.cn/VFs/download.htm)
+CARD (https://card.mcmaster.ca/download)
+COG (https://www.ncbi.nlm.nih.gov/COG/)
 
 
 ########## External tools ##########
-# Prodigal  -- gene prediction
-# Blast -- database search
-# Hmmmer -- database search
-# Circos -- visualization
-# tRNAscan-SE -- tRNA prediction
-# Infernal cmscan  -- ncRNA prediction
-# Repseek -- repeat detection
+Prodigal  -- gene prediction
+Blast -- database search
+Hmmmer -- database search
+Circos -- visualization
+tRNAscan-SE -- tRNA prediction
+Infernal cmscan  -- ncRNA prediction
+Repseek -- repeat detection
 
 
 ########## Python packages to install ##########
 scipy  -- for chisquare
 
 ########## R packages to install ##########
-install.packages("R.utils")
-
-install.packages("mclust")
-install.packages("cluster")
-install.packages("apcluster")
-install.packages("LICORS")
-install.packages("kernlab")
-install.packages("clues")
-
-install.packages("reshape2")
-install.packages("ggplot2")
-
-# optional
-install.packages("NbClust")
-install.packages("clustertend")
-install.packages("factoextra")
-
+Required R packages will installed automatically
 
 INSTALLATION
 ------------
@@ -110,23 +101,23 @@ prog_dir=/home/b/bingxin/GI-Cluster
 nohup /usr/bin/time sh $prog_dir/GI-Cluster.sh -s $prog_dir -o $output_dir -n $organism -m $seg_prog -p $pred_prog -d 16 -t 0 > std_"$seg_prog"_"$pred_prog"_unannotated 2>&1 &
 
 
-# Run on draft genome with gene predictions
+# Run on incomplete genome with gene predictions
 gnome=Vibrio_cholerae_RC9_uid55789
 organism=NZ_ACHX00000000
 pred_prog=prodigal
 seg_prog=window
 # pred_prog=ncbi
-output_dir=/home/b/bingxin/genome/draft/$gnome
+output_dir=/home/b/bingxin/genome/incomplete/$gnome
 prog_dir=/home/b/bingxin/GI-Cluster
 nohup /usr/bin/time sh $prog_dir/GI-Cluster.sh -s $prog_dir -o $output_dir -n $organism -m $seg_prog -p $pred_prog -d 16 -b 1 > std_"$seg_prog"_"$pred_prog" 2>&1 &
 
 
-# Run on draft genome without gene predictions
+# Run on incomplete genome without gene predictions
 gnome=Vibrio_cholerae_RC9_uid55789
 organism=NZ_ACHX00000000
 pred_prog=none
 seg_prog=window
-output_dir=/home/b/bingxin/genome/draft/$gnome
+output_dir=/home/b/bingxin/genome/incomplete/$gnome
 prog_dir=/home/b/bingxin/GI-Cluster
 nohup /usr/bin/time sh $prog_dir/GI-Cluster.sh -s $prog_dir -o $output_dir -n $organism -m $seg_prog -p $pred_prog -d 16 -b 1 -t 0 > std_"$seg_prog"_"$pred_prog"_unannotated 2>&1 &
 

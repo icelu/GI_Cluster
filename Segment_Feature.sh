@@ -1,11 +1,9 @@
 # Script for extracting features related to genomic islands in a genomic region
+#
 # Author: Bingxin Lu
 # Affiliation : National University of Singapore
 # E-mail : bingxin@comp.nus.edu.sg
-
-########## Usage ##########
-# ./Segment_Feature.sh -s  $prog_dir -o $output_dir -n $organism -m $seg_prog -b $mode
-# e.g. ./Segment_Feature.sh -s ./GIFilter -o ./research/data/species/cft73 -n NC_004431  -m ./research/software/HGT/mjsd -b 0
+# 
 
 
 software=$(basename $0)
@@ -17,7 +15,7 @@ Usage: $software [options] -s [the directory containing all the scripts] -o [the
 -n [the name of the organism (e.g. NC_003198)] -m [programs for genome segmation (e.g. mjsd, gcprofile, gisvm, alienhunter)] -p [programs for gene prediction (e.g. prodigal, ncbi)]
 
 OPTIONS	Default	DESCIPTION
--b	0	: mode of running: 0 for complete genome, 1 for draft genome (contigs).
+-b	0	: mode of running: 0 for complete genome, 1 for incomplete genome (contigs).
 -t  1 : availablity of gene predictions: 1: with gene predictions, 0: without gene predictions.
 -h 	----	: print this help
   "
@@ -91,7 +89,7 @@ then
     then
       python $prog_dir/feature/analyze_GC.py -r -i $output_dir/$organism.fna -s $output_dir/$seg_prog/$organism.segment -o $output_dir/$seg_prog/feature/$organism.gc
     fi
-    if [ $mode == 1 ] # For draft genome
+    if [ $mode == 1 ] # For incomplete genome
     then
       python $prog_dir/feature/analyze_GC.py -c -i $output_dir/$organism.fna -s $output_dir/$seg_prog/$organism.segment -o $output_dir/$seg_prog/feature/$organism.gc
     fi

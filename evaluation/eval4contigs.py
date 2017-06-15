@@ -1,5 +1,9 @@
 # This script is used to evaluate the predicted genomic islands (GIs) on contigs
 #
+# Author: Bingxin Lu
+# Affiliation : National University of Singapore
+# E-mail : bingxin@comp.nus.edu.sg
+#
 # Input:
 # Predicted GIs: cid start end (size)
 # Reference GIs: cid start end

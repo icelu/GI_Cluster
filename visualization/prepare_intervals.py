@@ -1,4 +1,10 @@
 # Create interval files for visualization in Circos
+#
+# Author: Bingxin Lu
+# Affiliation : National University of Singapore
+# E-mail : bingxin@comp.nus.edu.sg
+#
+
 
 import os
 import optparse
