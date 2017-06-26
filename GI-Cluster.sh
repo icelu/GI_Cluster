@@ -17,7 +17,7 @@ function usage() {
   echo -e "GI-Cluster: detecting genomic islands by consensus clustering on multiple features"
   echo "Version 1.0
 Usage: $software [options] -s [the directory containing all the scripts] -o [the output directory]
--n [the name of the organism (NCBI Accession, e.g. NC_003198)] -m [programs for genome segmation (e.g. window, mjsd, gcprofile, gisvm, alienhunter)] -p [programs for gene prediction (e.g. prodigal, ncbi, none)]
+-n [the name of the organism (NCBI Accession, e.g. NC_003198)] -m [programs for genome segmation (e.g. window, mjsd, gcprofile, gisvm, alienhunter)] -p [programs for gene prediction (e.g. prodigal, ncbi, ncbi_old, none)]
 
 OPTIONS	Default	DESCIPTION
 -b	0	: mode of running: 0 for complete genome, 1 for incomplete genome (contigs).
@@ -96,11 +96,19 @@ then
 echo "Running GI-Cluster for a incomplete genome"
 fi
 
+
+# Rename the input file to be "$organism".fna
+if [ ! -f $output_dir/"$organism".fna ]
+then
+  cp $output_dir/"$organism"_genomic.fna $output_dir/"$organism".fna
+fi
+
+
 if [ $gene_prediction == 1 ] # With gene predictions
 then
   echo "Running GI-Cluster with gene predictions"
 ############## Predict genes from raw genome sequence ##################
-# 3 types of required output files: fna (DNA sequence), ffn (gene sequence), faa (protein sequence)
+# 3 types of required output files: fna (DNA sequence), ffn (ir _cds_from_genomic.fna, gene sequence -- used for analyzing sequence composition), faa (protein sequence -- used for analyzing gene function)
   sh $prog_dir/Gene_Prediction.sh -s $prog_dir -o $output_dir -n $organism -m $seg_prog -p $pred_prog -b $mode
 
 ############## Compute known features related to genomic islands in the unit of genes #########################

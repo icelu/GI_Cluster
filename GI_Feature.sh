@@ -3,7 +3,7 @@
 # Author: Bingxin Lu
 # Affiliation : National University of Singapore
 # E-mail : bingxin@comp.nus.edu.sg
-# 
+#
 
 
 ########## Usage ##########
@@ -17,7 +17,7 @@ function usage() {
   echo -e "GI_Feature: extracting features related to genomic islands in a genomic region"
   echo "Version 1.0
 Usage: $software [options] -s [the directory containing all the scripts] -o [the output directory]
--n [the name of the organism (e.g. NC_003198)] -m [programs for genome segmation (e.g. mjsd, gcprofile, gisvm, alienhunter)] -p [programs for gene prediction (e.g. prodigal, ncbi)]
+-n [the name of the organism (e.g. NC_003198)] -m [programs for genome segmation (e.g. mjsd, gcprofile, gisvm, alienhunter)] -p [programs for gene prediction (e.g. prodigal, ncbi, ncbi_old, none)]
 
 OPTIONS	Default	DESCIPTION
 -b	0	: mode of running: 0 for complete genome, 1 for incomplete genome (contigs).
@@ -34,6 +34,7 @@ OPTIONS	Default	DESCIPTION
   exit -1
 }
 
+pred_prog=none
 
 phage_evalue=1e-5
 virdb_evalue=1e-5
@@ -180,7 +181,7 @@ if [ "$pred_prog" == "prodigal" ] # Replace the ID for each protein
 then
   awk '/^>/{print ">" ++i; next}{print}' < $output_dir/$pred_prog/genome/$organism.faa > $output_dir/$pred_prog/genome/"$organism"_rename.faa
 fi
-if [ "$pred_prog" == "ncbi" ] # Replace the ID for each protein
+if [[ "$pred_prog" == *"ncbi"* ]] # Replace the ID for each protein
 then
   cp $output_dir/$pred_prog/genome/$organism.faa $output_dir/$pred_prog/genome/"$organism"_rename.faa
 fi
@@ -231,17 +232,13 @@ then
   awk -v size="$protnum" '{for(i=0;i<size;i++) print}' "$output_dir/$pred_prog/genome/$organism".genomeid > "$output_dir/$pred_prog/genome/$organism".gid
   rm "$output_dir/$pred_prog/genome/$organism".genomeid
 
-  if [ "$pred_prog" == "ncbi" ]
+  if [[ "$pred_prog" == *"ncbi"* ]]
   then
-    less $output_dir/$pred_prog/genome/$organism.gene_id | cut -d'|' -f2 > $output_dir/$pred_prog/genome/$organism.protid
     paste -d',' $output_dir/$pred_prog/genome/$organism.protid $output_dir/$pred_prog/genome/$organism.gid > $output_dir/$pred_prog/genome/$organism.p2o.csv
   else # For genes predicted by Prodigal
     less $output_dir/$pred_prog/genome/"$organism"_rename.faa | grep '^>'  | cut -d' ' -f1 > $output_dir/$pred_prog/genome/$organism.protid
     sed -i 's/^>//g' $output_dir/$pred_prog/genome/$organism.protid
-    # less $output_dir/$pred_prog/genome/$organism.gene_id | cut -d'|' -f5 > $output_dir/$pred_prog/genome/$organism.protid
     paste -d',' $output_dir/$pred_prog/genome/$organism.protid $output_dir/$pred_prog/genome/$organism.gid > $output_dir/$pred_prog/genome/$organism.p2o.csv
-    # paste -d',' $output_dir/$pred_prog/genome/$organism.gene_id $output_dir/$pred_prog/genome/$organism.gid > $output_dir/$pred_prog/genome/$organism.p2o.csv
-    # sed -i 's/>//g' $output_dir/$pred_prog/genome/$organism.p2o.csv
   fi
 
   cat $output_dir/$pred_prog/genome/"$organism".p2o.csv $prog_dir/db/COG/COG.p2o.csv > $output_dir/$pred_prog/genome/tmp.p2o.csv

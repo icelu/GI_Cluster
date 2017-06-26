@@ -4,7 +4,7 @@
 # Author: Bingxin Lu
 # Affiliation : National University of Singapore
 # E-mail : bingxin@comp.nus.edu.sg
-# 
+#
 
 ##=============================================================
 
@@ -166,9 +166,9 @@ if (verbose=="true"){
 R.utils::sourceDirectory(libdir, modifiedOnly=FALSE)
 
 # The format of the feature table:
-# For genome with gene annotations:
+# For genome with gene annotations: (31 columns)
 # (ID, start, end, size, has_trna, has_repeat, cdst, rnat, gc, gc1, gc3, cub, aab, chi, cai, cbi, fop, kmer2, kmer3, kmer4, kmer5, kmer6, kmer7, kmer8, mbp, phagep, vfp, arp, ngp, cdsp, inter_gene_dist)
-# For genome without gene annotations:
+# For genome without gene annotations: (14 columns)
 # (ID, start, end, size, has_trna, has_repeat, gc, kmer2, kmer3, kmer4, kmer5, kmer6, kmer7, kmer8)
 ft0 <- read.table(file)
 

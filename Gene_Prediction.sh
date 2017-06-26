@@ -16,7 +16,7 @@ function usage() {
   echo -e "Gene_Prediction: predicting genes from (complete/incomplete) genome sequence"
   echo "Version 1.0
 Usage: $software [options] -s [the directory containing all the scripts] -o [the output directory]
--n [the name of the organism (e.g. NC_003198)] -m [programs for genome segmation (e.g. mjsd, gcprofile, gisvm, alienhunter)] -p [programs for gene prediction (e.g. prodigal, ncbi)]
+-n [the name of the organism (e.g. NC_003198)] -m [programs for genome segmation (e.g. mjsd, gcprofile, gisvm, alienhunter)] -p [programs for gene prediction (e.g. prodigal, ncbi, ncbi_old)]
 
 OPTIONS	Default	DESCIPTION
 -b	0	: mode of running: 0 for complete genome, 1 for incomplete genome (contigs).
@@ -64,14 +64,25 @@ then
   fi
 fi
 
+if [ "$pred_prog" == "ncbi_old" ]
+then
+  echo "##########################################"
+  echo "Getting gene predictions from NCBI old files"
+  if [ ! -f $output_dir/$pred_prog/genome/"$organism".ffn ]
+  then
+    cp $output_dir/"$organism".ffn $output_dir/$pred_prog/genome/"$organism".ffn
+    cp $output_dir/"$organism".faa $output_dir/$pred_prog/genome/"$organism".faa
+  fi
+fi
+
 if [ "$pred_prog" == "ncbi" ]
 then
   echo "##########################################"
   echo "Getting gene predictions from NCBI"
   if [ ! -f $output_dir/$pred_prog/genome/"$organism".ffn ]
   then
-    cp $output_dir/"$organism".ffn $output_dir/$pred_prog/genome/"$organism".ffn
-    cp $output_dir/"$organism".faa $output_dir/$pred_prog/genome/"$organism".faa
+    cp $output_dir/"$organism"_cds_from_genomic.fna $output_dir/$pred_prog/genome/"$organism"_cds_from_genomic.fna
+    cp $output_dir/"$organism"_protein.faa $output_dir/$pred_prog/genome/"$organism".faa
   fi
 fi
 
@@ -85,9 +96,19 @@ then
   then
     less $output_dir/$pred_prog/genome/"$organism".ffn | grep '^>'  | cut -d'#' -f2-4  > $output_dir/$pred_prog/genome/$organism.gene_locus
     python $prog_dir/feature/parse_geneloc.py -l $output_dir/$pred_prog/genome/$organism.gene_locus  -o $output_dir/$pred_prog/genome/$organism.glist
-  else
-    # For   ncbi annotation files
+  fi
+  if [ "$pred_prog" == "ncbi_old" ]
+  then
+    # For NCBI annotation files (old version)
+    # e.g. >gi|33864539|ref|NC_005070.1|:174-1331 Synechococcus sp. WH 8102, complete genome
+    less $output_dir/$pred_prog/genome/$organism.gene_id | cut -d'|' -f2 > $output_dir/$pred_prog/genome/$organism.protid
     less $output_dir/$pred_prog/genome/"$organism".ffn | grep '^>'  | cut -d':' -f2 | cut -d' ' -f1 > $output_dir/$pred_prog/genome/$organism.gene_locus
     python $prog_dir/feature/parse_geneloc.py -n -l $output_dir/$pred_prog/genome/$organism.gene_locus  -o $output_dir/$pred_prog/genome/$organism.glist
+  fi
+  if [ "$pred_prog" == "ncbi" ]
+  then
+    # For NCBI annotation files (new version)
+    less $output_dir/$pred_prog/genome/"$organism".faa | grep '^>'  | cut -d'>' -f2 | cut -d' ' -f1 > $output_dir/$pred_prog/genome/$organism.protid
+    python $prog_dir/feature/parse_ncbi.py -i $output_dir/$pred_prog/genome/"$organism"_cds_from_genomic.fna -p $output_dir/$pred_prog/genome/$organism.protid -d $output_dir/$pred_prog/genome/$organism.gene_id -l $output_dir/$pred_prog/genome/$organism.glist -g $output_dir/$pred_prog/genome/$organism.ffn
   fi
 fi

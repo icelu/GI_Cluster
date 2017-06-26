@@ -29,7 +29,7 @@
 # Input:
 #  Predicted genomic islands
 #  Reference genomic islands
-#  Gene positions
+#  Gene positions (.ptt file from NCBI, or a tab-delimited custom file with gene positions in which Start is at the second column and End is at the third column)
 #
 # Output:
 # false postives
@@ -177,6 +177,21 @@ def getGenelocList(infile):
     return genelist
 
 
+def getGeneList(infile):
+    '''
+    Protein-coding gene position can be read from a file with the following format:
+    Input format:
+    ID\tStart\tEnd\tStrand
+    '''
+    genelist = []
+    with open(infile, 'rb') as fin:
+        for line in fin:
+            fields = line.strip().split('\t')
+            start = int(fields[1])
+            end = int(fields[2])
+            genelist.append((start, end))
+    return genelist
+
 
 def getGenesInInterval(interval, genelist, alpha=0):
     '''
@@ -258,7 +273,7 @@ def getMetric_base(ref_intervals, query_intervals, genelist, options):
         foffset = open(offsetfile, 'w')
 
     # For evaluation based on genes
-    if options.pttfile:
+    if options.pttfile or options.gene_list:
         overlap_total_genes = set()
         ref_total_genes = set()
     tp_interval = 0
@@ -293,7 +308,7 @@ def getMetric_base(ref_intervals, query_intervals, genelist, options):
 
 
         ##################################### gene metrics ####################################################
-        if options.pttfile:
+        if options.pttfile or options.gene_list:
             ref_genes = getGenesInInterval((start, end), genelist, options.cutoff_gene)
             num_refgenes = len(ref_genes)
             ref_total_genes.update(ref_genes)
@@ -395,7 +410,7 @@ def getMetric_base(ref_intervals, query_intervals, genelist, options):
                 gaps.append(gap)
                 p1 = overlap[1]
         # Find all genes in a reference interval
-        if options.pttfile:
+        if options.pttfile or options.gene_list:
             # 8 fields
             line_str += '\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s'
             line.extend([overlap_percentage, overlap_percentage_pred, num_refgenes, num_predictedgenes, num_overlapgenes, overlap_gene_percentage, overlap_gene_percentage_pred, gaps])
@@ -470,7 +485,7 @@ def getMetric_base(ref_intervals, query_intervals, genelist, options):
     '''
     This is in term of overlapping genes.
     '''
-    if options.pttfile:
+    if options.pttfile or options.gene_list:
         tp = len(set(overlap_total_genes))
         g_real = len(set(ref_total_genes))
         query_total_genes = set()
@@ -498,7 +513,7 @@ def getMetric_base(ref_intervals, query_intervals, genelist, options):
         acc = (g_recall+tnr)/2
         mcc = (tp*tn - fp*fn)/math.sqrt((tp+fp)*(tp+fn)*(tn+fp)*(tn+fn))
 
-    if options.pttfile:
+    if options.pttfile or options.gene_list:
         format_str = 'Bases Recall: %.3f\tPrecision: %.3f\tF-measure: %.3f\tF-measure Difference: %.3f\tLeft offset: %d\tRight: %d\tPredicted bases: %d\tOverlap bases: %d\tAverage interval size: %d\tOverlap genes: %d\tPredicted genes: %d\tPredicted intervals: %d\tGene Recall: %.3f\tPrecision: %.3f\tF-measure: %.3f\tAvg offset: %d\tTNR: %.3f\tOACC: %.3f\tACC: %.3f\tMCC: %.3f'
         print format_str % (recall, precision, fmeasure, diff_fmeasure, avg_left, avg_right, predicted, overlap_totalSize, avg_query_len, len(overlap_total_genes), g_predicted, len(query_intervals), g_recall, g_precision, g_fmeasure, avg_offset, tnr, oacc, acc, mcc)
     else:
@@ -530,7 +545,8 @@ if __name__ == '__main__':
     parser.add_option("-l", "--overlap", dest="overlap", help="output file of overlapping intervals")
     parser.add_option("-c", "", dest="cutoff_gene", type="float", default="0", help="the fraction of genes covered")
     parser.add_option("-b", "", dest="cutoff_base", type="float", default="0.4", help="the fraction of bases covered in a GI")
-    parser.add_option("-p", "--pttfile", dest="pttfile", help="input ptt file")
+    parser.add_option("-p", "--pttfile", dest="pttfile", help="input ptt file from NCBI")
+    parser.add_option("-g", "--gene_list", dest="gene_list", help="input file containing a list of protein-coding genes (ID Start End Strand)")
     parser.add_option("-z", dest="zero", default=False, action="store_true", \
           help="the query interval is 0-based (default=false)")
 
@@ -545,7 +561,9 @@ if __name__ == '__main__':
         query_intervals = getIntervals(options.qinterval)
 
     if options.pttfile:
-        genelist = (getGenelocList(options.pttfile))
+        genelist = getGenelocList(options.pttfile)
+    elif options.gene_list:
+        genelist = getGeneList(options.gene_list)
     else:
         genelist = []
 
