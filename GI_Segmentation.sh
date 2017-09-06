@@ -5,7 +5,6 @@
 # E-mail : bingxin@comp.nus.edu.sg
 #
 
-
 ########## Usage ##########
 # ./GI_Segmentation.sh -s  $prog_dir -o $output_dir -n $organism -m $seg_prog -p prodigal
 # e.g. ./GI_Segmentation.sh -s ./GIFilter -o ./research/data/species/cft73 -n NC_004431  -m ./research/software/HGT/mjsd -p prodigal
@@ -21,12 +20,17 @@ Usage: $software [options] -s [the directory containing all the scripts] -o [the
 
 OPTIONS	Default	DESCIPTION
 -b	0	: mode of running: 0 for complete genome, 1 for incomplete genome (contigs).
--h 	----	: print this help
+-w 5000: the window size.
+-j 5000: the step size.
+-h 	----	: print this help.
   "
   exit -1
 }
 
-while getopts "b:s:o:n:m:p:h" OPT; do
+width=5000
+step=5000
+
+while getopts "b:s:o:n:m:p:w:j:h" OPT; do
   case $OPT in
     b) mode=$OPTARG || exit 1;;
 
@@ -35,6 +39,9 @@ while getopts "b:s:o:n:m:p:h" OPT; do
     n) organism=$OPTARG || exit 1;;
     m) seg_prog=$OPTARG || exit 1;;
     p) pred_prog=$OPTARG || exit 1;;
+
+    w) width=$OPTARG || exit 1;;
+    j) step=$OPTARG || exit 1;;
 
     h) usage && exit;;
   esac
@@ -58,9 +65,9 @@ then
   then
     if [ $mode == 0 ]  # For finished complete genomes
     then
-      python $prog_dir/segmentation/generate_segs.py -i $output_dir/$organism.fna -o $output_dir/$seg_prog/$organism."$seg_prog"
+      python $prog_dir/segmentation/generate_segs.py -w $width -s $step -i $output_dir/$organism.fna -o $output_dir/$seg_prog/$organism."$seg_prog"."$width"."$step"
     else  # For contigs
-      python $prog_dir/segmentation/generate_segs.py -c -i $output_dir/$organism.fna -o $output_dir/$seg_prog/$organism."$seg_prog"
+      python $prog_dir/segmentation/generate_segs.py -w $width -s $step -c -i $output_dir/$organism.fna -o $output_dir/$seg_prog/$organism."$seg_prog"."$width"."$step"
     fi
   fi
 
@@ -69,12 +76,12 @@ then
     if [ "$seg_prog" == "$p1" ]
     then
       $prog_dir/bin/mjsd/so_jensen -f $output_dir/$organism.fna -s 0.1 -o 2 > $output_dir/$seg_prog/$organism.$seg_prog.orig
-      python $prog_dir/segmentation/parse_MJSD_segs.py -f $output_dir/$organism.fna -m 5000 -s $output_dir/$seg_prog/$organism.$seg_prog.orig   > $output_dir/$seg_prog/$organism."$seg_prog"
+      python $prog_dir/segmentation/parse_MJSD_segs.py -f $output_dir/$organism.fna -m $width -s $output_dir/$seg_prog/$organism.$seg_prog.orig   > $output_dir/$seg_prog/$organism."$seg_prog"
     fi
 
     if [ "$seg_prog" == "$p2" ]
     then
-      python $prog_dir/segmentation/parse_gcprofile_segs.py -t 10 -m 5000 -f $output_dir/$organism.fna -p $prog_dir/bin/gcprofile/linux/ -o $output_dir/$seg_prog/$organism."$seg_prog"
+      python $prog_dir/segmentation/parse_gcprofile_segs.py -t 10 -m $width -f $output_dir/$organism.fna -p $prog_dir/bin/gcprofile/linux/ -o $output_dir/$seg_prog/$organism."$seg_prog"
     fi
 
     if [ "$seg_prog" == "$p3" ]
@@ -96,4 +103,4 @@ then
   fi
 fi
 
-cp $output_dir/$seg_prog/"$organism"."$seg_prog" $output_dir/$seg_prog/$organism.segment
+cp $output_dir/$seg_prog/"$organism"."$seg_prog"."$width"."$step" $output_dir/$seg_prog/$organism.segment

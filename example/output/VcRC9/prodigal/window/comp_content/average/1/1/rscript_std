@@ -1,0 +1,147 @@
+Parameters used here:
+clnum: 2 
+seg_prog: window 
+reps: 1 
+pItem: 1 
+pFeature: 1 
+List of 2
+ $ : chr "Ckmeans.1d.dp"
+ $ : chr "densityMclust"
+clusterAlg 
+
+ list()
+alParams: 
+List of 1
+ $ : chr "hclust"
+mergeAlg 
+
+List of 1
+ $ :List of 1
+  ..$ method: chr "average"
+mergeParams 
+
+Number of selected features: 18 
+[1] TRUE
+clmem
+  1   2   3 
+ 73 388 372 
+clmem
+  1   2   3 
+762  66   5 
+clmem
+  1   2   3 
+764  60   9 
+clmem
+  1   2   3 
+352 352 129 
+clmem
+  1   2   3 
+683 136  14 
+clmem
+  1   2   3 
+483 264  86 
+clmem
+  1   2   3 
+310 414 109 
+clmem
+  1   2   3 
+ 41 479 313 
+clmem
+  1   2   3 
+ 44 397 392 
+clmem
+  1   2   3 
+ 45 382 406 
+clmem
+  1   2   3 
+ 50 394 389 
+clmem
+  1   2   3 
+ 63 401 369 
+clmem
+  1   2   3 
+ 64 399 370 
+clmem
+  1   2   3 
+ 86 463 284 
+clmem
+  1   2   3 
+253 448 132 
+clmem
+  1   2   3 
+436 290 107 
+clmem
+  1   2   3 
+505 260  68 
+clmem
+  1   2   3 
+553 217  63 
+clmem
+  1   2 
+110 723 
+clmem
+  1   2   3   4   5   6   7   8   9 
+ 43  75 115 104 120 158 128  70  20 
+clmem
+  1   2   3   4   5   6   7   8   9 
+ 60  68  72 137 146 165 108  68   9 
+clmem
+  1   2 
+617 216 
+clmem
+  1   2   3   4   5   6   7 
+ 82 121 134 196 150 132  18 
+clmem
+  1   2 
+647 186 
+clmem
+  1   2 
+768  65 
+clmem
+  1   2 
+105 728 
+clmem
+  1   2 
+ 41 792 
+clmem
+  1   2 
+ 43 790 
+clmem
+  1   2 
+ 44 789 
+clmem
+  1   2 
+ 54 779 
+clmem
+  1   2 
+ 60 773 
+clmem
+  1   2   3 
+ 62 750  21 
+clmem
+  1   3   4   5   6   7   8   9 
+237  53 166 119 126  68  42  22 
+clmem
+  1   2   3   4   5   6   7 
+192 184  92 143 115  61  46 
+clmem
+  1   2   3   4   5   6   7 
+503  50 135  54  23  55  13 
+clmem
+  1   3   4   5   6   7   8 
+553  97  51  44  48  30  10 
+ int [1:18] 1 2 3 4 5 6 7 8 9 10 ...
+ num [1:833, 1:833] 1 0.556 0.5 0.528 0.25 ...
+ - attr(*, "dimnames")=List of 2
+  ..$ : chr [1:833] "1" "2" "3" "4" ...
+  ..$ : chr [1:833] "1" "2" "3" "4" ...
+silwidth:  0.4258162 
+dunn:  0.3030303 
+dunn2:  1.732079 
+#########################
+Cutoffs to determine normal regions:  0.2 0.25 0 0 1 122.25
+new non-GIs:  1 31 
+new GI:  106 31 
+Number of Intervals:  847 31
+Number of GIs:  146 31
+Number of non-GIs:  701 31

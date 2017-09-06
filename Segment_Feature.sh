@@ -122,7 +122,7 @@ then
   then
     python $prog_dir/feature/mergeFeature.py -g $output_dir/$pred_prog/feature/$organism.feature.multi -o $seg_feature1 -s $segs -r $output_dir/$pred_prog/feature/$organism.cmscan.tbl -c -m $output_dir/$organism.fna -d $output_dir/$pred_prog/genome/$organism.gene_id
   fi
-  if [ $mode == 0 ] # For compute genome with gene predictions
+  if [ $mode == 0 ] # For complete genome with gene predictions
   then
       python $prog_dir/feature/mergeFeature.py -g $output_dir/$pred_prog/feature/$organism.feature.multi -o $seg_feature1 -s $segs -r $output_dir/$pred_prog/feature/$organism.cmscan.tbl
   fi

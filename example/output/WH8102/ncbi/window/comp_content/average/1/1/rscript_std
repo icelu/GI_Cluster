@@ -1,0 +1,147 @@
+Parameters used here:
+clnum: 2 
+seg_prog: window 
+reps: 1 
+pItem: 1 
+pFeature: 1 
+List of 2
+ $ : chr "Ckmeans.1d.dp"
+ $ : chr "densityMclust"
+clusterAlg 
+
+ list()
+alParams: 
+List of 1
+ $ : chr "hclust"
+mergeAlg 
+
+List of 1
+ $ :List of 1
+  ..$ method: chr "average"
+mergeParams 
+
+Number of selected features: 18 
+[1] FALSE
+clmem
+  1   2   3 
+ 35 122 324 
+clmem
+  1   2   3 
+443  28  10 
+clmem
+  1   2   3 
+449  20  12 
+clmem
+  1   2   3 
+262 174  45 
+clmem
+  1   2   3 
+455  19   7 
+clmem
+  1   2   3 
+345  99  37 
+clmem
+  1   2   3 
+101 262 118 
+clmem
+  1   2   3 
+ 49 142 290 
+clmem
+  1   2   3 
+ 48 136 297 
+clmem
+  1   2   3 
+ 47 141 293 
+clmem
+  1   2   3 
+ 47 140 294 
+clmem
+  1   2   3 
+ 61 206 214 
+clmem
+  1   2   3 
+ 63 227 191 
+clmem
+  1   2   3 
+ 64 238 179 
+clmem
+  1   2   3 
+144 226 111 
+clmem
+  1   2   3 
+176 228  77 
+clmem
+  1   2   3 
+342 107  32 
+clmem
+  1   2   3 
+233 173  75 
+clmem
+  1   2 
+ 80 401 
+clmem
+  1   2   3   4   5   6   7 
+ 57  61  83 127  65  63  25 
+clmem
+  1   2   3   4   5   6   7 
+ 63  62 106 113  87  22  28 
+clmem
+  1   2   3 
+161 255  65 
+clmem
+  1   2   3   4   5   6   7 
+ 53  42 104 100 125  34  23 
+clmem
+  1   2   3 
+349  84  48 
+clmem
+  1   2 
+124 357 
+clmem
+  1   2 
+ 83 398 
+clmem
+  1   2 
+ 81 400 
+clmem
+  1   2 
+ 79 402 
+clmem
+  1   2 
+ 80 401 
+clmem
+  1   2 
+ 79 402 
+clmem
+  1   2 
+ 80 401 
+clmem
+  1   2 
+ 57 424 
+clmem
+  1   3   4   5   6   7 
+132 129  73  87  49  11 
+clmem
+  1   2   3   4   5   6 
+174 133  65  60  38  11 
+clmem
+  1   2   3   4   5 
+342  60  51  23   5 
+clmem
+  1   3   5   6   7   8   9 
+136 136  61  73  32  29  14 
+ int [1:18] 1 2 3 4 5 6 7 8 9 10 ...
+ num [1:481, 1:481] 1 0.75 0.694 0.694 0.667 ...
+ - attr(*, "dimnames")=List of 2
+  ..$ : chr [1:481] "1" "2" "3" "4" ...
+  ..$ : chr [1:481] "1" "2" "3" "4" ...
+silwidth:  0.4982956 
+dunn:  0.2580645 
+dunn2:  1.769968 
+#########################
+Cutoffs to determine normal regions:  0.2 0.167 0.1 0.2 1.2 56.667
+new non-GIs:  0 31 
+new GI:  43 31 
+Number of Intervals:  487 31
+Number of GIs:  121 31
+Number of non-GIs:  366 31

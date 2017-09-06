@@ -38,8 +38,11 @@ def get_data(indir):
 
 def plot_intervals(data, fig_file):
     # set different colors for each set of positions
-    col = {'ggred':'#F8766d', 'ggblue':'#619CFF', 'ggpurple':'#C77CFF'}
-    colors = [col['ggred'], col['ggblue'], col['ggpurple']]
+    # col = {'ggred':'#F8766d', 'ggblue':'#619CFF', 'ggpurple':'#C77CFF'}
+    # colors = [col['ggred'], col['ggblue'], col['ggpurple']]
+    col = {'lgrey':'#ABABAB', 'dgrey':'#818181', 'black':'#333333'}
+    colors = [col['lgrey'], col['dgrey'], col['black']]
+
     # colors = np.array([[1, 0, 0],
     #                 [0, 1, 0],
     #                 [0, 0, 1]])

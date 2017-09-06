@@ -12,7 +12,7 @@ E-mail : bingxin@comp.nus.edu.sg
 
 CITATION
 --------------------------------
-Lu, B. and Leong, H. W. (2017). GI-Cluster: detecting genomic islands via consensus clustering on multiple features. In preparation.
+Lu, B. and Leong, H. W. (2017). GI-Cluster: detecting genomic islands via consensus clustering on multiple features. Accepted by GIW/BIOINFO 2017.
 
 
 Content of GI-Cluster program
@@ -38,7 +38,7 @@ Content of GI-Cluster program
 
 SYSTEM REQUIREMENTS
 ------------------
-Unix-based systems
+Unix-based systems.
 
 Since GI-Cluster uses bash scripts to connect each step, it is not convenient to run the program on Windows system.
 
@@ -71,12 +71,12 @@ Repseek -- repeat detection
 scipy  -- for chisquare
 
 ########## R packages to install ##########
-Required R packages will installed automatically
+Required R packages will be installed automatically.
 
 INSTALLATION
 ------------
-Uncompress the distribution GI_Cluster
-Install required tools and packages
+1. Uncompress the distribution GI_Cluster.
+2. Install required tools and packages.
 
 
 TO RUN
@@ -130,15 +130,14 @@ INPUT FILE
 -----------
 FASTA file (ended by '.fna', e.g. NC_010161.fna)
 
-
 When using annotation files from NCBI,
 
-The required NCBI files include:
+The required old NCBI files include:
 $organism.fna, genomic DNA sequence,
 $organism.ffn, gene sequence -- used for analyzing sequence composition,
 $organism.faa, protein sequence -- used for analyzing gene function
 
-The required old NCBI files include:
+The required new NCBI files include:
 $organism_genomic.fna, genomic DNA sequence,
 $organism_cds_from_genomic.fna, gene sequence -- used for analyzing sequence composition,
 $organism_protein.faa, protein sequence -- used for analyzing gene function

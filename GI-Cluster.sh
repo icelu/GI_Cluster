@@ -23,6 +23,9 @@ OPTIONS	Default	DESCIPTION
 -b	0	: mode of running: 0 for complete genome, 1 for incomplete genome (contigs).
 -t  1 : availablity of gene predictions: 1: with gene predictions, 0: without gene predictions.
 
+-w 5000: the window size.
+-j 5000: the step size.
+
 -e	1e-5	: e-value used during identification of phage-related genes, i.e., blastp against PHAST.
 -r	1e-5	: e-value used during identification of virulence factors, i.e., blastp against VFDB.
 -a	1e-5	: e-value used during identification of antibiotic resistance genes, i.e., blastp against CARD.
@@ -32,14 +35,16 @@ OPTIONS	Default	DESCIPTION
 
 -g	5000	: gaps allowed when merging adjacent segments.
 
--f 	1	: show the visualization of features related to genomic islands
--q 	0	: show the visualizations of genomic islands from different methods
--h ---- : print this help
+-f 	1	: show the visualization of features related to genomic islands.
+-q 	0	: show the visualizations of genomic islands from different methods.
+-h ---- : print this help.
   "
   exit -1
 }
 
-# -t	1e-5	: e-value used during identification of mobgenes, i.e., hmmsearch against pfam database of mobgenes.
+width=5000
+step=5000
+
 pred_prog=none
 # Set default values for optional parameters
 phage_evalue=1e-5
@@ -57,7 +62,7 @@ gene_prediction=1
 show_figure=1
 comparison=0
 
-while getopts "b:t:s:o:n:m:p:g:e:r:a:d:u:f:q:h" OPT; do
+while getopts "b:t:s:o:n:m:p:g:e:r:a:d:u:f:q:w:j:h" OPT; do
   case $OPT in
     b) mode=$OPTARG || exit 1;;
     t) gene_prediction=$OPTARG || exit 1;;
@@ -80,6 +85,9 @@ while getopts "b:t:s:o:n:m:p:g:e:r:a:d:u:f:q:h" OPT; do
 
     f) show_figure=$OPTARG || exit 1;;
     q) comparison=$OPTARG || exit 1;;
+
+    w) width=$OPTARG || exit 1;;
+    j) step=$OPTARG || exit 1;;
 
     h) usage && exit;;
   esac
@@ -125,7 +133,7 @@ echo "##########################################"
 echo "Getting genome segements"
 if [ ! -f $output_dir/$seg_prog/$organism.segment ]
 then
-  sh $prog_dir/GI_Segmentation.sh -s $prog_dir -o $output_dir -n $organism -m $seg_prog -p $pred_prog -b $mode
+  sh $prog_dir/GI_Segmentation.sh -w $width -j $step -s $prog_dir -o $output_dir -n $organism -m $seg_prog -p $pred_prog -b $mode
   wait
 fi
 
