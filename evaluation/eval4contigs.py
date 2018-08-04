@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 # This script is used to evaluate the predicted genomic islands (GIs) on contigs
 #
 # Author: Bingxin Lu

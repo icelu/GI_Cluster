@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 # Find the hmmsearch hits for a predicted gene
 #
 # Author: Bingxin Lu

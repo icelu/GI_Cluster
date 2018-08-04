@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 # Fill template file for visualizing GI-related features in Circos
 #
 # Author: Bingxin Lu

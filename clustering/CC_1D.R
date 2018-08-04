@@ -1,3 +1,5 @@
+#!/usr/bin/env Rscript
+
 # Perform 1D clustering on each feature;
 # Generate a consensus matrix (CM) on all these clusterings;
 # Run clustering on CM to get final groups

@@ -1,3 +1,5 @@
+#!/usr/bin/env Rscript
+
 # This script provides interfaces to call different clustering algorithms in R
 # This is based on implementations of clusterCons (https://github.com/cran/clusterCons)
 

@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 # This script is used to convert feature values into values that can be used for clustering
 #
 # Author: Bingxin Lu

@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # Script for segmenting a complete genome or a set of contigs
 #
 # Author: Bingxin Lu

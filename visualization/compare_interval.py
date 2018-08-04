@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 # This script is used to visualize several sets of intervals in a range
 #
 # Author: Bingxin Lu

@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 # Parse the output from COGcognitor to get genes assigned to "none" category
 #
 # Author: Bingxin Lu

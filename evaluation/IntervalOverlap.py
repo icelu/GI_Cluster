@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 # The program for evaluation of GI prediction methods by comparing with reference GIs:
 # Given a set of reference intervals (all reported GIs with high reliability), and a set of query intervals (predicted GIs from programs),
 # find the overlap intervals (TPs) and unique regions in the query (FPs)

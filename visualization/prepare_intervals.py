@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 # Create interval files for visualization in Circos
 #
 # Author: Bingxin Lu

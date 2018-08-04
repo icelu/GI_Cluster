@@ -1,3 +1,5 @@
+#!/usr/bin/env Rscript
+
 ##=========================================================
 # Script for running Consensus Clustering on genomic regions with extracted GI-related features
 #

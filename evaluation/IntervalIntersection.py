@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 # This script is used to find the intersection between two interval files
 #
 # Author: Bingxin Lu

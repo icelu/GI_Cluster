@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 # Find the infernal hits for a genome
 #
 # Author: Bingxin Lu
@@ -9,7 +11,7 @@
 #
 # Output:
 # id start end name rfam_accession score E-value
-# 
+#
 
 
 

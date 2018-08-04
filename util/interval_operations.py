@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 # Commonly used functions for analyzing genomic intervals
 #
 # Author: Bingxin Lu

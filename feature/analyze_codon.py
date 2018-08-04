@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 # Given DNA sequence of a genome or a gene or a genomic region,  analyze its codon usage
 #
 # Author: Bingxin Lu

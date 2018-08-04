@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 # For genomes with a large set of known GIs, assign labels to predicted regions overlapping with reference GIs for evaluation.
 #
 # Author: Bingxin Lu

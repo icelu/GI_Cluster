@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # Script for extracting features related to genomic islands in the unit of genes
 #
 # Author: Bingxin Lu

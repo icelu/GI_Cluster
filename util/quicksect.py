@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 # Scripts for finding overlapping intervals
 #
 # from bx-python (https://github.com/bxlab/bx-python)

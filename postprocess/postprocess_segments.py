@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 # The adjacent candidate segments were joined and the boundary is relocated by the outmost ORF if an ORF intersects with a segment.
 # Note: the segment will only be extended
 # For features: sum the numbers; recompute the percentages

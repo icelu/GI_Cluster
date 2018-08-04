@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 # Extract Pfam HMMs representing mobility genes or transposable elements.
 # Author: Bingxin Lu
 # Affiliation : National University of Singapore

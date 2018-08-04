@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 # Fill template file for comparing different predictions of genomic islands in Circos
 #
 # Author: Bingxin Lu

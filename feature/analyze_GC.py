@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 # Given DNA sequence of a genome or a gene or a genomic region, analyze its GC content
 #
 # Author: Bingxin Lu
@@ -65,7 +67,7 @@ def parse_segs(pfile, gnome, outfile):
             # line = '%.3f\t%.3f\t%.3f\t%.3f\t%.3f\n' % (
             #     gc, gc1, gc2, gc3, gc_skew)
             line = '%.3f\n' % (gc)
-            fout.write(line)            
+            fout.write(line)
             fout.write(line)
 
 

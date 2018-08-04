@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 # For finding repeats around each genomic interval
 # Author: Bingxin Lu
 # Affiliation : National University of Singapore

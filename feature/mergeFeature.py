@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 # This script is used to find the features for each genomic segment
 #
 # Author: Bingxin Lu
@@ -16,7 +18,7 @@
 #
 # Procedure:
 # Store the features for each gene/ORF in a dicionary, and then write out the values in a file
-# 
+#
 
 import os
 import optparse

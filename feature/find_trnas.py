@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 # For finding tRNAs around a genomic interval
 #
 # Author: Bingxin Lu

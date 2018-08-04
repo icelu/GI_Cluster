@@ -1,5 +1,7 @@
+#!/usr/bin/env python
+
 # Given DNA sequence of a genome or a gene or a genomic region, analyze its k-mer spectrum
-# 
+#
 # Author: Bingxin Lu
 # Affiliation : National University of Singapore
 # E-mail : bingxin@comp.nus.edu.sg

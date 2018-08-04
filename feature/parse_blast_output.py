@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 # Find the blast hits for a predicted gene
 #
 # Author: Bingxin Lu

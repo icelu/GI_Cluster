@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # Script for GI-Cluster: detecting genomic islands by consensus clustering on multiple features
 #
 # Author: Bingxin Lu

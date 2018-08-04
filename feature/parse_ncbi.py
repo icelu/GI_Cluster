@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 # This script is used to parse the files obtained from NCBI ftp
 #
 # Input:

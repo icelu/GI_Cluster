@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 # Merge adjacent or overlapping intervals
 #
 # Author: Bingxin Lu

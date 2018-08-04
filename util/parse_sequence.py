@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 # Commonly used functions to read and standardize fasta files
 #
 # Author: Bingxin Lu

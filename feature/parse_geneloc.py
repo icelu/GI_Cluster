@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 # Get the location of predicted genes
 #
 # Author: Bingxin Lu

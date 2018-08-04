@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 # Given an input file with a list of start and end positions,
 # Create a file for visualization in Circos:
 # where the intervals not shown in the input has an additional column 0

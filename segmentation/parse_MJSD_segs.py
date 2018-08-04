@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 # Get the segments after the first step of MJSD
 #
 # Author: Bingxin Lu

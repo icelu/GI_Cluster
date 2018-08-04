@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 # Use a sliding window to generate segments along the genome
 #
 # Author: Bingxin Lu

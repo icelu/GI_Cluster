@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # Script for predicting genes from (complete/incomplete) genome sequence
 #
 # Author: Bingxin Lu

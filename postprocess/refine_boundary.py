@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 # This script is used to refine the boundary of intervals based on tRNAs or repeats overlapping with an interval
 #
 # Author: Bingxin Lu

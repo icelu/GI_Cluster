@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # Script for extracting features related to genomic islands in a genomic region
 #
 # Author: Bingxin Lu

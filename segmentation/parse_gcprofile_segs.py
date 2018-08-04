@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 # Get the segments by calling GCProfile
 #
 # Author: Bingxin Lu

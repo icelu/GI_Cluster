@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # Script for GI_Comparison: Visualizing predicted GIs by different methods for a microbial genome in a Circos plot
 #
 # Author: Bingxin Lu

@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 # For comparison of tools for predicting genomic islands on reference datasets obtained from comparative genomics:
 #
 # Author: Bingxin Lu

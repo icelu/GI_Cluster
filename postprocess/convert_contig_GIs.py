@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 # This script is used to convert the GIs predicted from contigs
 #
 # Author: Bingxin Lu
