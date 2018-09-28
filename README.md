@@ -1,5 +1,4 @@
 # INTRODUCTION
--------------
 GI-Cluster is a program for detecting genomic islands (GIs) in a genome by consensus clustering on multiple features.
 It includes a sets of scripts for extracting GI-related features from a genome sequence,
 performing consensus clustering on the obtained feature matrix to get potential GIs,
@@ -11,11 +10,9 @@ E-mail : bingxin@comp.nus.edu.sg
 
 
 # CITATION
---------------------------------
 Bingxin Lu and HonWai Leong (2018). GI-Cluster: detecting genomic islands via consensus clustering on multiple features. Journal of bioinformatics and computational biology, 16(03), 1840010.
 
 # Content of GI-Cluster program
---------------------------------
 * clustering -- scripts to perform clustering 
 * evalution -- data and script for evaluating different GI prediction tools 
 * feature -- scripts to extract GI-related features 
@@ -35,14 +32,12 @@ Bingxin Lu and HonWai Leong (2018). GI-Cluster: detecting genomic islands via co
 
 
 # SYSTEM REQUIREMENTS
-------------------
 Unix-based systems.
 
 Since GI-Cluster uses bash scripts to connect each step, it is not convenient to run the program on Windows system.
 
 
 # SOFTWARE REQUIREMENTS
---------------------
 GI-Cluster is written with Python 2.7, R and bash.
 There are several external tools and packages that GI-Cluster depends on.
 See install.sh for sample commands.
@@ -83,15 +78,12 @@ Please follow related documenation if you want to use one of these programs.
 Required R packages should be installed automatically.
 If problems occur, please install manually.
 
+
 # INSTALLATION
-------------
 1. Download the source code of GI-Cluster and decompress.
 2. Install required tools and packages which are described above.
 
-
-
 # USAGE
--------
 ## INPUT FILE
 A FASTA file of genome sequence(s) (ended by '.fna', e.g. NC_010161.fna)
 
@@ -143,7 +135,7 @@ Suppose the input files are in $output_dir, the names of the input genome file s
 
 * When "pred_prog=ncbi", the names of the input file should be "$organism".fna, "$organism"_protein.faa, "$organism"_cds_from_genomic.fna.
 
-In term of running time, GI-Cluster is fast in most steps, expect database searching and consensus clustering. It may take a long time to find novel genes when searching against COG databases. 
+In term of running time, GI-Cluster is fast in most steps, except database searching and consensus clustering. It may take a long time to find novel genes when searching against COG databases. 
 
 ## Run on complete genome with gene predictions
 gnome=BtribCIP105476   

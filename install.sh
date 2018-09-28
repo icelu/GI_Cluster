@@ -1,5 +1,6 @@
 #!/bin/bash
 
+git clone https://github.com/icelu/GI_Cluster.git
 cd GI_Cluster
 # Revise INSTALLDIR accordingly
 prefix=/mnt/projects/lub/workspace/GI_Cluster/program/
