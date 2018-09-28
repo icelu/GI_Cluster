@@ -20,7 +20,7 @@ import optparse
 
 def parse_cmscan(infile):
     hits = []
-    with open(infile, 'rb') as fin:
+    with open(infile, 'r') as fin:
         for line in fin:
             if not line.startswith('#'):
                 fields = line.strip().split('\t')

@@ -31,7 +31,7 @@ from util.parse_sequence import get_rna_segment, get_repeat_segment
 def get_gc_value(infile):
     gc_value = {}
     i = 0
-    with open(infile, 'rb') as fin:
+    with open(infile, 'r') as fin:
         for line in fin:
             i += 1
             fields = line.strip().split('\t')
@@ -44,7 +44,7 @@ def get_gc_value(infile):
 def get_kmer_dist(infile):
     kmer_dict = {}
     i = 0
-    with open(infile, 'rb') as fin:
+    with open(infile, 'r') as fin:
         for line in fin:
             i += 1
             fields = line.strip().split('\t')
@@ -66,7 +66,7 @@ def get_feature_dict_segment(infile, rna_dict={}, repeat_dict={}, gc_value={}, k
     '''
     feature_dict = {}
     head_num = 0
-    with open(infile, 'rb') as fin:
+    with open(infile, 'r') as fin:
         for line in fin:
             head_num += 1
             fields = line.strip().split('\t')
@@ -178,7 +178,7 @@ def get_feature_dict_gene(infile, rna_dict={}, repeat_dict={}, gc_value={}, kmer
     rnat = 0
     rnap = 0
 
-    with open(infile, 'rb') as fin:
+    with open(infile, 'r') as fin:
         # Skip 1st line, which is header
         firstline = fin.readline()
         line = fin.readline()

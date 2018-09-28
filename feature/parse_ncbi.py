@@ -15,7 +15,7 @@ import itertools
 
 def get_protIDs(infile):
     protIDs = []
-    with open(infile,'rb') as fin:
+    with open(infile,'r') as fin:
         for line in fin:
             field = line.strip()
             protIDs.append(field)
@@ -34,7 +34,7 @@ def parse_cds_IDs(infile, protIDs, outfile):
     loc_pattern='\[location=([\S]+)\]'+''
     ptn_id = re.compile(id_pattern)
     ptn_loc = re.compile(loc_pattern)
-    with open(infile,'rb') as fin, open(outfile,'w') as fout:
+    with open(infile,'r') as fin, open(outfile,'w') as fout:
         for line in fin:
             fields = line.strip().split()
             gid = fields[0]
@@ -72,7 +72,7 @@ def retrieve_cds(infile, protIDs, dna_file, id_file, loc_file):
 
     i = 0
     write_dna = False
-    with open(infile,'rb') as fin:
+    with open(infile,'r') as fin:
         for header, group in itertools.groupby(fin, isheader):
             if header:
                 # print header

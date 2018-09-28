@@ -73,7 +73,7 @@ option_list = list(
   make_option(c("-e", "--pFeature"), type="double", default="0.6",
               help="proportion of features to sample [default= %default]"),
   make_option(c("-d", "--feature"), type="character", default="comp_content",
-              help="group of feature to use [default= %default]"),
+              help="group of feature to use (available choices: gc, codon, kmer, content, gc_kmer, comp, comp_content. comp refers to compositon which includes gc, codon and kmer.) [default= %default]"),
   make_option(c("-c", "--clusterAlg"), type="character", default="Ckmeans.1d.dp,densityMclust",
               help="cluster algorithm used [default= %default]"),
   make_option(c("-p", "--alParams"), type="character", default="",

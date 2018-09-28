@@ -24,7 +24,7 @@ import re
 
 
 def extract_mob_domain(infile, outfile):
-    with open(infile, 'rb') as fin, open(outfile, 'w') as fout:
+    with open(infile, 'r') as fin, open(outfile, 'w') as fout:
         for line in fin:
             if line.startswith('#=GF AC'):
                 fields = line.strip().split()

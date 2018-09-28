@@ -44,6 +44,7 @@ OPTIONS	Default	DESCIPTION
   exit -1
 }
 
+# Change the parameters accordingly
 width=5000
 step=5000
 
@@ -110,7 +111,8 @@ fi
 # Rename the input file to be "$organism".fna
 if [ ! -f $output_dir/"$organism".fna ]
 then
-  cp $output_dir/"$organism"_genomic.fna $output_dir/"$organism".fna
+  echo "$output_dir/"$organism".fna does not exist!"
+  exit
 fi
 
 
@@ -124,6 +126,7 @@ then
 ############## Compute known features related to genomic islands in the unit of genes #########################
   if [ "$pred_prog" != "none" ]
   then
+    echo "Computing known features related to genomic islands in the unit of genes"
     sh $prog_dir/GI_Feature.sh -s $prog_dir -o $output_dir -n $organism -m $seg_prog -p $pred_prog -b $mode -e $phage_evalue -r $virdb_evalue -a $arg_evalue -d $num_threads -u $num_cpus
     wait
   fi

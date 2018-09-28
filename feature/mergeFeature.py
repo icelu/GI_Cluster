@@ -35,7 +35,7 @@ def get_gene_feature(infile):
     Use a list of tuple to store a gene along with its features: (gid, gfeature)
     '''
     features = []
-    with open(infile, 'rb') as fin:
+    with open(infile, 'r') as fin:
         for line in fin:
             fields = line.strip().split('\t')
             id = fields[0]  # Sequential number from 1 to n
@@ -49,7 +49,7 @@ def get_gene_feature(infile):
 # Find the positions of ncRNAs
 def parse_cmscan(infile):
     hits = []
-    with open(infile, 'rb') as fin:
+    with open(infile, 'r') as fin:
         for line in fin:
             if not line.startswith('#'):
                 fields = line.strip().split()
@@ -77,7 +77,7 @@ def parse_cmscan(infile):
 # Find the positions of ncRNAs when searching multiple sequences (contigs)
 def parse_cmscan_multiple(infile):
     hits = []
-    with open(infile, 'rb') as fin:
+    with open(infile, 'r') as fin:
         for line in fin:
             if not line.startswith('#'):
                 fields = line.strip().split()
@@ -115,7 +115,7 @@ def group_genes(infile, features, rnas, outfile):
     fout.write(header)
     # For each region, find the genes inside it
     i = 0
-    with open(infile, 'rb') as fin:
+    with open(infile, 'r') as fin:
         for line in fin:
             fields = line.strip().split('\t')
             start = int(fields[0])
@@ -183,7 +183,7 @@ def group_genes_multiple(infile, features, rnas, outfile, contig_id_mapping, gen
     fout.write(header)
     # For each region, find the genes inside it
     i = 0
-    with open(infile, 'rb') as fin:
+    with open(infile, 'r') as fin:
         for line in fin:
             fields = line.strip().split('\t')
             p1 = fields[0]

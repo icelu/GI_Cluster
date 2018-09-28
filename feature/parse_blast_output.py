@@ -19,7 +19,7 @@ import optparse
 
 def get_gene_id(infile):
     gene_list = []
-    with open(infile, 'rb') as fin:
+    with open(infile, 'r') as fin:
         for line in fin:
             gene = line.strip().replace('>', '')
             # print gene
@@ -29,7 +29,7 @@ def get_gene_id(infile):
 
 def parse_blast(infile):
     hit_dict = {}
-    with open(infile, 'rb') as fin:
+    with open(infile, 'r') as fin:
         for line in fin:
             fields = line.strip().split('\t')
             gene = fields[0]

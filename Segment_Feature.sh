@@ -57,6 +57,35 @@ then
   fi
 fi
 
+
+############################ Analyzing boundary features ################################################
+echo "##########################################"
+echo "Predicting tRNA"
+if [ ! -d $output_dir/boundary ]
+then
+  mkdir $output_dir/boundary
+fi
+
+if [ ! -f $output_dir/boundary/$organism.trna_pred ]
+then
+  # tRNA is only dependant on the original genome sequence
+  tRNAscan-SE -B -o $output_dir/boundary/$organism.trna_pred -m $output_dir/boundary/$organism.trna_stat --brief $output_dir/$organism.fna
+fi
+less $output_dir/boundary/$organism.trna_pred | cut -f1-4 > $output_dir/boundary/$organism.pred_trna
+
+
+if [ $mode == 0 ]  # Predict repeats only for finished complete genomes
+then
+echo "##########################################"
+echo "Finding repeats"
+if [ ! -f $output_dir/boundary/$organism.repseek ]
+then
+# repeat is only dependant on the original genome sequence
+repseek -l 15 -O 0 -r $output_dir/boundary/$organism.repseek $output_dir/$organism.fna
+fi
+fi
+
+
 echo "##########################################"
 echo "Finding tRNA genes around each segment"
 if [ ! -f $output_dir/$seg_prog/feature/$organism.boundary.trna ]

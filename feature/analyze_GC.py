@@ -31,7 +31,7 @@ def parse_genes(gene_file, outfile):
     output: GC measures for each gene in a line
     '''
     i = 0
-    with open(gene_file, 'rb') as fin, open(outfile, 'w') as fout:
+    with open(gene_file, 'r') as fin, open(outfile, 'w') as fout:
         for header, group in itertools.groupby(fin, isheader):
             if header:
                 i += 1
@@ -53,7 +53,7 @@ def parse_segs(pfile, gnome, outfile):
     output: GC measures for each segment in a line
     '''
     i = 0
-    with open(pfile, 'rb') as fin, open(outfile, 'w') as fout:
+    with open(pfile, 'r') as fin, open(outfile, 'w') as fout:
         for line in fin:
             fields = line.strip().split('\t')
             start = int(fields[0])
@@ -82,7 +82,7 @@ def parse_segs_dist(pfile, gnome):
     chi_dict = {}
     for i in range(4):
         chi_dict[i] = []
-    with open(pfile, 'rb') as fin:
+    with open(pfile, 'r') as fin:
         for line in fin:
             fields = line.strip().split('\t')
             start = int(fields[0])
@@ -116,7 +116,7 @@ def write_gc_chi(chi_dict, outfile):
 # Read the genome sequence
 def get_genome(gene_file):
     gnome = ''
-    with open(gene_file, 'rb') as fin:
+    with open(gene_file, 'r') as fin:
         for header, group in itertools.groupby(fin, isheader):
             if not header:
                 sequence = ''.join(line.strip() for line in group)
@@ -132,7 +132,7 @@ def parse_genome(gene_file, outfile):
     output: GC measures in a line
     '''
     i = 0
-    with open(gene_file, 'rb') as fin, open(outfile, 'w') as fout:
+    with open(gene_file, 'r') as fin, open(outfile, 'w') as fout:
         for header, group in itertools.groupby(fin, isheader):
             if header:
                 i += 1
@@ -208,7 +208,7 @@ def get_contigs(infile):
     '''
     contig_sequence = {}
     i = 0
-    with open(infile, 'rb') as fin:
+    with open(infile, 'r') as fin:
         for header, group in itertools.groupby(fin, isheader):
             if header:
                 i += 1
@@ -227,7 +227,7 @@ def parse_segs_contigs(pfile, contig_sequence, outfile):
     output: GC measures for each segment in a line
     '''
     i = 0
-    with open(pfile, 'rb') as fin, open(outfile, 'w') as fout:
+    with open(pfile, 'r') as fin, open(outfile, 'w') as fout:
         for line in fin:
             fields = line.strip().split('\t')
             p1 = fields[0]

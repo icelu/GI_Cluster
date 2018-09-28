@@ -26,7 +26,7 @@ def parse_repseek_output(infile, intervals):
     tree = get_window_tree(intervals)
     repeat_dict = {}
 
-    with open(infile, 'rb') as fin:
+    with open(infile, 'r') as fin:
         for line in fin:
             fields = line.strip().split('\t')
             type = fields[0]

@@ -282,7 +282,7 @@ output: k-mer spectrum
 
 
 def parse_genome_file(genome_file, klen):
-    with open(genome_file, 'rb') as fin:
+    with open(genome_file, 'r') as fin:
         for header, group in itertools.groupby(fin, isheader):
             if not header:
                 # merge multiple lines of sequence
@@ -314,7 +314,7 @@ def get_genome_profiles(genome_file, klen):
     '''
     profiles = {}
 
-    with open(genome_file, 'rb') as fin:
+    with open(genome_file, 'r') as fin:
         for header, group in itertools.groupby(fin, isheader):
             if not header:
                 sequence = ''.join(line.strip() for line in group)
@@ -362,7 +362,7 @@ def parse_genes(gfile, genome_profiles, klen, morder=1, atcg_fraction={}, distan
     for k in range(2, klen + 1):
         dist_dict[k] = []
 
-    with open(gfile, 'rb') as fin:
+    with open(gfile, 'r') as fin:
         for header, group in itertools.groupby(fin, isheader):
             if header:
                 i += 1
@@ -407,7 +407,7 @@ def parse_segs(gfile, gnome, genome_profiles, klen, outfile, morder=1, atcg_frac
     dist_dict = {}
     for k in range(2, klen + 1):
         dist_dict[k] = []
-    with open(gfile, 'rb') as fin, open(outfile, 'w') as fout:
+    with open(gfile, 'r') as fin, open(outfile, 'w') as fout:
         for line in fin:
             fields = line.strip().split('\t')
             start = int(fields[0])
@@ -469,7 +469,7 @@ def get_contigs_profile(genome_file, klen):
         kmer_count = np.array(counts, dtype='int64')
         total_kmer = 0
         i = 0
-        with open(genome_file, 'rb') as fin:
+        with open(genome_file, 'r') as fin:
             for header, group in itertools.groupby(fin, isheader):
                 if header:
                     i += 1
@@ -497,7 +497,7 @@ def get_contigs(infile):
     # id_mapping = {}
     contig_sequence = {}
     i = 0
-    with open(infile, 'rb') as fin:
+    with open(infile, 'r') as fin:
         for header, group in itertools.groupby(fin, isheader):
             if header:
                 i += 1
@@ -522,7 +522,7 @@ def parse_segs_contigs(pfile, contig_sequence, genome_profiles, klen, outfile, m
         dist_dict[k] = []
 
     i = 0
-    with open(pfile, 'rb') as fin, open(outfile, 'w') as fout:
+    with open(pfile, 'r') as fin, open(outfile, 'w') as fout:
         for line in fin:
             fields = line.strip().split('\t')
             p1 = fields[0]

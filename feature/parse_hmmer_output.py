@@ -19,7 +19,7 @@ import optparse
 
 def get_gene_id(infile):
     gene_list = []
-    with open(infile, 'rb') as fin:
+    with open(infile, 'r') as fin:
         for line in fin:
             gene = line.strip().replace('>', '')
             # print gene
@@ -30,7 +30,7 @@ def get_gene_id(infile):
 def parse_hmmer(infile):
     hit_dict = {}
     hit_product = ''
-    with open(infile, 'rb') as fin:
+    with open(infile, 'r') as fin:
         for line in fin:
             if line.startswith('Description:'):
                 # print line

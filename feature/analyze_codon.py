@@ -165,7 +165,7 @@ def get_freq_mat_file(gfile, code_type=1):
     codon_freq_mat = {}
     amino_freq_mat = {}
     gene_id = 0
-    with open(gfile, 'rb') as fin:
+    with open(gfile, 'r') as fin:
         for header, group in itertools.groupby(fin, isheader):
             if header:
                 gene_id += 1
@@ -311,7 +311,7 @@ def chi_square(rcsu_gene, rcsu_avg):
 
 def get_codon_chi(gfile):
     rcsu_list=[]
-    with open(gfile, 'rb') as fin:
+    with open(gfile, 'r') as fin:
         for header, group in itertools.groupby(fin, isheader):
             if not header:
                 #gene_id += 1

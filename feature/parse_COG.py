@@ -24,7 +24,7 @@ import optparse
 
 def get_gene_locus(infile):
     gene_list = []
-    with open(infile, 'rb') as fin:
+    with open(infile, 'r') as fin:
         for line in fin:
             gene = line.strip().replace('>', '')
             # print gene
@@ -34,7 +34,7 @@ def get_gene_locus(infile):
 
 def get_COG(infile):
     cog_dict = {}
-    with open(infile, 'rb') as fin:
+    with open(infile, 'r') as fin:
         for line in fin:
             fields = line.strip().split(',')
             gid = fields[0]

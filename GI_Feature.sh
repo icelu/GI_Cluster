@@ -93,7 +93,7 @@ if [ ! -f $output_dir/$pred_prog/feature/$organism.feature.codon ]
 then
 if [ ! -f $output_dir/$pred_prog/feature/codonw.out ]
 then
-  $prog_dir/bin/codonW/codonw -all_indices -nomenu $output_dir/$pred_prog/genome/$organism.ffn $output_dir/$pred_prog/feature/codonw.out $output_dir/$pred_prog/feature/codonw.blk
+  codonw -all_indices -nomenu $output_dir/$pred_prog/genome/$organism.ffn $output_dir/$pred_prog/feature/codonw.out $output_dir/$pred_prog/feature/codonw.blk
 fi
   less $output_dir/$pred_prog/feature/codonw.out | cut -f6-8 | sed '1d' > $output_dir/$pred_prog/feature/codonw.out.f3
   python $prog_dir/feature/analyze_codon.py -g $output_dir/$pred_prog/genome/$organism.ffn -o $output_dir/$pred_prog/feature/codon.out
@@ -245,11 +245,11 @@ then
 
   cat $output_dir/$pred_prog/genome/"$organism".p2o.csv $prog_dir/db/COG/COG.p2o.csv > $output_dir/$pred_prog/genome/tmp.p2o.csv
 
-  $prog_dir/bin/COGSoft/COGmakehash/COGmakehash -i=$output_dir/$pred_prog/genome/tmp.p2o.csv -o=$output_dir/$pred_prog/BLASTcogn -s="," -n=1
+  COGmakehash -i=$output_dir/$pred_prog/genome/tmp.p2o.csv -o=$output_dir/$pred_prog/BLASTcogn -s="," -n=1
 
-  $prog_dir/bin/COGSoft/COGreadblast/COGreadblast -d=$output_dir/$pred_prog/BLASTcogn -u=$output_dir/$pred_prog/BLASTno -f=$output_dir/$pred_prog/BLASTff -s=$output_dir/$pred_prog/BLASTss -e=0.1 -q=2 -t=2
+  COGreadblast -d=$output_dir/$pred_prog/BLASTcogn -u=$output_dir/$pred_prog/BLASTno -f=$output_dir/$pred_prog/BLASTff -s=$output_dir/$pred_prog/BLASTss -e=0.1 -q=2 -t=2
 
-  $prog_dir/bin/COGSoft/COGcognitor/COGcognitor -i=$output_dir/$pred_prog/BLASTcogn -t=$prog_dir/db/COG/cog2003-2014.csv -q=$output_dir/$pred_prog/genome/"$organism".p2o.csv -o=$output_dir/$pred_prog/genome/"$organism".COG.csv
+  COGcognitor -i=$output_dir/$pred_prog/BLASTcogn -t=$prog_dir/db/COG/cog2003-2014.csv -q=$output_dir/$pred_prog/genome/"$organism".p2o.csv -o=$output_dir/$pred_prog/genome/"$organism".COG.csv
 
   python $prog_dir/feature/parse_COG.py -g $output_dir/$pred_prog/genome/"$organism".protid  -c $output_dir/$pred_prog/genome/"$organism".COG.csv  -o  $output_dir/$pred_prog/feature/"$organism".feature.ngene
 
@@ -262,29 +262,3 @@ echo "Merging features for each gene/ORF"
 paste $output_dir/$pred_prog/genome/$organism.glist $output_dir/$pred_prog/feature/$organism.feature.gc $output_dir/$pred_prog/feature/$organism.feature.codon $output_dir/$pred_prog/feature/$organism.feature.kmer $output_dir/$pred_prog/feature/$organism.feature.mobgene $output_dir/$pred_prog/feature/$organism.feature.phage $output_dir/$pred_prog/feature/$organism.feature.vfdb $output_dir/$pred_prog/feature/$organism.feature.AR  $output_dir/$pred_prog/feature/$organism.feature.ngene > $output_dir/$pred_prog/feature/$organism.feature.multi
 
 
-############################ Analyzing boundary features ################################################
-echo "##########################################"
-echo "Predicting tRNA"
-if [ ! -d $output_dir/boundary ]
-then
-  mkdir $output_dir/boundary
-fi
-
-if [ ! -f $output_dir/boundary/$organism.trna_pred ]
-then
-  # tRNA is only dependant on the original genome sequence
-  tRNAscan-SE -B --frag $output_dir/boundary/$organism.trna_frag -o $output_dir/boundary/$organism.trna_pred -m $output_dir/boundary/$organism.trna_stat --brief $output_dir/$organism.fna
-fi
-less $output_dir/boundary/$organism.trna_pred | cut -f1-4 > $output_dir/boundary/$organism.pred_trna
-
-
-if [ $mode == 0 ]  # Predict repeats only for finished complete genomes
-then
-echo "##########################################"
-echo "Finding repeats"
-if [ ! -f $output_dir/boundary/$organism.repseek ]
-then
-# repeat is only dependant on the original genome sequence
-repseek -l 15 -O 0 -r $output_dir/boundary/$organism.repseek $output_dir/$organism.fna
-fi
-fi

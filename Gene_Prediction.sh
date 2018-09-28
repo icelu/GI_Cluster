@@ -57,11 +57,11 @@ then
   then
     if [ $mode == 0 ]
     then
-      $prog_dir/bin/prodigal -m -i $output_dir/$organism.fna -o $output_dir/$pred_prog/genome/"$organism".gbk -a $output_dir/$pred_prog/genome/"$organism".faa -d $output_dir/$pred_prog/genome/"$organism".ffn
+      prodigal -m -i $output_dir/$organism.fna -o $output_dir/$pred_prog/genome/"$organism".gbk -a $output_dir/$pred_prog/genome/"$organism".faa -d $output_dir/$pred_prog/genome/"$organism".ffn
     fi
     if [ $mode == 1 ]
     then
-      $prog_dir/bin/prodigal -p meta -m -i $output_dir/$organism.fna -o $output_dir/$pred_prog/genome/"$organism".gbk -a $output_dir/$pred_prog/genome/"$organism".faa -d $output_dir/$pred_prog/genome/"$organism".ffn
+      prodigal -p meta -m -i $output_dir/$organism.fna -o $output_dir/$pred_prog/genome/"$organism".gbk -a $output_dir/$pred_prog/genome/"$organism".faa -d $output_dir/$pred_prog/genome/"$organism".ffn
     fi
   fi
 fi

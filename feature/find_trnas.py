@@ -28,7 +28,7 @@ def parse_trnas(infile, intervals, offset):
     tree = get_window_tree(intervals)
     trna_dict = {}
 
-    with open(infile, 'rb') as fin:
+    with open(infile, 'r') as fin:
         for line in fin:
             fields = line.strip().split('\t')
             # Suppose the start and end positions are in 3rd and 4th columns
@@ -67,7 +67,7 @@ def write_trnas(outfile, trna_dict):
 def parse_trnas_contigs(infile, id_mapping, intervals, offset):
     trna_dict = {}
 
-    with open(infile, 'rb') as fin:
+    with open(infile, 'r') as fin:
         for line in fin:
             fields = line.strip().split('\t')
             # Suppose the start and end positions are in 3rd and 4th columns

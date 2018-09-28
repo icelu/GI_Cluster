@@ -88,7 +88,7 @@ then
 
     if [ "$seg_prog" == "$p3" ]
     then
-      python $prog_dir/bin/gisvm/GI_SVM.py -N 0.9 -t 2 -k 1 -K 8 -d $output_dir/$seg_prog -c 5 -a -q $output_dir/$organism.fna
+      GI_SVM.py -N 0.9 -t 2 -k 1 -K 8 -d $output_dir/$seg_prog -c 5 -a -q $output_dir/$organism.fna
       mv $output_dir/$seg_prog/mergedRes_auto_*_5000_2500 $output_dir/$seg_prog/$organism."$seg_prog"
     fi
 
