@@ -26,7 +26,7 @@ def get_intervals_dict(intervalfile):
     Return a list of intervals for each ID
     '''
     intervals = {}
-    with open(intervalfile, 'rb') as fin:
+    with open(intervalfile, 'r') as fin:
         for line in fin:
             fields = line.strip().split('\t')
             id = int(fields[0])

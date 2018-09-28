@@ -23,7 +23,7 @@ def GetGenomeSize(genomefile):
     firstLine = open(genomefile).readline()
     assert ('>' in firstLine), "This is not a standard FASTA file!"
     genomesize = 0
-    with open(genomefile, 'rb') as fin:
+    with open(genomefile, 'r') as fin:
         # skip the first line
         fin.next()
         for line in fin:

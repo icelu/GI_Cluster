@@ -31,7 +31,7 @@ from util.parse_sequence import get_contig_IDs, get_contig_gene_IDs
 # Suppose the gene positions are at 2nd and 3rd columns
 def get_genes(intervalfile):
     intervals = []
-    with open(intervalfile, 'rb') as fin:
+    with open(intervalfile, 'r') as fin:
         for line in fin:
             fields = line.strip().split('\t')
             coord = (int(fields[1]), int(fields[2]))
@@ -43,7 +43,7 @@ def get_genes(intervalfile):
 # Find genes in each sequence
 def get_genes_contig(intervalfile, gene_id_mapping, contig_id_mapping):
     intervals = {}
-    with open(intervalfile, 'rb') as fin:
+    with open(intervalfile, 'r') as fin:
         for line in fin:
             fields = line.strip().split('\t')
             gid = int(fields[0])
@@ -174,10 +174,10 @@ def extend_boundary_contig(intervals, genes_dict):
         overlap = find(start, end, tree)
         if len(overlap) > 0:
             # find the boundary coordinates of the intervals
-            print 'intervals with overlapping:'
-            print p1
-            print p2
-            print overlap
+            print('intervals with overlapping:')
+            print(p1)
+            print(p2)
+            print(overlap)
             sorted_overlap = sorted(
                 overlap, key=lambda x: (int(x[0]), int(x[1])))
             ostart = sorted_overlap[0][0]
@@ -246,8 +246,8 @@ if __name__ == '__main__':
                 ns = '_'.join([str(id), str(start)])
                 ne = '_'.join([str(id), str(end)])
                 merged_intervals.append((ns, ne))
-        print 'The number of intevals before merging adjacent ones: %d' % count_orig
-        print 'The number of intevals after merging adjacent ones: %d' % count_merged
+        print('The number of intevals before merging adjacent ones: %d' % count_orig)
+        print('The number of intevals after merging adjacent ones: %d' % count_merged)
         if options.has_gene:
             contig_id_mapping = get_contig_IDs(options.genome_file)
             gene_id_mapping = get_contig_gene_IDs(options.gid_file)
@@ -256,7 +256,7 @@ if __name__ == '__main__':
             # Merge intervals again to avoid overlapping regions and combine close intervals
             merged_new_intervals = merge_intervals_contigs(
                 new_intervals_dict, options.allow_gap, options.gap_len)
-            print 'The number of intevals after merging close ones with gap %d bp: %d' % (options.gap_len, len(merged_new_intervals))
+            print('The number of intevals after merging close ones with gap %d bp: %d' % (options.gap_len, len(merged_new_intervals)))
             write2file(os.sep.join([directory, 'merged_']
                                    ) + suffix, merged_new_intervals)
         else:
@@ -265,15 +265,15 @@ if __name__ == '__main__':
     else:
         orig_intervals = get_intervals(options.gifile)
         merged_intervals = list(merge_intervals(orig_intervals))
-        print 'The number of intevals before merging adjacent ones: %d' % len(orig_intervals)
-        print 'The number of intevals after merging adjacent ones: %d' % len(merged_intervals)
+        print('The number of intevals before merging adjacent ones: %d' % len(orig_intervals))
+        print('The number of intevals after merging adjacent ones: %d' % len(merged_intervals))
 
         if options.has_gene:
             genes = get_genes(options.genefile)
             new_intervals = extend_boundary(merged_intervals, genes)
             merged_new_intervals = list(merge_intervals_offset(
                 new_intervals, options.allow_gap, options.gap_len))
-            print 'The number of intevals after merging close ones with gap %d bp: %d' % (options.gap_len, len(merged_new_intervals))
+            print('The number of intevals after merging close ones with gap %d bp: %d' % (options.gap_len, len(merged_new_intervals)))
             write2file(os.sep.join([directory, 'merged_']
                                    ) + suffix, merged_new_intervals)
         else:

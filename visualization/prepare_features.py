@@ -29,7 +29,7 @@ def createFeatureFile(input_file, outdir, index, id):
 
     output_file = os.path.join(outdir, os.path.basename(input_file) + '_F' + str(id))
 
-    with open(input_file, 'rb') as infile, open(output_file, 'w') as outfile:
+    with open(input_file, 'r') as infile, open(output_file, 'w') as outfile:
         # next(infile)
         last_end = 0
         for line in infile:

@@ -136,13 +136,13 @@ def test1():
         end = start + random.randint(1, 1000)
         result = []
         test.intersect(start, end, lambda x: result.append(x.linenum))
-    print "%f for tree method" % (time.clock() - starttime)
+    print("{} for tree method".format(time.clock() - starttime))
     starttime = time.clock()
     for x in range(5000):
         start = random.randint(0, 10000000)
         end = start + random.randint(1, 1000)
         bad_sect(intlist, start, end)
-    print "%f for linear (bad) method" % (time.clock() - starttime)
+    print("{} for linear (bad) method".format(time.clock() - starttime))
 
 
 
@@ -166,7 +166,7 @@ def main():
     start = 13
     end = 16
     overlap = find(start, end , tree)
-    print 'overlap, ', overlap
+    print('overlap, ', overlap)
     # if query interval is (15,20)
     # intlist.extend([(13, 15), (18, 25)]) ---- overlap,  [(18, 25, None)]
     # intlist.extend([(13, 16), (18, 25)]) ---- overlap,  [(13, 16, None), (18, 25, None)]
@@ -174,7 +174,7 @@ def main():
 
 
 def test_func(node):
-    print "[%d, %d), %d" % (node.start, node.end, node.maxend)
+    print("[%d, %d), %d" % (node.start, node.end, node.maxend))
 
 def bad_sect(lst, int_start, int_end):
     intersection = []

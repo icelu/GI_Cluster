@@ -65,7 +65,7 @@ def refine_boundary(intervals, rna_dict, repeat_dict, threshold=500):
             else:
                 ne = end
             if ns == rs or ne == re:
-                print '%d\t%d\t--\t%d\t%d' % (start, end, ns, ne)
+                print('{}\t{}\t--\t{}\t{}'.format(start, end, ns, ne))
 
             if contig_id != 0:
                 ns = str(contig_id) + '_' + str(ns)
@@ -79,7 +79,7 @@ def refine_boundary(intervals, rna_dict, repeat_dict, threshold=500):
 def write_output(intervals, outfile):
     with open(outfile, 'w') as fout:
         for s, e in intervals:
-            line = '%s\t%s\n' % (s, e)
+            line = '{}\t{}\n'.format(s, e)
             fout.write(line)
 
 

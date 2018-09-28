@@ -27,7 +27,7 @@ def merge(intevals):
 
 def getIntervals(intervalfile):
     intervals = []
-    with open(intervalfile, 'rb') as fin:
+    with open(intervalfile, 'r') as fin:
         for line in fin:
             fields = line.strip().split('\t')
             coord = (int(float(fields[0])), int(float(fields[1])))

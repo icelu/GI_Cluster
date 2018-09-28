@@ -16,9 +16,9 @@ def getGenomeSize(genomefile):
     firstLine = open(genomefile).readline()
     assert ('>' in firstLine), "This is not a standard FASTA file!"
     genomesize = 0
-    with open(genomefile, 'rb') as fin:
+    with open(genomefile, 'r') as fin:
         # skip the first line
-        fin.next()
+        fin.readline()
         for line in fin:
             genomesize += len(line.strip())
 
@@ -47,7 +47,7 @@ def createGIFile(input_file, output_file, genomesize):
     gene_dict = {}
     product_dict = {}
 
-    with open(input_file, 'rb') as infile, open(output_file, 'w') as outfile:
+    with open(input_file, 'r') as infile, open(output_file, 'w') as outfile:
         # next(infile)
         last_end = 0
         for line in infile:
@@ -75,7 +75,7 @@ def createHightFile(input_file, output_file):
     gene_dict = {}
     product_dict = {}
 
-    with open(input_file, 'rb') as infile, open(output_file, 'w') as outfile:
+    with open(input_file, 'r') as infile, open(output_file, 'w') as outfile:
         # next(infile)
         last_end = 0
         for line in infile:

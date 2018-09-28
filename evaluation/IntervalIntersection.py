@@ -22,7 +22,7 @@ def getIntervals(intervalfile):
     suppose 1-based coordinates
     '''
     intervals = []
-    with open(intervalfile, 'rb') as fin:
+    with open(intervalfile, 'r') as fin:
         for line in fin:
             fields = line.strip().split('\t')
             if len(fields) == 3:
@@ -43,7 +43,7 @@ def getIntervals_0based(intervalfile):
     this will affect the computation of boundary
     '''
     intervals = []
-    with open(intervalfile, 'rb') as fin:
+    with open(intervalfile, 'r') as fin:
         for line in fin:
             fields = line.strip().split('\t')
             # suppose 3rd column is a score

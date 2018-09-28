@@ -88,6 +88,18 @@ then
   fi
 fi
 
+if [ "$pred_prog" == "custom" ]
+then
+  echo "##########################################"
+  echo "Getting gene predictions from custom predictions"
+  if [ ! -f $output_dir/$pred_prog/genome/"$organism".ffn ]
+  then
+    cp $output_dir/"$organism".ffn $output_dir/$pred_prog/genome/"$organism".ffn
+    cp $output_dir/"$organism".faa $output_dir/$pred_prog/genome/"$organism".faa
+    cp $output_dir/"$organism".glist $output_dir/$pred_prog/genome/$organism.glist 
+  fi
+fi
+
 # Get gene/orf list: name, loc, strand
 if [ ! -f $output_dir/$pred_prog/genome/$organism.gene_id ]
 then
@@ -112,5 +124,5 @@ then
     # For NCBI annotation files (new version)
     less $output_dir/$pred_prog/genome/"$organism".faa | grep '^>'  | cut -d'>' -f2 | cut -d' ' -f1 > $output_dir/$pred_prog/genome/$organism.protid
     python $prog_dir/feature/parse_ncbi.py -i $output_dir/$pred_prog/genome/"$organism"_cds_from_genomic.fna -p $output_dir/$pred_prog/genome/$organism.protid -d $output_dir/$pred_prog/genome/$organism.gene_id -l $output_dir/$pred_prog/genome/$organism.glist -g $output_dir/$pred_prog/genome/$organism.ffn
-  fi
+  fi 
 fi

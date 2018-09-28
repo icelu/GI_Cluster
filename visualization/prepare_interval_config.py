@@ -16,7 +16,7 @@ def createConfig(input_file, output_file, programs, oname, name, colors):
     prog_colors=colors[num_prog]
     radius = 0.9-(num_prog-1)*0.1
     i=0
-    with open(input_file, 'rb') as fin, open(output_file, 'w') as fout:
+    with open(input_file, 'r') as fin, open(output_file, 'w') as fout:
         line = fin.readline()
         while line:
             if '# start prog' in line:    # Start of the settings for one program

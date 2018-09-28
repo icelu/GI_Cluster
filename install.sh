@@ -5,6 +5,7 @@ cd GI_Cluster
 prefix=/mnt/projects/lub/workspace/GI_Cluster/program/
 INSTALLDIR=$prefix
 
+#===================================================
 # Sample commands to download and organize the database files.
 # Note that the names of folders and files must be in accord with those in GI_Feature.sh.
 mkdir db
@@ -21,6 +22,7 @@ mkdir -p db/RNA/CMs
 mv Rfam.tar.gz db/RNA
 mv db/RNA/*.cm db/RNA/CMs
 cat *.cm > db/RNA/CMs/Rfam.cm
+cmpress db/RNA/CMs/Rfam.cm
 
 wget http://phast.wishartlab.com/phage_finder/DB/prophage_virus.db
 mkdir db/PHAST

@@ -19,10 +19,10 @@ if(!require(mclust)){
     library(mclust)
 }
 # To include kmeanspp, or kmeans++
-if(!require(LICORS)){
-    install.packages("LICORS")
-    library(LICORS)
-}
+# if(!require(LICORS)){
+#     install.packages("LICORS")
+#     library(LICORS)
+# }
 # To include Kernel Clustering
 if(!require(kernlab)){
     install.packages("kernlab")
@@ -125,25 +125,25 @@ kmeans_clmem <- function(x,clnum,params=list()){
 
 
 #kmeans++
-kmeanspp_clmem <- function(x,clnum,params=list()){
-	params$nstart=25;
-	#add or override the centers number in existing params to the current clnum (resolves potential conflict)
-	if(length(params)==0){
-	  params <- list(k=clnum);
-	}
-	else{
-	  #add or override the centers number in existing params to the current clnum (resolves potential conflict)
-	  params$k=clnum;
-	}
-	params$data <- x;
-	km <- do.call(kmeanspp, params);
-	clmem <- data.frame(km$cluster);
-	names(clmem) <- c('cm');
-
-	res_list=list('clmem'=clmem,'clust_obj'=km);
-	#return(clmem);
-	return(res_list);
-}
+# kmeanspp_clmem <- function(x,clnum,params=list()){
+# 	params$nstart=25;
+# 	#add or override the centers number in existing params to the current clnum (resolves potential conflict)
+# 	if(length(params)==0){
+# 	  params <- list(k=clnum);
+# 	}
+# 	else{
+# 	  #add or override the centers number in existing params to the current clnum (resolves potential conflict)
+# 	  params$k=clnum;
+# 	}
+# 	params$data <- x;
+# 	km <- do.call(kmeanspp, params);
+# 	clmem <- data.frame(km$cluster);
+# 	names(clmem) <- c('cm');
+# 
+# 	res_list=list('clmem'=clmem,'clust_obj'=km);
+# 	#return(clmem);
+# 	return(res_list);
+# }
 
 
 

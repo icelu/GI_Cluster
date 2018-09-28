@@ -25,7 +25,7 @@ def isheader(line):
 
 
 def get_genome_len(genome_file):
-    with open(genome_file, 'rb') as fin:
+    with open(genome_file, 'r') as fin:
         for header, group in itertools.groupby(fin, isheader):
             if not header:
                 sequence = ''.join(line.strip() for line in group)
@@ -81,7 +81,7 @@ def parse_contigs(infile, outfile, width=5000, step=5000):
     output: The positions for a set of non-overlapping windows
     '''
     c = 0
-    with open(infile, 'rb') as fin, open(outfile, 'w') as fout:
+    with open(infile, 'r') as fin, open(outfile, 'w') as fout:
         for header, group in itertools.groupby(fin, isheader):
             if header:
                 c += 1

@@ -25,7 +25,7 @@ def get_data(indir):
         print fname
         positions = []
         width = []
-        with open(fname, 'rb') as fin:
+        with open(fname, 'r') as fin:
             for line in fin:
                 location = line.split()
                 start = int(location[0])

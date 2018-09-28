@@ -26,7 +26,7 @@ return a list of interval tuples
 '''
 def getIntervals(intervalfile):
     intervals = []
-    with open(intervalfile, 'rb') as fin:
+    with open(intervalfile, 'r') as fin:
         for line in fin:
             fields = line.strip().split('\t')
             if len(fields) == 3:
@@ -72,7 +72,7 @@ def writeListOfTupleToFile(filename, list):
 
 
 def assign_cluster(gifile, overlap_intervals, outfile):
-    with open(gifile, 'rb') as fin, open(outfile, 'w') as fout:
+    with open(gifile, 'r') as fin, open(outfile, 'w') as fout:
         for line in fin:
             fields = line.strip().split('\t')
             start = int(fields[1])
@@ -87,7 +87,7 @@ def assign_cluster(gifile, overlap_intervals, outfile):
 
 # assign clusters based on C-data set
 def assign_cluster_cmp(gifile, overlap_pos, overlap_neg, outfile):
-    with open(gifile, 'rb') as fin, open(outfile, 'w') as fout:
+    with open(gifile, 'r') as fin, open(outfile, 'w') as fout:
         for line in fin:
             fields = line.strip().split('\t')
             start = int(fields[1])

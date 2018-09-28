@@ -47,7 +47,7 @@ def get_contig_IDs(infile):
     '''
     id_mapping = {}
     i = 0
-    with open(infile, 'rb') as fin:
+    with open(infile, 'r') as fin:
         for header, group in itertools.groupby(fin, isheader):
             if header:
                 i += 1
@@ -64,7 +64,7 @@ def get_contig_IDs_rev(infile):
     '''
     id_mapping = {}
     i = 0
-    with open(infile, 'rb') as fin:
+    with open(infile, 'r') as fin:
         for header, group in itertools.groupby(fin, isheader):
             if header:
                 i += 1
@@ -82,7 +82,7 @@ def get_contig_gene_IDs(infile):
     '''
     id_mapping = {}
     i = 0
-    with open(infile, 'rb') as fin:
+    with open(infile, 'r') as fin:
         for line in fin:
             i += 1
             name = line.strip()[1:] # Remove leading '>'
@@ -97,7 +97,7 @@ def get_rna_segment(infile):
     if not os.path.exists(infile):
         return {}
     rna_dict = {}
-    with open(infile, 'rb') as fin:
+    with open(infile, 'r') as fin:
         for line in fin:
             fields = line.strip().split('\t')
             coord = ((fields[0]), (fields[1]))
@@ -119,7 +119,7 @@ def get_repeat_segment(infile):
     if not os.path.exists(infile):
         return {}
     repeat_dict = {}
-    with open(infile, 'rb') as fin:
+    with open(infile, 'r') as fin:
         for line in fin:
             fields = line.strip().split('\t')
             coord = ((fields[0]), (fields[1]))

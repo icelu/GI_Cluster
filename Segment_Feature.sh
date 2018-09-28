@@ -80,8 +80,8 @@ echo "##########################################"
 echo "Finding repeats"
 if [ ! -f $output_dir/boundary/$organism.repseek ]
 then
-# repeat is only dependant on the original genome sequence
-repseek -l 15 -O 0 -r $output_dir/boundary/$organism.repseek $output_dir/$organism.fna
+  # repeat is only dependant on the original genome sequence
+  repseek -l 15 -O 0 -r $output_dir/boundary/$organism.repseek $output_dir/$organism.fna
 fi
 fi
 

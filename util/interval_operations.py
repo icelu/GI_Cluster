@@ -19,7 +19,7 @@ def get_orig_intervals(intervalfile):
     Return a list of interval tuples without type conversion
     '''
     intervals = []
-    with open(intervalfile, 'rb') as fin:
+    with open(intervalfile, 'r') as fin:
         for line in fin:
             fields = line.strip().split('\t')
             start = (fields[0])
@@ -34,7 +34,7 @@ def get_intervals(intervalfile):
     Return a list of interval tuples
     '''
     intervals = []
-    with open(intervalfile, 'rb') as fin:
+    with open(intervalfile, 'r') as fin:
         for line in fin:
             fields = line.strip().split('\t')
             start = int(fields[0])
@@ -50,7 +50,7 @@ def get_intervals_contigs(intervalfile):
     Return a list of intervals for each contig
     '''
     intervals = {}
-    with open(intervalfile, 'rb') as fin:
+    with open(intervalfile, 'r') as fin:
         for line in fin:
             fields = line.strip().split('\t')
             p1 = fields[0]

@@ -8,7 +8,11 @@
 #
 # Input:
 # The header of fasta file which contains the predicted genes
-#
+# Header format for genes annoted by NCBI:
+# >gi|225869487|ref|NC_012471.1|:1177219-1177902 Streptococcus equi subsp. equi 4047, complete genome
+# Header format for predicted genes:
+# 0: ">gi_CDS_337-2796" (predictions from NCBI); 1: " 337 # 2796 # 1" or " 45473 # 46630 # -1" (predictions from Prodigal)
+
 # Output:
 #  ID start end strand
 #

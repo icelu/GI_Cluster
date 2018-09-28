@@ -19,7 +19,7 @@ function usage() {
   echo -e "GI-Cluster: detecting genomic islands by consensus clustering on multiple features"
   echo "Version 1.0
 Usage: $software [options] -s [the directory containing all the scripts] -o [the output directory]
--n [the name of the organism (NCBI Accession, e.g. NC_003198)] -m [programs for genome segmation (e.g. window, mjsd, gcprofile, gisvm, alienhunter)] -p [programs for gene prediction (e.g. prodigal, ncbi, ncbi_old, none)]
+-n [the name of the organism (NCBI Accession, e.g. NC_003198)] -m [programs for genome segmation (e.g. window, mjsd, gcprofile, gisvm, alienhunter)] -p [programs for gene prediction (e.g. prodigal, ncbi, ncbi_old, none, custom)]
 
 OPTIONS	Default	DESCIPTION
 -b	0	: mode of running: 0 for complete genome, 1 for incomplete genome (contigs).
@@ -310,5 +310,4 @@ if [ $mode == 0 ] # Only support complete genomes and gene predictions
     echo "Create figures to visualize the predicted genomic islands of different GI prediction methods"
     sh $prog_dir/GI_Comparison.sh -s $prog_dir -o $output_dir -n $organism -m $seg_prog -p $pred_prog
   fi
-
 fi

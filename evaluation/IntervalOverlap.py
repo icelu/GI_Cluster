@@ -61,7 +61,7 @@ def getGeneCoords(intervalfile):
     Return an array of tuples
     '''
     intervals = []
-    with open(intervalfile, 'rb') as fin:
+    with open(intervalfile, 'r') as fin:
         for line in fin:
             fields = line.strip().split('\t')
             coord = (int(float(fields[0])), int(float(fields[1])))
@@ -77,7 +77,7 @@ def getIntervals(intervalfile):
     Assume 1-based coordinates
     '''
     intervals = []
-    with open(intervalfile, 'rb') as fin:
+    with open(intervalfile, 'r') as fin:
         for line in fin:
             fields = line.strip().split('\t')
             if len(fields) == 3:
@@ -99,7 +99,7 @@ def getIntervals_0based(intervalfile):
     Assume 0-based coordinates
     '''
     intervals = []
-    with open(intervalfile, 'rb') as fin:
+    with open(intervalfile, 'r') as fin:
         for line in fin:
             fields = line.strip().split('\t')
             if len(fields) == 3:
@@ -166,7 +166,7 @@ def getGenelocList(infile):
     190..255        +       21      16758994        -       STY0001 -       -       thr operon leader peptide
     '''
     genelist = []
-    with open(infile, 'rb') as fin:
+    with open(infile, 'r') as fin:
         # skip the first 3 lines
         for _ in xrange(3):
             next(fin)
@@ -186,7 +186,7 @@ def getGeneList(infile):
     ID\tStart\tEnd\tStrand
     '''
     genelist = []
-    with open(infile, 'rb') as fin:
+    with open(infile, 'r') as fin:
         for line in fin:
             fields = line.strip().split('\t')
             start = int(fields[1])
