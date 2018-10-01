@@ -151,10 +151,12 @@ if [ $gene_prediction == 1 ] # With gene predictions
 then
   if [ $mode == 1 ] # For contigs with gene predictions
   then
+    echo "  Merging features for contigs with gene predictions"
     python $prog_dir/feature/mergeFeature.py -g $output_dir/$pred_prog/feature/$organism.feature.multi -o $seg_feature1 -s $segs -r $output_dir/$pred_prog/feature/$organism.cmscan.tbl -c -m $output_dir/$organism.fna -d $output_dir/$pred_prog/genome/$organism.gene_id
   fi
   if [ $mode == 0 ] # For complete genome with gene predictions
   then
+      echo "  Merging features for complete genome with gene predictions"
       python $prog_dir/feature/mergeFeature.py -g $output_dir/$pred_prog/feature/$organism.feature.multi -o $seg_feature1 -s $segs -r $output_dir/$pred_prog/feature/$organism.cmscan.tbl
   fi
   # Form the feature matrix for clustering. For kmer,  use the value for each segment directly. No need to distinguish mode
